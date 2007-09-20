@@ -1,0 +1,37 @@
+Version 0.5 was never released. Instead, lo and behold: 0.6.x 
+
+News for 0.6.6
+- fix crash w/ transparency is on but root pixmap is not present
+
+News for 0.6.5
+- fix several memory leaks (thanks to Groleo Marius)
+- fix command line parameters handling 
+- improve handling of max width/height parameters
+- power saving improvements
+
+News for 0.6.4
+- fix memory leak in is_kde_tray_icon() (patch by Sergey Vlasov)
+- fix x86_64 bugs (patch by Sergey Vlasov)
+
+News for 0.6.3
+- add options to tune handling of unusually-sized icons
+  * respect_size_hints: do respect min_width/min_height icon window hints
+  * ignore_icon_resize: force all icons dimentions to be icon_size x icon_size
+- fix nasty layout engine bug (might have stopped icons from appearing in the tray)
+
+News for 0.6.2
+- fixed bug when icons were destroyed during exit 
+
+News for 0.6.1
+- fixed bug with unusually-sized icons
+
+Release highlights:
+ - new layout engine: must be faster and less buggier
+ - some portability improvements
+ - "gravity" rc file directive is obsolete; use "icon_gravity" instead
+ - pixmap background support
+ - MUCH better XEMBED interop
+ - better handling of KDE icons
+ - docbook documentation
+ - boolean arguments are now optional in rc file
+
