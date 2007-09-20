@@ -1,0 +1,74 @@
++ Each icon must have a newly created parent window, which matches its
+  dimentions (for ease of move and for them to be centered ?). 
++ Anvanced grow
++ Reorganize settings (and vars)  
+- Make use of resources (WONTDO)
++ rc file
++ Need to handle unusual sizes of "icons" (and resolve when to force
+  constraints)
++ Make satray survive even if window suddenly dissapears
+  (during some operation, when destroy\unmap was not handled)
++ KDE tray implementation (solves previous problem)
++ Handle tray icon move/resize
++ Simplify rc file syntax/re-reorganize settings
++ main.c cleanup 
++ update transparent/parent background on icon move/resize
++ review DBG() calls in accordance with doc/DEBUG-LEVELS
++ reacquire tray selection after loss (if holder exits) (update sample rc(done))
++ find and fix typos
++ fix (almost all) warnings with -Wall
++ .spec file for building rpms
++ man page
++ tray grow with wnd deco
+
+for 0.4
++ default values in the manpage, MWM/EWMH compliancy must be noted
++ ontop/onbottom/normal (wnd_layer param)
++ xorg7 build troubles
++ more flexible wnd deco specification
++ make use of ewmh spec (_NET_WM_STATE_SKIP_PAGER, _NET_WM_WINDOW_TYPE_DOCK and friends)
++ all configure.in needs review (refuse to build if something goes wrong)
++ update DBG so that it does not require C99
++ *wm tests (pwm(2), e17 have some issues):
+	+ WMaker (everything works)
+	+ Fvwm (for sure)
+	+ PWM(1) (no_{title,border} do not work)
+	+ E17 (the same =()
++ something has happened to vertical layout (all works)
++ tests on sf cf
+	+ now stalonetray can be build with Sun ONE 8 C compiler =) (because it's sources conform to C90 specs)
++ change status to beta =)
+
+
+for 0.5(unreleased, renamed to 0.6)
++ code cleanup (again :() (REVIEW layout.c very thoroughly!!!)
++ fix geometry issues
++ GNUisms in debug.h
++ icons are not aligned properly inside their mid-parents
++ basename can be either in libgen.h or in string.h o_O : XPG ver from libgen.h was chosen
++ update manpages, etc (docbook for documentation ?)
++ fix default rc file name
++ backtrace in configure.in is not detected ?
++ make boolean cfg file opts to have _optional_ argument
++ make permanent behaviour default and remove it from configuration
++ default values in documentation
++ validate stalonetray.xml
++ collect icons on startup (test, KDE icons issue) needs XEMBED ?!!!
++ Full XEMBED implementation (?)
++ issue with composite extension on (seq1,2)
++ version info
++ pixmap bg
++ check rc keyword names for concistency and update stalonetrayrc.sample
+- PORTING
+- test non-debug version
+* fix the website for IE (and colors)
+
+for 0.7
+- consistent naming scheme for funcs
+- one state instead of multiple flags for icons
+- get rid of XSync's
+- standars-compiant support for KDE icons (via _KDE_NET_SYSTEM_TRAY_WINDOWS)
+- split main.c into: signals.c events.c main.c
+- DOXYGEN documentation
+- comments
+- wmaker mode

@@ -1,0 +1,5 @@
+stalone tray 0.5 highlights:
+ - new layout engine: must be better and less buggier
+ - some portability improvements
+ - "gravity" rc file directive is obsolete user "icon_gravity" instead
+

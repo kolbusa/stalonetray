@@ -1,0 +1,5 @@
+#!/bin/sh
+./tray-test-fdo -w 22 -h 22 -c blue >/dev/null 2>&1 &
+./tray-test-fdo -w 22 -h 22 -c green >/dev/null 2>&1 &
+./tray-test-fdo -w 22 -h 22 -c red >/dev/null 2>&1 &
+./tray-test-fdo -w 105 -h 22 -c yellow >/dev/null 2>&1 &

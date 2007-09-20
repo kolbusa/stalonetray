@@ -1,0 +1,11 @@
+			STAnd aLOne TRAY
+
+stalontray is a stand-alone (with respect to build and runtime deps)
+system tray, featuring xembed implementation (though it is not full yet).
+Can be run under virtually any window manager.
+
+Build-deps: Xlib, gcc. License: GPL (see COPYING). 
+
+Roman S Dubtsov (<busa-at-academ.org>)
+
+How to help: see TODO file and TODOs, XXXs and FIXMEs in sources if you want to.

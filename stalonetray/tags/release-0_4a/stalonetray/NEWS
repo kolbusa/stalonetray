@@ -1,0 +1,6 @@
+stalone tray 0.4 highlights:
+ - support for ewmh features (see manpage for more info)
+ - improved support for mwm features
+ - better portability
+ - status is changed to beta
+

@@ -1,0 +1,19 @@
+			STAnd aLOne TRAY
+
+
+Description: the stalonetray is a STAnd-aLONE system TRAY (notification area).
+It has minimal build and run-time dependencies: the Xlib only. The XEMBED
+support is planned. Stalonetray runs under virtually any window manager.
+
+To start using stalonetray, just copy stalonetrayrc.sample to ~/.stalonetrayrc.
+It is well-commented and should suffice for a quick start.
+
+Build-deps: Xlib, libc, cc. 
+
+License: GPL (see COPYING). 
+
+Reporting bugs: If you have found a bug: try to reproduce it with debug level
+set to 8 (cf stalonetray --help and/or stalonetrayrc.sample) and send the log
+file to me.
+
+How to help: see TODO file and TODOs, XXXs and FIXMEs in sources if you want to.

@@ -1,0 +1,5 @@
+stalone tray 0.2 highlights
+ - native kde tray icons support
+ - support for unusially-sized icons
+ - support for icons that change their sizez
+ - rc file

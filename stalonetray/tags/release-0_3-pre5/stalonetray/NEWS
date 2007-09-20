@@ -1,0 +1,11 @@
+stalone tray 0.3 highlights
+ - bugfixes/stability improvements
+ - new bugs
+ - root transparency support
+
+stalone tray 0.2 highlights
+ - native kde tray icons support
+ - support for unusially-sized icons
+ - support for icons that change their sizez
+ - rc file (copy stralonetrayrc.sample to ~/.stalonetrayrc)
+ - debug mode is on by default

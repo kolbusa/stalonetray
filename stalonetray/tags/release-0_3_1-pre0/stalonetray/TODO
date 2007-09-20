@@ -1,0 +1,37 @@
++ Each icon must have a newly created parent window, which matches its
+  dimentions (for ease of move and for them to be centered ?). 
++ Anvanced grow
++ Reorganize settings (and vars)  
+- Make use of resources (WONTDO)
++ rc file
++ Need to handle unusual sizes of "icons" (and resolve when to force
+  constraints)
++ Make satray survive even if window suddenly dissapears
+  (during some operation, when destroy\unmap was not handled)
++ KDE tray implementation (solves previous problem)
++ Handle tray icon move/resize
++ Simplify rc file syntax/re-reorganize settings
++ main.c cleanup 
++ update transparent/parent background on icon move/resize
++ review DBG() calls in accordance with doc/DEBUG-LEVELS
++ reacquire tray selection after loss (if holder exits) (update sample rc(done))
++ find and fix typos
++ fix (almost all) warnings with -Wall
++ .spec file for building rpms
++ man page
++ tray grow with wnd deco
+
+for 0.4
++ default values in the manpage, MWM/EWMH compliancy must be noted
+- ontop/onbottom/normal (wnd_layer param)
+- *wm tests (pwm(2), e17 have some issues)
+- xorg7 build troubles
++ more flexible wnd deco specification
+? make use of ewmh spec (_NET_WM_STATE_SKIP_PAGER, _NET_WM_WINDOW_TYPE_DOCK and friends)
+- all configure.in needs review (refuse to build if something goes wrong)
+
+
+for 0.5
+- wmaker mode
+- code cleanuo (again :()
+- Full XEMBED implementation (?)

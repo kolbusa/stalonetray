@@ -1,0 +1,4 @@
+bug list as for 0.2-pre1
+#3 tray_grow with WM deco on (for 0.3)
+#2 FIXED: SISEGVs on exit (cleanup() is responsible)
+#1 seq1 failes (too fast ?)

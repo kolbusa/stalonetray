@@ -1,0 +1,3 @@
++ too much focus changes in tray-test-gtk
++ gtk icons try 32x32 size first. But sometimes, they resize themselves _after_ they were reparented...
++ WHO BROKE XEMBED IMPLEMENTATION ?!!!

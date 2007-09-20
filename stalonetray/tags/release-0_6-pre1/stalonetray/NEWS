@@ -1,0 +1,11 @@
+StaloneTray 0.5 was never released. Instead, there is version 0.6
+
+Release highlights:
+ - new layout engine: must be better and less buggier
+ - some portability improvements
+ - "gravity" rc file directive is obsolete user "icon_gravity" instead
+ - MUCH better XEMBED interop
+ - better handling of KDE icons
+ - docbook documentation
+ - boolean arguments are now optional
+

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+[[ $# -gt 0 ]] && num=$1
+[[ $# -eq 0 ]] && num=2
+
+for ((ts=0; $ts < $num; ts=ts+1)); do
+	./tray-test-fdo &
+done
+
+echo
+echo

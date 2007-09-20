@@ -1,0 +1,19 @@
++ Each icon must have a newly created parent window, which matches its
+  dimentions (for ease of move and for them to be centered ?). 
++ Anvanced grow
++ Reorganize settings (and vars)  
+- Make use of resources (WONTDO)
++ rc file
++ Need to handle unusual sizes of "icons" (and resolve when to force
+  constraints)
+- Full XEMBED implementation (?)
++ Make satray survive even if window suddenly dissapears
+  (during some operation, when destroy\unmap was not handled)
++ KDE tray implementation (solves previous problem)
++ Handle tray resize
+? Handle tray icon move/resize
++ Simplify rc file syntax/re-reorganize settings
++ main.c cleanup 
+? update transparent/parent background on icon move/resize
++ review DBG() calls in accordance with doc/DEBUG-LEVELS
+- reacquire tray selection after loss (if holder exits) (update sample rc(done))
