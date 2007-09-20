@@ -1,6 +1,0 @@
-* Make satray survive even if window suddenly dissapears
-  (during some operation, when destroy\unmap was not handled)
-* Find out what's the problem with kde dockapps (they add\remove
-  their icon several times). Is it a bug in kdetrayproxy or not?
-  Need some workarounds...
-* Debug output redirection
