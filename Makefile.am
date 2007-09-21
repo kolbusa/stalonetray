@@ -29,8 +29,8 @@ stalonetray.1: stalonetray.xml
 stalonetray.html: stalonetray.xml
 	xsltproc /usr/share/xml/docbook/stylesheet/nwalsh/xhtml/docbook.xsl stalonetray.xml > stalonetray.html
 
-ChangeLog: CVS/Entries src/CVS/Entries
-	cvs2cl -P --fsf -S
+ChangeLog: .svn/entries src/.svn/entries
+	svn2cl 
 
 #docdir=$(datadir)/doc/$(PACKAGE)/
 #install-data-local:
