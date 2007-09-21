@@ -1,0 +1,16 @@
++ send a message after embedding for confirmation
++ add_icon -> allocate_icon, del_icon -> deallocate_icon
++ is_something for props
++ remove mid-parent from layout, it does not belong there
++ add_icon, remove_icon, show_icon, hide_icon
++ track _XEMBED_INFO (add icons as hidden, if _XEMBED_INFO & XEMBED_MAPPED == 0)
++ collect kde icons at startup unconditionally
++ at startup mark all kde icons which have non-root parent as non-collectable 
++ get icon geometry from normal size hints
++ get rid of tray_check_grow and friends: use grid_max_size instead
++ xembed info data should be the part of icon data, so that xembed_check_support wont query wnd properties twice
+- make parsing utilites accept lists of targets, may be implemented via void **.
+- recalc. grid size while handling icon resize
+- placement search code needs review
+- choose_best_placement: grid size changes have higher priority than window size
+- instead of setting exit flag, send self an exit mesage (will this work _inside_ sighandler?)
