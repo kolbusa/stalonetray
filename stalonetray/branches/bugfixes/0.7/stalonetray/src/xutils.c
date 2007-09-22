@@ -319,16 +319,15 @@ const char *x11_event_names[LASTEvent] = {
 	"MappingNotify"
 };
 
-#define ENABLE_DUMP_WIN_INFO
 void x11_dump_win_info(Display *dpy, Window wid)
 {	
 #if defined(DEBUG) && defined(ENABLE_DUMP_WIN_INFO)
 	if (settings.dbg_level >= 8) {
 		char cmd[PATH_MAX];
 		DBG(8, ("Dumping info for 0x%x\n", wid));
-		snprintf(cmd, PATH_MAX, "xwininfo -size -bits -stats -id 0x%x\n", (unsigned int) wid);
+		snprintf(cmd, PATH_MAX, "xwininfo -size -bits -stats -id 0x%x 1>&2\n", (unsigned int) wid);
 		system(cmd);
-		snprintf(cmd, PATH_MAX, "xprop -id 0x%x\n", (unsigned int) wid);
+		snprintf(cmd, PATH_MAX, "xprop -id 0x%x 1>&2\n", (unsigned int) wid);
 		system(cmd);
 	}
 #endif
