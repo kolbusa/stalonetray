@@ -153,6 +153,11 @@ void add_icon(Window w, int cmode)
 	ti = icon_list_new(w, cmode);
 	if (ti == NULL) return;
 
+#ifdef DEBUG
+	DBG(6, ("starting embedding process for 0x%x with cmode=%d\n", w, cmode));
+	x11_dump_win_info(tray_data.dpy, w);
+#endif
+
 	if (!xembed_check_support(ti)) goto failed1;
 	
 	if (ti->is_xembed_supported)
@@ -457,9 +462,6 @@ void client_message(XClientMessageEvent ev)
 			/* This is the starting point of NET SYSTEM TRAY protocol */
 			case SYSTEM_TRAY_REQUEST_DOCK:
 				DBG(3, ("dockin' requested by 0x%x, serving in a moment\n", ev.data.l[2]));
-#ifdef DEBUG
-				x11_dump_win_info(tray_data.dpy, ev.data.l[2]);
-#endif
 #ifndef NO_NATIVE_KDE
 				if (kde_tray_check_for_icon(tray_data.dpy, ev.data.l[2])) cmode = CM_KDE;
 				if (kde_tray_is_old_icon(ev.data.l[2])) kde_tray_old_icons_remove(ev.data.l[2]);
