@@ -523,13 +523,6 @@ void parse_rc()
 		return;
 	}
 
-#define VALIDATE_ARGS_NUM(p) do { \
-	if (argc - 1 > (p->takes_arg ? 1 : 0) || (!p->optional_arg && argc - 1 < 1)) { \
-		ERR(("Rc file parse error at %s:%d: invalid number of args for \"%s\" (%s required)\n", settings.config_fname, lnum, argv[0], p->optional_arg ? "0/1" : "1" )); \
-		break; \
-	} \
-} while(0)
-
 	/* 3. Read the file line by line */
 	buf[READ_BUF_SZ] = 0;
 	while (!feof(cfg)) {
@@ -540,21 +533,27 @@ void parse_rc()
 		}
 
 		if (!get_args(buf, &argc, &argv)) {
-			DIE(("Rc file parse error at %s:%d: could not parse line\n", settings.config_fname, lnum));
+			DIE(("rc file parse error at %s:%d: could not parse line\n", settings.config_fname, lnum));
 		}
 		if (!argc) continue; /* This is empty/comment-only line */
 
 		match = NULL;
 		for (p = params; p->parser != NULL; p++) {
 			if (p->rc_name != NULL && strcmp(argv[0], p->rc_name) == 0) {
-				VALIDATE_ARGS_NUM(p);
+				if (argc - 1 > (p->takes_arg ? 1 : 0) || (!p->optional_arg && argc - 1 < 1)) 
+					DIE(("rc file parse error at %s:%d:" 
+								"invalid number of args for \"%s\" (%s required)\n", 
+								settings.config_fname, 
+								lnum, 
+								argv[0], 
+								p->optional_arg ? "0/1" : "1" )); 
 				match = p;
 				arg = (!p->takes_arg || (p->optional_arg && argc == 1)) ? p->default_arg_val : argv[1];
 				break;
 			}
 		}
 		if (!match) {
-			DIE(("Rc file parse error at %s:%d: unrecognized rc file keyword \"%s\".\n", settings.config_fname, lnum, argv[0]));
+			DIE(("rc file parse error at %s:%d: unrecognized rc file keyword \"%s\".\n", settings.config_fname, lnum, argv[0]));
 		}
 		assert(arg != NULL);
 		
