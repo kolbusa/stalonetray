@@ -6,10 +6,17 @@
 * embedding cycle implementation
 * -------------------------------*/
 
+#include "config.h"
+
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
+#include <unistd.h>
 #include <assert.h>
+
+#ifdef DELAY_EMBEDDING_CONFIRMATION
+#include <pthread.h>
+#endif
 
 #include "embed.h"
 
@@ -27,6 +34,25 @@
 	x_ = (ti_->l.icn_rect.w - ti_->l.wnd_sz.x) / 2; \
 	y_ = (ti_->l.icn_rect.h - ti_->l.wnd_sz.y) / 2; \
 } while (0);
+
+#ifdef DELAY_EMBEDDING_CONFIRMATION
+void *send_delayed_confirmation(void *dummy)
+{
+	struct TrayIcon* ti = (struct TrayIcon *) dummy;
+	DBG(8, ("delayed embedding confirmation thread is here; sleeping for 3 seconds\n"));
+	sleep(3);
+	DBG(8, ("sending embedding confirmation\n"));
+	x11_send_client_msg32(tray_data.async_dpy, 
+			tray_data.tray, 
+			tray_data.tray, 
+			tray_data.xa_tray_opcode, 
+			0, 
+			STALONE_TRAY_DOCK_CONFIRMED, 
+			ti->wid, 0, 0);
+	XSync(tray_data.async_dpy, False);
+	pthread_exit(NULL);
+}
+#endif
 
 int embedder_embed(struct TrayIcon *ti)
 {
@@ -72,6 +98,7 @@ int embedder_embed(struct TrayIcon *ti)
 	/* 4. Show mid-parent */
 	XMapRaised(tray_data.dpy, ti->mid_parent);
 
+#ifndef DELAY_EMBEDDING_CONFIRMATION
 	/* 5. Send message confirming embedding */
 	x11_send_client_msg32(tray_data.dpy, 
 			tray_data.tray, 
@@ -80,8 +107,15 @@ int embedder_embed(struct TrayIcon *ti)
 			0, 
 			STALONE_TRAY_DOCK_CONFIRMED, 
 			ti->wid, 0, 0);
+#else
+	/* This is here for debugging purposes */
+	{
+		pthread_t delayed_thread;
+		pthread_create(&delayed_thread, NULL, send_delayed_confirmation, (void *) ti);
+	}
+#endif
 
-	/* 6. Start listening events on icon window */
+	/* 6. Start listening for events on icon window */
 	XSelectInput(tray_data.dpy, ti->wid, StructureNotifyMask | PropertyChangeMask);
 
 	/* 7. We're done */
