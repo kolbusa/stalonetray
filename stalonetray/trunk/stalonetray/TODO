@@ -92,3 +92,7 @@ for 0.7.1
 - track size changes of the icons that failed to fit into the tray?
 - profile the code 
 - valgrind
+
+for 0.8/0.9
+- RENDER implementation of tinting/compositing
+- scrollable tray area? (see http://wnd.katei.fi/weblog/entry-7)
