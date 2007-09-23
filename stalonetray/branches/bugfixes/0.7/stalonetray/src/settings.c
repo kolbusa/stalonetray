@@ -72,6 +72,10 @@ void init_default_settings()
 	settings.start_withdrawn    = 0;
 	settings.ignore_icon_resize = 0;
 	settings.respect_icon_hints = 0;
+
+#ifdef DELAY_EMBEDDING_CONFIRMATION
+	settings.confirmation_delay = 3;
+#endif
 }
 
 /* ******* general parsing utils ********* */
@@ -242,6 +246,9 @@ struct Param params[] = {
 #endif
 	{"-bg", "--background", "background", &settings.bg_color_str, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
 	{"-c", "--config", NULL, &settings.config_fname, (param_parser_t) &parse_copystr, 0, 1, 0, NULL},
+#ifdef DELAY_EMBEDDING_CONFIRMATION
+	{NULL, "--confirmation-delay", "confirmation_delay", &settings.confirmation_delay,  (param_parser_t) &parse_int, 1, 1, 0, NULL},
+#endif
 	{"-d", "--decorations", "decorations", &settings.deco_flags, (param_parser_t) &parse_deco, 1, 1, 1, "all"},
 	{"-f", "--fuzzy-edges", "fuzzy_edges", &settings.fuzzy_edges, (param_parser_t) &parse_int, 1, 1, 1, "2"},
 	{"-geometry", "--geometry", "geometry", &settings.geometry_str, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
