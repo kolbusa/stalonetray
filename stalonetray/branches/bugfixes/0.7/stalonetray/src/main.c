@@ -356,7 +356,9 @@ void perform_periodic_tasks()
 
 void expose(XExposeEvent ev)
 {
+	/* Too much flicker
 	if (ev.window == tray_data.tray) tray_refresh_window(False);
+	*/
 }
 
 void visibility_notify(XVisibilityEvent ev)
@@ -632,9 +634,7 @@ void unmap_notify(XUnmapEvent ev)
 {
 	struct TrayIcon *ti;
 	ti = icon_list_find(ev.window);
-	if (ti != NULL && !ti->is_invalid && 
-		ti->is_embedded && ti->cmode == CM_KDE && ti->is_visible)
-	{
+	if (ti != NULL && !ti->is_invalid && ti->cmode == CM_KDE) {
 		/* KLUDGE! sometimes KDE icons occasionally 
 		 * unmap their windows, but do _not_ destroy 
 		 * them. We map those windows back */
