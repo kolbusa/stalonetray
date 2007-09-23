@@ -39,8 +39,8 @@
 void *send_delayed_confirmation(void *dummy)
 {
 	struct TrayIcon* ti = (struct TrayIcon *) dummy;
-	DBG(8, ("delayed embedding confirmation thread is here; sleeping for 3 seconds\n"));
-	sleep(3);
+	DBG(8, ("delayed embedding confirmation thread is here; sleeping for %d seconds\n", settings.confirmation_delay));
+	sleep(settings.confirmation_delay);
 	DBG(8, ("sending embedding confirmation\n"));
 	x11_send_client_msg32(tray_data.async_dpy, 
 			tray_data.tray, 
@@ -66,6 +66,9 @@ int embedder_embed(struct TrayIcon *ti)
 		XSelectInput(tray_data.dpy, ti->wid, PropertyChangeMask);
 		return SUCCESS;
 	}
+	
+	/* 0. Start listening for events on icon window */
+	XSelectInput(tray_data.dpy, ti->wid, StructureNotifyMask | PropertyChangeMask);
 
 	/* 1. Calculate position of mid-parent window */
 	CALC_INNER_POS(x, y, ti);
@@ -114,9 +117,6 @@ int embedder_embed(struct TrayIcon *ti)
 		pthread_create(&delayed_thread, NULL, send_delayed_confirmation, (void *) ti);
 	}
 #endif
-
-	/* 6. Start listening for events on icon window */
-	XSelectInput(tray_data.dpy, ti->wid, StructureNotifyMask | PropertyChangeMask);
 
 	/* 7. We're done */
 	DBG(3, ("success\n"));
