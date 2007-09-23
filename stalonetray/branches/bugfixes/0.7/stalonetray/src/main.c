@@ -42,8 +42,6 @@
 #include "settings.h"
 #include "tray.h"
 
-#define TRACE_EVENTS
-
 struct TrayData tray_data;
 
 static int tray_status_requested = 0;
@@ -148,7 +146,13 @@ void add_icon(Window w, int cmode)
 	struct TrayIcon *ti;
 
 	/* Aviod adding duplicates */
-	if (icon_list_find(w) != NULL) return;
+	if ((ti = icon_list_find(w)) != NULL) {
+		DBG(4, ("ignoring second request to embed 0x%x (requested cmode=%d, current cmode=%d\n",
+					w,
+					cmode,
+					ti->cmode));
+		return;
+	}
 	/* Dear Edsger W. Dijkstra, I see you behind my back =( */
 	ti = icon_list_new(w, cmode);
 	if (ti == NULL) return;
@@ -624,6 +628,23 @@ void map_notify(XMapEvent ev)
 #endif
 }
 
+void unmap_notify(XUnmapEvent ev)
+{
+	struct TrayIcon *ti;
+	ti = icon_list_find(ev.window);
+	if (ti != NULL && !ti->is_invalid && 
+		ti->is_embedded && ti->cmode == CM_KDE && ti->is_visible)
+	{
+		/* KLUDGE! sometimes KDE icons occasionally 
+		 * unmap their windows, but do _not_ destroy 
+		 * them. We map those windows back */
+		/* XXX: root cause unidentified */
+		DBG(8, ("Unmap KDE icons KLUDGE for 0x%x\n", ti->wid));
+		XMapRaised(tray_data.dpy, ti->wid);
+		if (!x11_ok()) ti->is_invalid = True;
+	}
+}
+
 /*********************************************************/
 int main(int argc, char** argv)
 {
@@ -719,9 +740,13 @@ int main(int argc, char** argv)
 		case SelectionRequest:
 			DBG(5, ("SelectionRequest (from 0x%x to 0x%x)\n", ev.xselectionrequest.requestor, ev.xselectionrequest.owner));
 			break;
+		case UnmapNotify:
+			DBG(7, ("UnmapNotify(0x%x)\n", ev.xunmap.window));
+			unmap_notify(ev.xunmap);
+			break;
 		default:
 #if defined(DEBUG) && defined(TRACE_EVENTS)
-			DBG(8, ("Unhandled event: %s, serial: %d\n", x11_event_names[ev.type], ev.xany.serial));
+			DBG(8, ("Unhandled event: %s, serial: %d, window: 0x%x\n", x11_event_names[ev.type], ev.xany.serial, ev.xany.window));
 #endif
 			break;
 		}
