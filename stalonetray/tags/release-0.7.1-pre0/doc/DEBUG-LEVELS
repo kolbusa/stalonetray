@@ -1,0 +1,10 @@
+0: Error condition (prevents icon from embedding), icon state changes
+1: Recoverable error (does not prevent icon from embedding)
+2: X events (1st class) (unused)
+3: Info level 1 (1st class func call/result)
+4: Info level 2 (2nd class func call/result, 1st class func instruction)
+5: X events (2nd class)
+6: Info level 3 (2nd class func instruction, icon data info)
+7: X events (3rd class)
+8: Trace (placement, etc)
+9: Internal tracing, you should not see that anyway =)
