@@ -356,9 +356,8 @@ void perform_periodic_tasks()
 
 void expose(XExposeEvent ev)
 {
-	/* Too much flicker
-	if (ev.window == tray_data.tray) tray_refresh_window(False);
-	*/
+	if (ev.window == tray_data.tray && settings.parent_bg) 
+		tray_refresh_window(False);
 }
 
 void visibility_notify(XVisibilityEvent ev)
