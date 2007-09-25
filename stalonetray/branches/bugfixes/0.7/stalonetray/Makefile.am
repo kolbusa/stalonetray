@@ -30,6 +30,7 @@ stalonetray.html: stalonetray.xml
 	xsltproc /usr/share/xml/docbook/stylesheet/nwalsh/xhtml/docbook.xsl stalonetray.xml > stalonetray.html
 
 ChangeLog: .svn/entries src/.svn/entries
+	svn update
 	svn2cl --linelen=90 --break-before-msg=2
 
 #docdir=$(datadir)/doc/$(PACKAGE)/
