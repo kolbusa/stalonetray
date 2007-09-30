@@ -1,9 +1,0 @@
-0.7.1 news:
-- fix crash on invalid rc file (debian bug #443543)
-- fix occasional KDE icons dissapearance (sf.net bug #1676375)
-
-0.7 release highlights:
-- tinting and fuzzy edges
-- layout improvements
-- XEMBED imlementation fixes
-- massive code cleanup

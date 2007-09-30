@@ -1,5 +1,0 @@
-#!/bin/sh
-./tray-test-fdo -w 22 -h 22 -c blue 2>&1 &
-./tray-test-fdo -w 22 -h 22 -c green  2>&1 &
-./tray-test-fdo -w 22 -h 22 -c red 2>&1 &
-./tray-test-fdo -w 22 -h 22 -c yellow 2>&1 &
