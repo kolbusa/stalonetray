@@ -1,0 +1,24 @@
++ too much focus changes in tray-test-gtk
++ gtk icons try 32x32 size first. But sometimes, they resize themselves _after_ they were reparented...
++ WHO BROKE XEMBED IMPLEMENTATION ?!!!
+- use circular list for icons? (WHY?!)
++ property sizes can vary... we need a way to know the size of the prop. on the server...
++ ti->is_invalid is in many random places. that's bad, need to fix this
++ optinal parameters are broken ?
++ breaks on workrave 
++ icon repaint is broken (now there's too much flicker)
++ implement clipping in background update routine
++ bg is not updated on wallp change with -p mode
++ icons are invisible unless they are forced to be redrawn...
++ rethink cleanup code usage; things like cleanup(); exit(0); should be removed.
++ hangs during exit (during XSync: must deside when do not call it)
++ help message is not in sync with the available commands
++ stdint is not available everywhere (replaced with CARD8/CARD16/CARD32)
++ strange behaviour while re-acquiring activity
++ wazzup with klipper?
++ default gravities
++ vertical mode
++ remove_icon + shrink_back is broken ?
++ failed to update background on wallp. change (e17 is to blame: no root pmap property)
+- break long string in usage() 
+- grow issues (in 0.8) (seems like FVWM/(xserver?) bug, documented in BUGS, KLUDGE developed, to be resolved later)
