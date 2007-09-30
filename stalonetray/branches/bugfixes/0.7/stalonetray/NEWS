@@ -1,5 +1,8 @@
+0.7.2 news
+- fix typo in parameter name for maximal tray height (Debian bug #444717)
+
 0.7.1 news:
-- fix crash on invalid rc file (debian bug #443543)
+- fix crash on invalid rc file (Debian bug #443543)
 - fix occasional KDE icons dissapearance (sf.net bug #1676375)
 
 0.7 release highlights:
