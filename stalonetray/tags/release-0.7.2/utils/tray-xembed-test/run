@@ -1,6 +1,0 @@
-#!/bin/sh
-
-./tray-xembed-test &
-./tray-xembed-test -n &
-./tray-xembed-test &
-./tray-xembed-test -n &
