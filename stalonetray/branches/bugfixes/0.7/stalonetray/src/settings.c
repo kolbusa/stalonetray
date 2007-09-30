@@ -258,7 +258,7 @@ struct Param params[] = {
 	{NULL, "--ignore-icon-resize", "ignore_icon_resize", &settings.ignore_icon_resize, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
 	{"-h", "--help", NULL, &settings.need_help, (param_parser_t) &parse_bool, 0, 0, 0, "true"},
 	{NULL, "--max-width", "max_width", &settings.max_tray_width, (param_parser_t) &parse_int, 1, 1, 0, NULL},
-	{NULL, "--man-height", "max_height", &settings.max_tray_height, (param_parser_t) &parse_int, 1, 1, 0, NULL},
+	{NULL, "--max-height", "max_height", &settings.max_tray_height, (param_parser_t) &parse_int, 1, 1, 0, NULL},
 	{NULL, "--no-shrink", "no_shrink", &settings.shrink_back_mode, (param_parser_t) &parse_bool_rev, 1, 1, 1, "true"},
 	{"-p", "--parent-bg", "parent_bg", &settings.parent_bg, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
 #ifdef XPM_SUPPORTED
