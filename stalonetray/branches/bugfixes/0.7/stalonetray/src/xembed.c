@@ -534,10 +534,12 @@ int xembed_retrive_data(struct TrayIcon *ti)
 {
 	Atom act_type;
 	int act_fmt;
-	unsigned long nitems, bytesafter;
+	unsigned long nitems, bytesafter, *data;
 	unsigned char *tmpdata;
 	int rc;
-	XGetWindowProperty(tray_data.dpy,
+	/* NOTE: x11_get_win_prop32 is not used since we need to distinguish between
+	 * X11 errors and absence of the property */
+	rc = XGetWindowProperty(tray_data.dpy,
 					   ti->wid,
 					   tray_data.xembed_data.xa_xembed_info,
 					   0,
@@ -549,11 +551,12 @@ int xembed_retrive_data(struct TrayIcon *ti)
 					   &nitems,
 					   &bytesafter,
 					   &tmpdata);
-	if (!x11_ok()) return XEMBED_RESULT_X11ERROR;
-	rc = (x11_ok() && act_type == tray_data.xembed_data.xa_xembed_info && nitems == 2);
+	if (!x11_ok() || rc != Success) return XEMBED_RESULT_X11ERROR;
+	rc = (act_type == tray_data.xembed_data.xa_xembed_info && nitems == 2);
 	if (rc) {
-		ti->xembed_data[0] = ((CARD32 *) tmpdata)[0];
-		ti->xembed_data[1] = ((CARD32 *) tmpdata)[1];
+		data = (unsigned long*) tmpdata;
+		ti->xembed_data[0] = data[0];
+		ti->xembed_data[1] = data[1];
 	}
 	if (nitems && tmpdata != NULL) XFree(tmpdata);
 	return rc ? XEMBED_RESULT_OK : XEMBED_RESULT_UNSUPPORTED;
