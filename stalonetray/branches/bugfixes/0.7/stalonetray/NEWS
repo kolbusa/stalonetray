@@ -1,3 +1,6 @@
+0.7.3 news
+- fix freedesktop.org icons support on amd64 (Debian bug #445056)
+
 0.7.2 news
 - fix typo in parameter name for maximal tray height (Debian bug #444717)
 
