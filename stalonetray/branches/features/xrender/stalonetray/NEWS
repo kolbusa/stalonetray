@@ -1,0 +1,5 @@
+0.7 release highlights
+- tinting and fuzzy edges
+- layout improvements
+- XEMBED imlementation fixes
+- massive code cleanup

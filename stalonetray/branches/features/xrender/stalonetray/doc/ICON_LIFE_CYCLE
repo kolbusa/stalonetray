@@ -1,0 +1,93 @@
+vim:tw=80
+
+OBSILETE, needs update
+
+0. BASIC INFO
+
+The tray uses three-layered scheme, i.e.
+
++-----------------------------------+
+|tray window                        |
+|+------------------+               |
+||mid-parent        |               |
+||+-------------+   |               |
+|||icon`s window|   |               |
+||+-------------+   |               |
+|+------------------+               |
++-----------------------------------+
+
+The main principle: if the tray was in "good" state the next state also must be
+"good". The initial state is considered to be "good".
+
+1. START
+
+When tray recieves appropriate client message, it starts embedding cycle for the
+specified window in the freedesktop.org compatibility mode (cmode == CM_FDO). If
+(in the same time) the specified window appears to be a KDE tray icon, its
+compatibility mode is set to KDE (cmode == CM_KDE).
+
+KDE tray icons are detected when they are mapped using check_kde_tray_icon().
+They are embedded with cmode == CM_KDE.
+
+Even if the window does not fit into the tray, or something else prevents it
+from embedding, the window stays in the icon list until it is destroyed, since
+the icon can (later) resize itself and (may) be successfully embedded.
+
+The embedding process:
+
+1. The data structure for the icon is allocated
+2. The icon is added to the layout. 
+3. The mid-parent is created and the icon is reparented into it.
+4. Positions of icons are updated
+
+If the error occurs on the stage 1 (oom condition) the tray dies, otherwise,
+embedding is aborted, but, as said before, the icon data is not discarded.
+
+2. RESPONSES TO THE EVENTS
+
+2.1. Icon reconfigured
+
+If the icon size has not changed, no actions are performed. If the minimal grid
+rectangle the icon's window fits in has not changed, only the icon's window
+position inside the rect is adjusted. In all other cases, the following actions
+are performed.
+
+A: If the icon is layed out
+
+1. The current icon list is backed up.
+2. Current icon and all icons that follow it (w.r.t. to the current layout and
+gravity settings) temporarily removed from the layout.
+3. One-by-one icons are added back to the layout. If at some point this process
+fails, the layout is restored from the backup and no further actions are taken.
+4. Positions of icons are updated.
+
+B: Else
+
+The actions 2-4 from the embedding process are performed.
+
+2.2. Icon reparented
+
+If the target winow is icon's midparent, then this means that icon has
+accomplished the embedding process. Otherwise, this is considered to be the
+start of unembedding process:
+
+1. The icon's window is moved out of the tray (if it is not alreay there)
+2. The icon is removed from the layout and the layout is updated in the manner
+similar to 2.1.A:
+2.1. All icons that follow the current one are removed from the layout
+2.2. They are added one-by-one back
+3. Icon data is freed
+
+Steps 2.{1,2} are safe (w.r.t. to the principle stated in the top of this file)
+because there's already enough space in the layout for these icons.
+
+2.2. Icon window destroyed/unmapped
+
+The corressponding icon is removed from the tray by perfoming sutable actions
+from the unembedding process.
+
+3. END
+
+When the tray exists it removes all the icons from itself (using the fast
+version of the unembedding proccess). 
+
