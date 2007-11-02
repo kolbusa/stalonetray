@@ -26,10 +26,6 @@ void kde_tray_init(Display *dpy)
 	Window *client_windows;
 	Atom xa_net_client_list;
 
-	/* If theres no previous tray selection owner, try to embed all available
-	 * KDE icons and, therefore, leave the list of old KDE icons empty */
-	if (tray_data.old_selection_owner == None) return;
-
 	/* Get the contents of KDE_NET_SYSTEM_TRAY_WINDOWS root window property.
 	 * All windows that are listed there are considered to be "old" KDE icons,
 	 * i.e. icons that are to be ignored on the tray startup.
@@ -42,6 +38,10 @@ void kde_tray_init(Display *dpy)
 		tray_data.kde_tray_old_mode = 1;
 		return;
 	}
+
+	/* If theres no previous tray selection owner, try to embed all available
+	 * KDE icons and, therefore, leave the list of old KDE icons empty */
+	if (tray_data.old_selection_owner == None) return;
 
 	/* Next, we are going to remove some entries from old_kde_icons list */
 
