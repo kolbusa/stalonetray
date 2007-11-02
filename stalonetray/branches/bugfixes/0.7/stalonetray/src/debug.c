@@ -15,6 +15,11 @@
 #include <limits.h>
 #include <stdarg.h>
 
+#ifdef DBG_PRINT_PID
+#include <sys/types.h>
+#include <unistd.h>
+#endif
+
 /* Print the message to STDERR (varadic macros is not used in the sake of portability) */
 void print_message_to_stderr(const char *fmt,...)
 {
@@ -32,11 +37,20 @@ int trace_mode = False;
 
 void print_debug_header(const char *funcname, const char *fname, const int line, const int level)
 {
+	static pid_t pid = 0;
+
 #ifdef DBG_PRINT_TRAY_PREFIX
 	fprintf(stderr, "[STALONETRAY] ");
 #endif
+#ifdef DBG_PRINT_PID
+	if (!pid) pid = getpid();
+	fprintf(stderr, "%d ", pid);
+#endif
 #ifdef DBG_PRINT_DPY
-	fprintf(stderr, "(%s) ", DisplayString(tray_data.dpy));
+	if (tray_data.dpy != NULL)
+		fprintf(stderr, "(%s) ", DisplayString(tray_data.dpy));
+	else
+		fprintf(stderr, "(dpy) ");
 #endif
 #ifdef DBG_PRINT_TIMESTAMP
 	{
