@@ -1,3 +1,11 @@
+0.7.4 news
+- fix sample rc file (Debian bug #446899)
+- fix fallback support mode for KDE icons (now KDE icons
+  work in Xmonad)
+- detect if stalonetrays` window is no longer toplevel
+  and do not try to fix geometry (fixes excessive CPU
+  usage as reported in Debian bug #444748)
+
 0.7.3 news
 - fix freedesktop.org icons support on amd64 (Debian bug #445056)
 
