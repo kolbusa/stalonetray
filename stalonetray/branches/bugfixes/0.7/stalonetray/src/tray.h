@@ -52,6 +52,7 @@ struct TrayData {
 	XSizeHints root_wnd;					/* Size & position :) of the root window */
 	Window old_selection_owner;				/* Old owner of tray selection */
 	int is_active;							/* Is the tray active? */
+	int is_reparented;						/* Was the tray reparented in smth like FvwmButtons ? */
 	int kde_tray_old_mode;					/* Use legacy scheme to handle KDE icons via MapNotify */
 
 	/* Atoms */
@@ -62,6 +63,7 @@ struct TrayData {
 	Atom xa_wm_delete_window;				/* Atom: WM_DELETE_WINDOW */
 	Atom xa_wm_take_focus;					/* Atom: WM_TAKE_FOCUS */
 	Atom xa_kde_net_system_tray_windows;	/* Atom: _KDE_NET_SYSTEM_TRAY_WINDOWS */
+	Atom xa_net_client_list;				/* Atom: _NET_CLIENT_LIST */
 
 	/* Background pixmap */
 	Atom xa_xrootpmap_id;					/* Atom: _XROOTPMAP_ID */

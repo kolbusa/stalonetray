@@ -341,12 +341,14 @@ void perform_periodic_tasks()
 		/* KLUDGE TODO: resolve */
 		XWindowAttributes xwa;
 		XGetWindowAttributes(tray_data.dpy, tray_data.tray, &xwa);
-		if (xwa.width != tray_data.xsh.width || xwa.height != tray_data.xsh.height) {
+		if (!tray_data.is_reparented && 
+				(xwa.width != tray_data.xsh.width || xwa.height != tray_data.xsh.height)) 
+		{
 			DBG(8, ("KLUDGE: fixing window size (current: %dx%d, required: %dx%d\n",
 						xwa.width, xwa.height,
 						tray_data.xsh.width, tray_data.xsh.height));
 			tray_update_window_size();
-		}
+		} 
 	}
 }
 
@@ -401,6 +403,23 @@ void property_notify(XPropertyEvent ev)
 	 * (currently used to track icon visibility status) */
 	if (ev.atom == tray_data.xembed_data.xa_xembed_info) {
 		icon_track_visibility_changes(ev.window);
+	}
+	if (ev.atom == tray_data.xa_net_client_list) {
+		Window *windows;
+		unsigned long nwindows, rc, i;
+		rc = x11_get_root_winlist_prop(tray_data.dpy, 
+				tray_data.xa_net_client_list,
+				(unsigned char **) &windows,
+				&nwindows);
+		if (x11_ok() && rc) {
+			tray_data.is_reparented = True;
+			for(i = 0; i < nwindows; i++) 
+				if (windows[i] == tray_data.tray) {
+					tray_data.is_reparented = False;
+					break;
+				}
+		}
+		DBG(4, ("tray is %sreparented\n", tray_data.is_reparented ? "" : "not "));
 	}
 }
 

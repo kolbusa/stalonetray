@@ -418,6 +418,8 @@ void tray_create_window(int argc, char **argv)
 		XInternAtom(tray_data.dpy, "WM_PROTOCOLS", False);
 	tray_data.xa_kde_net_system_tray_windows = 
 		XInternAtom(tray_data.dpy, "_KDE_NET_SYSTEM_TRAY_WINDOWS", False);
+	tray_data.xa_net_client_list =
+		XInternAtom(tray_data.dpy, "_NET_CLIENT_LIST", False);
 
 	tray_data.tray = XCreateSimpleWindow(
 						tray_data.dpy, 
