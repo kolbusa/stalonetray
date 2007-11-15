@@ -411,15 +411,15 @@ void tray_create_window(int argc, char **argv)
 	Atom		protocols_atoms[2];
 
 	tray_data.xa_wm_delete_window = 
-		XInternAtom(tray_data.dpy, "WM_DELETE_WINDOW", False);
+		XInternAtom(tray_data.dpy, "WM_DELETE_WINDOW", True);
 	tray_data.xa_wm_take_focus = 
-		XInternAtom(tray_data.dpy, "WM_TAKE_FOCUS", False);
+		XInternAtom(tray_data.dpy, "WM_TAKE_FOCUS", True);
 	tray_data.xa_wm_protocols = 
-		XInternAtom(tray_data.dpy, "WM_PROTOCOLS", False);
+		XInternAtom(tray_data.dpy, "WM_PROTOCOLS", True);
 	tray_data.xa_kde_net_system_tray_windows = 
-		XInternAtom(tray_data.dpy, "_KDE_NET_SYSTEM_TRAY_WINDOWS", False);
+		XInternAtom(tray_data.dpy, "_KDE_NET_SYSTEM_TRAY_WINDOWS", True);
 	tray_data.xa_net_client_list =
-		XInternAtom(tray_data.dpy, "_NET_CLIENT_LIST", False);
+		XInternAtom(tray_data.dpy, "_NET_CLIENT_LIST", True);
 
 	tray_data.tray = XCreateSimpleWindow(
 						tray_data.dpy, 
