@@ -30,7 +30,8 @@ void kde_tray_init(Display *dpy)
 	 * All windows that are listed there are considered to be "old" KDE icons,
 	 * i.e. icons that are to be ignored on the tray startup.
 	 * If the property does not exist, fall back to old mode */
-	if (!x11_get_root_winlist_prop(dpy, tray_data.xa_kde_net_system_tray_windows, 
+	if (tray_data.xa_kde_net_system_tray_windows != None &&
+	    !x11_get_root_winlist_prop(dpy, tray_data.xa_kde_net_system_tray_windows, 
 				(unsigned char **) &old_kde_icons, &n_old_kde_icons)) 
 	{
 		DBG(3, ("WM does not support KDE_NET_SYSTEM_TRAY_WINDOWS, using fallback mode\n"));
@@ -47,7 +48,7 @@ void kde_tray_init(Display *dpy)
 
 	/* First, we remove all icons that are listed in _NET_CLIENT_LIST property,
 	 * since this means that they are not embedded in any kind of tray */
-	xa_net_client_list = XInternAtom(dpy, "_NET_CLIENT_LIST", False);
+	xa_net_client_list = XInternAtom(dpy, "_NET_CLIENT_LIST", True);
 	if (x11_get_root_winlist_prop(dpy, xa_net_client_list, 
 				(unsigned char **) &client_windows, &n_client_windows)) 
 	{
@@ -121,7 +122,10 @@ int kde_tray_check_for_icon(Display *dpy, Window w)
 
 	/* Check if the window has a property named _KDE_NET_WM_SYSTEM_TRAY_WINDOW FOR */
 	if (xa_kde_net_wm_system_tray_window_for == None)
-		xa_kde_net_wm_system_tray_window_for = XInternAtom(dpy, "_KDE_NET_WM_SYSTEM_TRAY_WINDOW_FOR", False);
+		xa_kde_net_wm_system_tray_window_for = XInternAtom(dpy, "_KDE_NET_WM_SYSTEM_TRAY_WINDOW_FOR", True);
+
+	/* If this atom does not exist, we have nothing to check for */
+	if (xa_kde_net_wm_system_tray_window_for == None) return False;
 
 	XGetWindowProperty(dpy, w, xa_kde_net_wm_system_tray_window_for, 0L, 1L,
 			False, XA_WINDOW, &actual_type, &actual_format, &nitems, &bytes_after,
