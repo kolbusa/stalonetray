@@ -578,30 +578,15 @@ int xembed_post_data(struct TrayIcon *ti)
 
 void xembed_request_focus_from_wm()
 {
-	/* Check if tray window is toplevel and if so, request 
-	 * focus from window manager. Lame. */
-	Window *toplevels;
-	unsigned long ntoplevels, i;
-
-	/* Get list of toplevel windows */
-	x11_get_root_winlist_prop(tray_data.dpy, 
-			XInternAtom(tray_data.dpy, "_NET_CLIENT_LIST", False), 
-			(unsigned char **) &toplevels, 
-			&ntoplevels);
-	/* Check if tray window is toplevel */
-	for (i = 0; i < ntoplevels; i++)
-		if (toplevels[i] == tray_data.tray) {
-			/* Tray window is toplevel. Ask WM for focus */
-			x11_send_client_msg32(tray_data.dpy, 
-					DefaultRootWindow(tray_data.dpy),
-					tray_data.tray,
-					XInternAtom(tray_data.dpy, "_NET_ACTIVE_WINDOW", False),
-					1, /* Request is from application */
-					x11_get_server_timestamp(tray_data.dpy, tray_data.tray), /* Timestamp */
-					0, /* None window is focused current (?) */
-					0, /* Unused */
-					0);/* Unused */
-			break;
-		}
+	if (!tray_data.is_reparented)
+		x11_send_client_msg32(tray_data.dpy, 
+				DefaultRootWindow(tray_data.dpy),
+				tray_data.tray,
+				XInternAtom(tray_data.dpy, "_NET_ACTIVE_WINDOW", True),
+				1, /* Request is from application */
+				x11_get_server_timestamp(tray_data.dpy, tray_data.tray), /* Timestamp */
+				0, /* None window is focused current (?) */
+				0, /* Unused */
+				0);/* Unused */
 }
 
