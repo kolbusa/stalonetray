@@ -87,25 +87,16 @@ int ewmh_add_window_state(Display *dpy, Window wnd, char *state)
 	Atom atom;
 	XWindowAttributes xwa;
 	int rc;
-	prop = XInternAtom(dpy, "_NET_WM_STATE", False);
-	atom = XInternAtom(dpy, state, False);
-
-#ifdef DEBUG
-	{
-		char *tmp;
-		tmp = XGetAtomName(dpy, atom);
-		DBG(8, ("adding window state %s (0x%x)\n", tmp, atom));
-		XFree(tmp);
-	}
-#endif
 
 	/* Check if WM supports EWMH window states */
-	prop = XInternAtom(dpy, "_NET_WM_STATE", False);
-	atom = XInternAtom(dpy, state, False);
+	prop = XInternAtom(dpy, "_NET_WM_STATE", True);
+	atom = XInternAtom(dpy, state, True);
 	if (atom == None || prop == None || !ewmh_atom_supported(atom)) return FAILURE;
 
+	DBG(8, ("adding window state %s (0x%x)\b", state, atom));
+
 	rc = XGetWindowAttributes(dpy, wnd, &xwa);
-	if (!x11_ok() || rc != Success) return FAILURE;
+	if (!x11_ok() || !rc ) return FAILURE;
 
 	if (xwa.map_state != IsUnmapped) {
 		/* For unmapped windows, ask WM to add the window state */
@@ -124,8 +115,8 @@ int ewmh_add_window_type(Display *dpy, Window wnd, char *type)
 	Atom prop;
 	Atom atom;
 	/* Check if WM supports supports _NET_WM_WINDOW_TYPE and requested window type */
-	prop = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE", False);
-	atom = XInternAtom(dpy, type, False);
+	prop = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE", True);
+	atom = XInternAtom(dpy, type, True);
 	if (atom == None || prop == None || !ewmh_atom_supported(atom)) return FAILURE;
 	
 	/* Update property value (append) */
@@ -149,7 +140,7 @@ int ewmh_dump_window_states(Display *dpy, Window wnd)
 	char *tmp;
 
 	/* Check if WM supports _NET_WM_STATE */
-	prop = XInternAtom(tray_data.dpy, "_NET_WM_STATE", False);
+	prop = XInternAtom(tray_data.dpy, "_NET_WM_STATE", True);
 	if (prop == None) return FAILURE;
 
 	/* Retrive the list of states */
