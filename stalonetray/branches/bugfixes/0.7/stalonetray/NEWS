@@ -1,3 +1,7 @@
+0.7.5 news
+- fix silly bug with window states (sticky works now)
+- code cleanup in xembed implementation
+
 0.7.4 news
 - fix sample rc file (Debian bug #446899)
 - fix fallback support mode for KDE icons (now KDE icons
