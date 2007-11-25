@@ -1,0 +1,62 @@
+vim:tw=80
+Sorry, but for my own convinience, it's partly in russian, KOI8-R.
+
+1. Tray interface
+	int tray_grow(int dx, int dy);			/* grows (if can do so) */
+	int tray_grow_check(int dx, int dy);	/* checks if tray can grow, macro */
+	struct TrayData {
+		Window tray;						/* guess what */
+		Display *dpy;						/* same */
+		XSizeHint tray_xsh;					/* only size */
+		...
+	}
+	extern TrayData tray_data;
+	
+
+2. Интерфейс контейнера.
+	int embed_icon(Window w, int cmode);	/* general routine to embed window (inside main.c) */
+	int unembed_icon(Window w);				/* the same to unembed it */
+
+3. Интерфейс списка иконок.
+	typedef int (*IconCmpFunc)(TrayIcon *, TrayIcon *); /* cmp func for sorting typedef */
+	typedef void (*IconCallbackFunc)(TrayIcon *);
+	
+	TrayIcon *add_icon(Window w);			/* adds icon to the list */
+	TrayIcon *find_icon(Window w);			/* finds *TrayIcon by w, if not found --- returns NULL */
+	void del_icon(TrayIcon *ti);			/* deletes icon from the list */
+	int clean_icons(IconCallbackFunc cbk);	/* clears the whole list */
+	void sort_icons(IconCmpFunc cmp);		/* sorts icons according to cmp */
+
+4. Интерфейс embedder-а.
+	int embed_window(TrayIcon *ti);			/* embeds window using appropriate protocol */
+	int umembed_window(TrayIcon *ti);		/* the same for unembedding */
+
+5. Интерфейс layout-а.
+	int layout_icon(TrayIcon *ti);			/* lays out the window in the grid */
+		1. Проверить список принудительных размеров
+		2. Высчитать размер ячейки для иконки.
+		3. Поместить иконку в сетку.
+		4. При необходимости --- вызвать grow();
+		
+	int unlayout_icon(TrayIcon *ti);		/* removes icon from the grid AND packs it */
+		1. Удалить иконку из сетки.
+		2. Если следующая за ней иконка может быть подвинута --- подвинуть.
+			"следующая за ней иконка" = "следующая за ней иконка".next.
+			"Может быть пододвинута" --- это так:
+			1. удалить иконку из сетки.
+			2. поместить ее в сетку. если координаты изменились => может быть
+				пододвинута, иначе => не может.
+
+	int layout_handle_resize();				/* relayouts icons to fill the new space */
+		Мысли вслух: т.к. пока что с минимальным размером окна творится какая-то
+		*****, нужно делать так:
+		1. Очистить сетку.
+		2. Добавлять по одной все иконки (т.е. внутри, реализационно, должна
+			быть "очень быстрая" функция добавления новой иконки, (не учитывающая
+			возможности роста ?)). 
+
+
+main.c		DONE
+icons.c		DONE
+embed.c		DONE
+layout.c	ALMOST (see TODO)
