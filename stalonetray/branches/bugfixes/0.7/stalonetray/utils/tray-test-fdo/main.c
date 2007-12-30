@@ -71,7 +71,7 @@ int main(int argc, char** argv)
 		icon_x: 0,
 		icon_y: 0,
 		icon_mask: None,
-		window_group: 0	
+		window_group: 0 
 	};
 	
 	char *wnd_name = "test_tray_icon";
