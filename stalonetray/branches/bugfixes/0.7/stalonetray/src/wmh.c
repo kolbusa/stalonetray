@@ -93,7 +93,7 @@ int ewmh_add_window_state(Display *dpy, Window wnd, char *state)
 	atom = XInternAtom(dpy, state, True);
 	if (atom == None || prop == None || !ewmh_atom_supported(atom)) return FAILURE;
 
-	DBG(8, ("adding window state %s (0x%x)\b", state, atom));
+	DBG(8, ("adding window state %s (0x%x)\n", state, atom));
 
 	rc = XGetWindowAttributes(dpy, wnd, &xwa);
 	if (!x11_ok() || !rc ) return FAILURE;
