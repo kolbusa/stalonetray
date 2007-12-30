@@ -98,6 +98,7 @@ Time x11_get_server_timestamp(Display *dpy, Window wnd)
 	if (timestamp_atom == None) 
 		timestamp_atom = XInternAtom(dpy, "STALONETRAY_TIMESTAMP", False);
 
+	x11_ok(); /* Just reset the status */
 	/* Trigger PropertyNotify event which has a timestamp field */
 	XChangeProperty(dpy, wnd, timestamp_atom, timestamp_atom, 8, PropModeReplace, &c, 1);
 	if (!x11_ok()) return CurrentTime;
@@ -246,12 +247,14 @@ int x11_get_window_min_size(Display *dpy, Window w, int *x, int *y)
 }
 
 int x11_get_window_abs_coords(Display *dpy, Window dst, int *x, int *y)
+#if 0
 {
-	Window root, parent, *wjunk = NULL;
-	int x11_, y_, x11__, y__;
+	Window parent, root, *wjunk = NULL;
+	XWindowAttributes xwa;
+	int x_, y_;
 	unsigned int junk;
 
-	XGetGeometry(dpy, dst, &root, &x11_, &y_, &junk, &junk, &junk, &junk);
+	XGetWindowAttributes(dpy, dst, &xwa);
 	XQueryTree(dpy, dst, &root, &parent, &wjunk, &junk);
 
 	if (junk != 0) XFree(wjunk);
@@ -259,19 +262,28 @@ int x11_get_window_abs_coords(Display *dpy, Window dst, int *x, int *y)
 	if (!x11_ok())
 		return FAILURE;
 
-	if (parent == root) {
-		*x = x11_;
-		*y = y_;
-	} else {
-		if (x11_get_window_abs_coords(dpy, parent, &x11__, &y__)) {
-			*x = x11_ + x11__;
-			*y = y_ + y__;
+	*x = xwa.x;
+	*y = xwa.y;
+	if (parent != root) {
+		if (x11_get_window_abs_coords(dpy, parent, &x_, &y_)) {
+			*x += x_;
+			*y += y_;
 		} else
 			return FAILURE;
 	}
 	
 	return SUCCESS;
 }
+#else
+{
+	XWindowAttributes xwa;
+	Window child;
+	x11_ok(); /* XXX: this should go away ? */
+	XGetWindowAttributes(dpy, dst, &xwa);
+	XTranslateCoordinates(dpy, dst, xwa.root, 0, 0, x, y, &child);
+	return x11_ok();
+}
+#endif
 
 void x11_extend_root_event_mask(Display *dpy, long mask)
 {
