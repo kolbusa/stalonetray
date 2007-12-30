@@ -157,7 +157,7 @@ int embedder_unembed(struct TrayIcon *ti)
 
 	DBG(3, ("done unembedding 0x%x\n", ti->wid));
 	
-	return SUCCESS;
+	return x11_ok(); /* This resets error status for the generations to come */
 }
 
 int embedder_hide(struct TrayIcon *ti)
