@@ -246,7 +246,12 @@ int grid_remove(struct TrayIcon *ti)
 	 * see detailed description there */
 	icon_list_forall_from(ti, &layout_unset_flag);
 	if (settings.shrink_back_mode) grid_update(ti, False);
-	return icon_list_forall_from(ti->next, &grid_add_wrapper) == NULL;
+	/* Since NULL is a special case for icon_list_froall_from,
+	 * avoid calling it for the last icon */
+	if (ti->next != NULL)
+		return icon_list_forall_from(ti->next, &grid_add_wrapper) == NULL;
+	else
+		return SUCCESS;
 }
 
 /* C. Grid manipulations */
