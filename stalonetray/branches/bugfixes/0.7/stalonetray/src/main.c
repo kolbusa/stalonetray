@@ -344,7 +344,7 @@ void perform_periodic_tasks()
 		if (!tray_data.is_reparented && 
 				(xwa.width != tray_data.xsh.width || xwa.height != tray_data.xsh.height)) 
 		{
-			DBG(8, ("KLUDGE: fixing window size (current: %dx%d, required: %dx%d\n",
+			DBG(8, ("KLUDGE: fixing window size (current: %dx%d, required: %dx%d)\n",
 						xwa.width, xwa.height,
 						tray_data.xsh.width, tray_data.xsh.height));
 			tray_update_window_size();
@@ -419,7 +419,7 @@ void property_notify(XPropertyEvent ev)
 					break;
 				}
 		}
-		DBG(4, ("tray is %sreparented\n", tray_data.is_reparented ? "" : "not "));
+		DBG(6, ("tray is %sreparented\n", tray_data.is_reparented ? "" : "not "));
 	}
 }
 
@@ -541,27 +541,20 @@ void configure_notify(XConfigureEvent ev)
 {
 	struct TrayIcon *ti;
 	struct Point sz;
-	int x = 0, y = 0;
+	XWindowAttributes xwa;
 
 	if (ev.window == tray_data.tray) {
+		/* Tray window was resized */
 		/* TODO: distinguish between synthetic and real configure notifies */
 		/* TODO: catch rejected configure requests */
-		/* Tray window was resized */
 		DBG(8, ("window geometry from event: %ux%u+%d+%d\n", ev.width, ev.height, ev.x, ev.y));
-	
-		/* Update tray window coordinates */
-		if (x11_get_window_abs_coords(tray_data.dpy, tray_data.tray, &x, &y)) {
-			DBG(8, ("absolute position: +%d+%d\n", x, y));
-			tray_data.xsh.x = x;
-			tray_data.xsh.y = y;
-		} else 
-			DBG(0, ("could not get tray`s absolute coords\n"));
 
-		tray_data.xsh.width = ev.width;
-		tray_data.xsh.height = ev.height;
-
-		DBG(6, ("current window geometry: %ux%u+%d+%d\n", 
-				tray_data.xsh.width, tray_data.xsh.height, tray_data.xsh.x, tray_data.xsh.y));
+		/* Sometimes, configure notifies come too late, so we fetch real geometry ourselves */
+		XGetWindowAttributes(tray_data.dpy, tray_data.tray, &xwa);
+		x11_get_window_abs_coords(tray_data.dpy, tray_data.tray, &tray_data.xsh.x, &tray_data.xsh.y);
+		DBG(8, ("real window geometry: %dx%d+%d+%d\n", xwa.width, xwa.height, tray_data.xsh.x, tray_data.xsh.y));
+		tray_data.xsh.width = xwa.width;
+		tray_data.xsh.height = xwa.height;
 
 		/* Update icons positions */
 		icon_list_forall(&grid2window);
