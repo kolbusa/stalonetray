@@ -321,7 +321,7 @@ void xembed_switch_focus_to(struct TrayIcon *tgt, long focus)
 		xembed_send_focus_in(tray_data.dpy, tgt->wid, focus, tray_data.xembed_data.timestamp);
 		DBG(6, ("focus set to icon 0x%x (pointer %p)\n", tgt->wid, tgt));
 	} else {
-		DBG(6, ("focus set no none\n"));
+		DBG(6, ("focus set to none\n"));
 	}
 	tray_data.xembed_data.current = tgt;
 }
