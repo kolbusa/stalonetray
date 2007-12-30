@@ -88,7 +88,9 @@ for 0.7
 + update README/docs
 + sanitize DBG levels
 
-for 0.7.1
+for 0.7.7
 - track size changes of the icons that failed to fit into the tray?
 - profile the code 
 - valgrind
+- sanitize x11 calls: check return values instead of relying on x11_ok() whenever possible
+
