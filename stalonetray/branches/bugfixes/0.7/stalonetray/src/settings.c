@@ -673,6 +673,8 @@ void interpret_settings()
 #endif
 
 	/* Parse geometry-related settings */
+	/* Since WMs do not handle gravity reliable,
+	 * calculate window position by hand */
 	geom_flags = XParseGeometry(settings.geometry_str, 
 					&tray_data.xsh.x, &tray_data.xsh.y,
 					(unsigned int *) &tray_data.xsh.width, 
