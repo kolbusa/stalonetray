@@ -63,6 +63,7 @@ int ewmh_check_support(Display *dpy)
 		atom_name = XGetAtomName(dpy, ewmh_list[i]);
 		DBG(8, ("_NET_WM_SUPPORTED[%d] = 0x%x (%s)\n", i, ewmh_list[i], atom_name));
 		XFree(atom_name);
+		x11_ok();
 	}
 #endif
 	
@@ -189,6 +190,7 @@ int mwm_set_hints(Display *dpy, Window wnd, unsigned long decorations, unsigned 
 		prop = &new_prop;
 	} else {
 		/* Something is broken */
+		x11_ok(); /* Reset x11 error status */
 		return FAILURE;
 	}
 
