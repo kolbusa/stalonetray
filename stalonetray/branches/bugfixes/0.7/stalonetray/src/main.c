@@ -261,12 +261,14 @@ int find_invalid_icons(struct TrayIcon *ti)
 
 #ifndef NO_NATIVE_KDE
 /* Find newly available KDE icons and add them as necessary */
+/* TODO: move to kde_tray.c */
 void kde_icons_update()
 {
 	unsigned long list_len, i;
 	Window *kde_tray_icons;
 
-	if (!x11_get_root_winlist_prop(tray_data.dpy, tray_data.xa_kde_net_system_tray_windows, 
+	if (tray_data.kde_tray_old_mode || 
+		!x11_get_root_winlist_prop(tray_data.dpy, tray_data.xa_kde_net_system_tray_windows, 
 				(unsigned char **) &kde_tray_icons, &list_len)) 
 	{
 		return;
