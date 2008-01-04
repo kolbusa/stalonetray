@@ -30,7 +30,7 @@ void kde_tray_init(Display *dpy)
 	 * All windows that are listed there are considered to be "old" KDE icons,
 	 * i.e. icons that are to be ignored on the tray startup.
 	 * If the property does not exist, fall back to old mode */
-	if (tray_data.xa_kde_net_system_tray_windows != None &&
+	if (tray_data.xa_kde_net_system_tray_windows == None ||
 	    !x11_get_root_winlist_prop(dpy, tray_data.xa_kde_net_system_tray_windows, 
 				(unsigned char **) &old_kde_icons, &n_old_kde_icons)) 
 	{
@@ -131,7 +131,6 @@ int kde_tray_check_for_icon(Display *dpy, Window w)
 			False, XA_WINDOW, &actual_type, &actual_format, &nitems, &bytes_after,
 			&data);
 	XFree(data);
-
 	if (x11_ok() && actual_type == XA_WINDOW && nitems == 1)
 		return True;
 	else
