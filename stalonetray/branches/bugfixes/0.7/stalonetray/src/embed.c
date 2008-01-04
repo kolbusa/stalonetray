@@ -56,7 +56,7 @@ void *send_delayed_confirmation(void *dummy)
 
 int embedder_embed(struct TrayIcon *ti)
 {
-	int x, y;
+	int x, y, rc;
 	XSetWindowAttributes xswa;
 
 	/* If the icon is being embedded as hidden,
@@ -64,11 +64,15 @@ int embedder_embed(struct TrayIcon *ti)
 	 * to track _XEMBED mapped state */
 	if (!ti->is_visible) {
 		XSelectInput(tray_data.dpy, ti->wid, PropertyChangeMask);
-		return SUCCESS;
+		return x11_ok();
 	}
 	
 	/* 0. Start listening for events on icon window */
 	XSelectInput(tray_data.dpy, ti->wid, StructureNotifyMask | PropertyChangeMask);
+	if (!x11_ok()) {
+		DBG(3, ("failed\n"));
+		return FAILURE;
+	}
 
 	/* 1. Calculate position of mid-parent window */
 	CALC_INNER_POS(x, y, ti);
@@ -79,7 +83,7 @@ int embedder_embed(struct TrayIcon *ti)
 				ti->l.icn_rect.x + x, ti->l.icn_rect.y + y, 
 				ti->l.wnd_sz.x, ti->l.wnd_sz.y, 0, 0, 0);
 
-	if (ti->mid_parent == None) return FAILURE;
+	if (!x11_ok() || ti->mid_parent == None) return FAILURE;
 
 	xswa.win_gravity = settings.bit_gravity;
 	XChangeWindowAttributes(tray_data.dpy, ti->mid_parent, CWWinGravity, &xswa);
@@ -101,27 +105,32 @@ int embedder_embed(struct TrayIcon *ti)
 	/* 4. Show mid-parent */
 	XMapRaised(tray_data.dpy, ti->mid_parent);
 
+	if (!x11_ok()) {
+		DBG(3, ("failed\n"));
+		return FAILURE;
+	}
+
 #ifndef DELAY_EMBEDDING_CONFIRMATION
 	/* 5. Send message confirming embedding */
-	x11_send_client_msg32(tray_data.dpy, 
+	rc = x11_send_client_msg32(tray_data.dpy, 
 			tray_data.tray, 
 			tray_data.tray, 
 			tray_data.xa_tray_opcode, 
 			0, 
 			STALONE_TRAY_DOCK_CONFIRMED, 
 			ti->wid, 0, 0);
+	
+	DBG(3, ("%s\n", rc == SUCCESS ? "success" : "failed"));
+	return rc = SUCCESS;
 #else
 	/* This is here for debugging purposes */
 	{
 		pthread_t delayed_thread;
 		pthread_create(&delayed_thread, NULL, send_delayed_confirmation, (void *) ti);
+		DBG(3, ("sent delayed confirmation\n"));
+		return SUCCESS;
 	}
 #endif
-
-	/* 7. We're done */
-	DBG(3, ("success\n"));
-
-	return SUCCESS;
 }
 
 int embedder_unembed(struct TrayIcon *ti)
@@ -157,7 +166,7 @@ int embedder_unembed(struct TrayIcon *ti)
 
 	DBG(3, ("done unembedding 0x%x\n", ti->wid));
 	
-	return x11_ok(); /* This resets error status for the generations to come */
+	return x11_ok(); /* This resets error status for the generations to come (XXX) */
 }
 
 int embedder_hide(struct TrayIcon *ti)
