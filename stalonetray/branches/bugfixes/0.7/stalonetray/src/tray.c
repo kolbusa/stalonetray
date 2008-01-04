@@ -99,7 +99,7 @@ Pixmap tray_get_root_pixmap(Atom prop)
 			&length, 
 			&after, 
 			&reteval);
-	if (ret == Success && type == XA_PIXMAP && format == 32 && length == 1 && after == 0) 
+	if (x11_ok() && ret == Success && type == XA_PIXMAP && format == 32 && length == 1 && after == 0) 
 		pix = (Pixmap)(*(long *)reteval);
 	if (reteval) XFree(reteval);
 	return pix;
@@ -317,7 +317,7 @@ int tray_update_bg(int update_pixmap)
 
 	DBG(4, ("Done\n"));
 
-	return SUCCESS;
+	return x11_ok();
 }
 
 void tray_refresh_window(int exposures)
@@ -390,10 +390,11 @@ int tray_update_window_size()
 	 * geometry changes are not updated yet, but tray_update_window_size() was
 	 * called once again */
 	if (tray_data.xsh.width != new_width || tray_data.xsh.height != new_height) {
-		/* Apparently, not every WM handles gravity the way I have expected (i.e.
-		 * leaving specified corner position untouched). Perhaps, I was dreaming.
-		 * So, prior to resizing, it is necessary to recalculate window absolute
-		 * position and shift it according to grow gravity settings */
+		/* Apparently, not every WM (hello, WindowMaker!) handles gravity the
+		 * way I have expected (i.e. using it to calculate reference point as
+		 * described in ICCM/WM specs). Perhaps, I was dreaming.  So, prior to
+		 * resizing trays window, it is necessary to recalculate window
+		 * absolute position and shift it according to grow gravity settings */
 		x11_get_window_abs_coords(tray_data.dpy, tray_data.tray, &tray_data.xsh.x, &tray_data.xsh.y);
 		DBG(8, ("old geometry: %dx%d+%d+%d\n", tray_data.xsh.x, tray_data.xsh.y, tray_data.xsh.width, tray_data.xsh.height));
 
@@ -404,7 +405,8 @@ int tray_update_window_size()
 
 		DBG(8, ("new geometry: %dx%d+%d+%d\n", tray_data.xsh.x, tray_data.xsh.y, new_width, new_height));
 		
-		XMoveResizeWindow(tray_data.dpy, tray_data.tray, tray_data.xsh.x, tray_data.xsh.y, new_width, new_height);
+		XResizeWindow(tray_data.dpy, tray_data.tray, new_width, new_height);
+		XMoveWindow(tray_data.dpy, tray_data.tray, tray_data.xsh.x, tray_data.xsh.y);
 		if (!x11_ok()) {
 			DBG(0, ("could not update tray window size\n"));
 			return FAILURE;
