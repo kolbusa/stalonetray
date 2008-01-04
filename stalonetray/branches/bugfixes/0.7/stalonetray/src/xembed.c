@@ -218,9 +218,10 @@ void xembed_handle_event(XEvent ev)
 		if (ev.type == KeyRelease && xembed_process_kbd_event(ev.xkey))
 			break;
 		if (tray_data.xembed_data.current != NULL) {
+			int rc;
 			DBG(8, ("current icon accepts_focus: %d\n", tray_data.xembed_data.current->is_xembed_accepts_focus));
-			XSendEvent(tray_data.dpy, tray_data.xembed_data.current->wid, False, NoEventMask, &ev);
-			if (!x11_ok()) {
+			rc = XSendEvent(tray_data.dpy, tray_data.xembed_data.current->wid, False, NoEventMask, &ev);
+			if (!x11_ok() || rc == 0) {
 				tray_data.xembed_data.current->is_invalid = True;
 				return;
 			}
