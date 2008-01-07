@@ -1,3 +1,11 @@
+0.7.6 news
+- fix bug with sticky mode under Openbox
+- fix bug with dissappearing window under WindowMaker (sf.net bug #1858069)
+- fix layout bug which prevented tray to shrink properly
+- fix resizing bug when grow gravity seemed to be ignored
+- fix regression: KDE icons are collected at startup again
+- fix focus model so that it (more-or-less) matches ICCM
+
 0.7.5 news
 - fix silly bug with window states (sticky works now)
 - code cleanup in xembed implementation
