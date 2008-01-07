@@ -67,6 +67,8 @@ int layout_handle_icon_resize(struct TrayIcon *ti)
 	dump_icon_list();
 #endif
 
+	icon_list_backup();
+	
 	if (ti->is_layed_out) {
 		/* if the icon is already layed up and
 		 * its grid rect did not change we do nothing,
@@ -77,11 +79,11 @@ int layout_handle_icon_resize(struct TrayIcon *ti)
 		if (ti->l.grd_rect.w == old_grd_rect.w &&
 		    ti->l.grd_rect.h == old_grd_rect.h)
 		{
+			icon_list_backup_purge();
 			return SUCCESS;
 		}
 	}
 
-	icon_list_backup();
 	/* Here's the place where icon sorting start playing its role.
 	 * It is easy to see that resizing ti affects only those icons
 	 * that are after ti in the icon list. */
