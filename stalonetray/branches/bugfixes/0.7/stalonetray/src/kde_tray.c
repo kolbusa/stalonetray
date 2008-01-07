@@ -42,7 +42,10 @@ void kde_tray_init(Display *dpy)
 
 	/* If theres no previous tray selection owner, try to embed all available
 	 * KDE icons and, therefore, leave the list of old KDE icons empty */
-	if (tray_data.old_selection_owner == None) return;
+	if (tray_data.old_selection_owner == None) {
+		n_old_kde_icons = 0;
+		return;
+	}
 
 	/* Next, we are going to remove some entries from old_kde_icons list */
 
