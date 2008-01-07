@@ -75,6 +75,7 @@ Atom 		xa_xembed;
 
 void create_window(int argc, char **argv)
 { 
+#if 0
 	XWMHints			xwmh = {
 		flags:	(InputHint | StateHint ),
 		input:	True,
@@ -86,6 +87,9 @@ void create_window(int argc, char **argv)
 		icon_mask: None,
 		window_group: 0	
 	};	
+#else
+	XWMHints			*xwmh;
+#endif
 	char				*wnd_name = "test_tray_icon";
 	XTextProperty		wm_name;
 	XClassHint			*xch;
@@ -98,6 +102,8 @@ void create_window(int argc, char **argv)
 
 	wnd = XCreateSimpleWindow(dpy, DefaultRootWindow(dpy),
 					xsh.x, xsh.y, xsh.width, xsh.height, 0, 0, wnd_bg_unembedded.pixel);
+
+	printf("Created window: 0x%x\n", wnd);
 
 	for (x = 0; x < 2; x++)
 		for (y = 0; y < 2; y++) {
@@ -116,7 +122,14 @@ void create_window(int argc, char **argv)
 
 	XmbTextListToTextProperty(dpy, &wnd_name, 1, XTextStyle, &wm_name);
 
-	XSetWMProperties(dpy, wnd, &wm_name, NULL, argv, argc, &xsh, &xwmh, xch);
+	xwmh = XAllocWMHints();
+	xwmh->flags = InputHint | StateHint | WindowGroupHint | IconWindowHint;
+	xwmh->flags = True;
+	xwmh->initial_state = NormalState;
+	xwmh->window_group = 0;
+	xwmh->icon_window = None;
+
+	XSetWMProperties(dpy, wnd, &wm_name, NULL, argv, argc, &xsh, xwmh, xch);
 
 	if ((tray = XGetSelectionOwner(dpy, xa_tray_selection)) == None) {
 		printf("Error: no tray found\n");
@@ -124,7 +137,7 @@ void create_window(int argc, char **argv)
 		x11_send_client_msg32(dpy, tray, wnd, xa_tray_opcode, CurrentTime, SYSTEM_TRAY_REQUEST_DOCK, wnd, 0, 0);
 	}
 
-	XSelectInput(dpy, wnd, SubstructureNotifyMask | StructureNotifyMask | PropertyChangeMask | KeyReleaseMask );
+	XSelectInput(dpy, wnd, SubstructureNotifyMask | StructureNotifyMask | PropertyChangeMask | KeyReleaseMask | ButtonReleaseMask );
 	
 	XMapRaised(dpy, wnd);	
 
@@ -319,15 +332,21 @@ int main(int argc, char** argv)
 		case ClientMessage:
 			client_event(ev.xclient);
 			break;
-		case DestroyNotify:
-			return 0;
+/*        case DestroyNotify:*/
+/*            return 0;*/
 		case ConfigureNotify:
 			/* Maintain size */
 			if (ev.xconfigure.width != xsh.width || ev.xconfigure.height != xsh.height)
 				XResizeWindow(dpy, wnd, xsh.width, xsh.height);
+			break;
 		case KeyRelease:
 			key_release(ev.xkey);
 			break;
+		case ButtonRelease:
+			xembed_send_request_focus(dpy, tray, x11_get_server_timestamp(dpy, wnd));
+			break;
+		case UnmapNotify:
+			if (ev.xunmap.window == wnd) XMapRaised(dpy, wnd);
 		default:
 			break;
 		}
