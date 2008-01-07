@@ -584,6 +584,7 @@ void configure_notify(XConfigureEvent ev)
 		ti->l.wnd_sz = sz;
 		ti->is_resized = True;
 		/* Do the job */
+#if 0
 		if (layout_handle_icon_resize(ti)) {
 			embedder_refresh(ti);
 #ifdef DEBUG
@@ -592,6 +593,15 @@ void configure_notify(XConfigureEvent ev)
 			embedder_update_positions(False);
 			tray_update_window_size();
 		}
+#else
+		layout_handle_icon_resize(ti);
+		embedder_refresh(ti);
+#ifdef DEBUG
+		print_icon_data(ti);
+#endif
+		embedder_update_positions(False);
+		tray_update_window_size();
+#endif
 #ifdef DEBUG
 		dump_icon_list();
 #endif
