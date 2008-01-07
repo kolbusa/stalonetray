@@ -491,7 +491,7 @@ void tray_create_window(int argc, char **argv)
 	xwmh->flags = (InputHint | StateHint | IconPixmapHint | 
 				   IconWindowHint | IconPositionHint | IconMaskHint | 
 				   WindowGroupHint);
-	xwmh->input = True;
+	xwmh->input = False;
 	xwmh->initial_state = settings.start_withdrawn ? WithdrawnState: NormalState;
 	xwmh->icon_pixmap = None;
 	xwmh->icon_x = 0;
