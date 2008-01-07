@@ -127,6 +127,7 @@ void xembed_init()
 {
 	/* 1. Initialize data structures */
 	tray_data.xembed_data.window_has_focus = False;
+	tray_data.xembed_data.focus_requested = False;
 	tray_data.xembed_data.current = NULL;
 	tray_data.xembed_data.accels = NULL;
 	tray_data.xembed_data.timestamp = CurrentTime;
@@ -151,54 +152,6 @@ void xembed_handle_event(XEvent ev)
 		if (ev.xfocus.window == tray_data.xembed_data.focus_proxy)
 			xembed_track_focus_change(False);
 		break;
-	case FocusIn:
-		/* Broadcast that the focus has entered tray window */
-		DBG(6, ("FocusIn 0x%x\n", ev.xfocus.window));
-		if (ev.xfocus.window == tray_data.tray) {
-			tray_data.xembed_data.timestamp = x11_get_server_timestamp(tray_data.dpy, tray_data.tray);
-#ifdef TRACK_SETINPUT_FOCUS
-			DBG(9, ("XSetInputFocus(\n"));
-			DBG(9, ("  dpy = %p,\n", tray_data.dpy));
-			DBG(9, ("  window = 0x%x,\n", tray_data.xembed_data.focus_proxy));
-			DBG(9, ("  revert = 0x%x,\n", RevertToParent));
-			DBG(9, ("  timestamp = %d\n", tray_data.xembed_data.timestamp));
-			DBG(9, (")\n"));
-#endif
-			XSetInputFocus(tray_data.dpy, tray_data.xembed_data.focus_proxy, RevertToParent, tray_data.xembed_data.timestamp);
-			if (!x11_ok()) {
-#ifdef DEBUG
-#ifdef TRACK_SETINPUT_FOCUS
-				DBG(9, ("XSetInputFocus failed on focus proxy\n"));
-				{
-					XWindowAttributes xwa;
-					XGetWindowAttributes(tray_data.dpy, tray_data.xembed_data.focus_proxy, &xwa);
-					if (!x11_ok()) {
-						DBG(9, ("  proxy window is gone\n"));
-					} else {
-						DBG(9, ("  proxy window is here\n"));
-						DBG(9, ("  map state = %s\n", xwa.map_state == IsUnmapped ? "IsUnmapped" : (xwa.map_state == IsUnviewable ? "IsUnviewable" : "IsViewable")));
-						XGetWindowAttributes(tray_data.dpy, tray_data.tray, &xwa);
-						DBG(9, ("  tray map state = %s\n", xwa.map_state == IsUnmapped ? "IsUnmapped" : (xwa.map_state == IsUnviewable ? "IsUnviewable" : "IsViewable")));
-						DBG(9, ("  retrying\n"));
-						XSetInputFocus(tray_data.dpy, tray_data.xembed_data.focus_proxy, RevertToParent, tray_data.xembed_data.timestamp);
-						if (!x11_ok())
-							DBG(9, ("    failed\n"));
-						else
-							DBG(9, ("    ok\n"));
-					}
-				}
-#endif
-				DIE(("could not set input focus to proxy window\n"));
-#else
-				DIE(("internal error.\n"
-					 "please consider building debug version if the problem persists\n"
-					 "and send a mail to the author (see AUTHORS file)\n"));
-#endif
-			} else
-				DBG(8, ("Focus set to focus proxy\n"));
-			xembed_track_focus_change(True);
-		}
-		break;
 	case ClientMessage:
 		/* Handle XEMBED-related messages */ 
 		if (ev.xclient.message_type == tray_data.xembed_data.xa_xembed) {
@@ -209,6 +162,19 @@ void xembed_handle_event(XEvent ev)
 			tray_data.xembed_data.timestamp = ev.xclient.data.l[0];
 			if (tray_data.xembed_data.timestamp == CurrentTime) 
 				tray_data.xembed_data.timestamp = x11_get_server_timestamp(tray_data.dpy, tray_data.tray);
+		} else if (ev.xclient.message_type == tray_data.xa_wm_protocols && 
+				   ev.xclient.data.l[0] == tray_data.xa_wm_take_focus &&
+				   tray_data.xembed_data.focus_requested) 
+		{
+			XSetInputFocus(tray_data.dpy, tray_data.xembed_data.focus_proxy, RevertToParent, ev.xclient.data.l[1]);
+			if (!x11_ok()) {
+				DIE(("internal error.\n"
+					 "please consider building debug version if the problem persists\n"
+					 "and send a mail to the author (see AUTHORS file)\n"));
+			} 
+			DBG(8, ("Focus set to focus proxy\n"));
+			xembed_track_focus_change(True);
+			tray_data.xembed_data.focus_requested = False;
 		}
 		break;
 	case KeyRelease:
@@ -579,7 +545,7 @@ int xembed_post_data(struct TrayIcon *ti)
 
 void xembed_request_focus_from_wm()
 {
-	if (!tray_data.is_reparented)
+	if (!tray_data.is_reparented) {
 		x11_send_client_msg32(tray_data.dpy, 
 				DefaultRootWindow(tray_data.dpy),
 				tray_data.tray,
@@ -589,5 +555,7 @@ void xembed_request_focus_from_wm()
 				0, /* None window is focused current (?) */
 				0, /* Unused */
 				0);/* Unused */
+		tray_data.xembed_data.focus_requested = True;
+	}
 }
 
