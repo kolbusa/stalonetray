@@ -211,6 +211,14 @@
   </varlistentry>
 
   <varlistentry>
+  <term><option>&ndash;&ndash;no&ndash;shrink</option></term>
+  <term><option>no_shrink</option> <optional><replaceable>bool</replaceable></optional></term>
+  <listitem><para>Do not shrink tray window back after icon removal. Useful when
+  tray is swallowed by another window like FvwmButtons. Default value: <userinput>false</userinput>.
+  </para></listitem>
+  </varlistentry>
+
+  <varlistentry>
   <term><option>&ndash;p</option></term>
   <term><option>&ndash;&ndash;parent&ndash;bg</option></term>
   <term><option>parent_bg</option> <optional><replaceable>bool</replaceable></optional></term>
@@ -237,21 +245,39 @@
   <term><option>respect_icon_hints</option> <optional><replaceable>bool</replaceable></optional></term>
   <listitem><para>Do respect icon window min_width/min_height size hints. This may help with unusually-sized icons, which fail
   to resize themselves after being resized to icon_size x icon_size. Note, that if stalonetray is configured to ignore icon resize events, this 
-  option has no effect. Default value: <userinput>false</userinput>
+  option has no effect. Default value: <userinput>false</userinput>.
   </para></listitem>
   </varlistentry>
 
   <varlistentry>
   <term><option>&ndash;&ndash;skip&ndash;taskbar</option></term>
   <term><option>skip_taskbar</option> <optional><replaceable>bool</replaceable></optional></term>
-  <listitem><para>Hide tray`s window from the taskbar. Default value: <userinput>false</userinput>
+  <listitem><para>Hide tray`s window from the taskbar. Default value:
+  <userinput>false</userinput>.
   </para></listitem>
   </varlistentry>
 
   <varlistentry>
   <term><option>&ndash;&ndash;sticky</option></term>
   <term><option>sticky</option> <optional><replaceable>bool</replaceable></optional></term>
-  <listitem><para>Make tray`s window sticky across multiple desktops/pages. Default value: <userinput>false</userinput>
+  <listitem><para>Make tray`s window sticky across multiple desktops/pages.
+  Default value: <userinput>false</userinput>.
+  </para></listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term><option>&ndash;&ndash;tint&ndash;color</option></term>
+  <term><option>tint_color</option> <optional><replaceable>bool</replaceable></optional></term>
+  <listitem><para>Set tinting color. Default value:
+  <userinput>white</userinput>.
+  </para></listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term><option>&ndash;&ndash;tint&ndash;value</option></term>
+  <term><option>tint_color</option> <optional><replaceable>bool</replaceable></optional></term>
+  <listitem><para>Set tinting level. Default value: <userinput>0</userinput>
+  (tinting disabled).
   </para></listitem>
   </varlistentry>
 
@@ -259,8 +285,16 @@
   <term><option>&ndash;t</option></term>
   <term><option>&ndash;&ndash;transparent</option></term>
   <term><option>transparent</option> <optional><replaceable>bool</replaceable></optional></term>
-  <listitem><para>Enable root transparency. Default value: <userinput>false</userinput>
+  <listitem><para>Enable root transparency. Default value:
+  <userinput>false</userinput>.
   </para></listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term><option>&ndash;v</option></term>
+  <term><option>&ndash;&ndash;vertical</option></term>
+  <term><option>vertical</option> <optional><replaceable>bool</replaceable></optional></term>
+  <listitem><para>Use vertical layout of icons (horizontal is used by default).</para></listitem>
   </varlistentry>
 
   <varlistentry>
@@ -285,13 +319,6 @@
   <term><option>withdrawn</option> <optional><replaceable>bool</replaceable></optional></term>
   <listitem><para>Start in withdrawn (dockapp) mode. NEW in 0.7, prior to that
   was default mode.</para></listitem>
-  </varlistentry>
-
-  <varlistentry>
-  <term><option>&ndash;v</option></term>
-  <term><option>&ndash;&ndash;vertical</option></term>
-  <term><option>vertical</option> <optional><replaceable>bool</replaceable></optional></term>
-  <listitem><para>Use vertical layout of icons (horizontal is used by default).</para></listitem>
   </varlistentry>
 
   <varlistentry>
