@@ -71,7 +71,7 @@ int main(int argc, char** argv)
 		icon_x: 0,
 		icon_y: 0,
 		icon_mask: None,
-		window_group: 0	
+		window_group: 0 
 	};
 	
 	char *wnd_name = "test_tray_icon";
@@ -210,45 +210,50 @@ int main(int argc, char** argv)
 		XReparentWindow(dpy, wnd, DefaultRootWindow(dpy), 100, 100);
 	}
 	
-	for(;;) { while(XPending(dpy)) {
-		XNextEvent(dpy, &ev);
-		switch(ev.type) {
-		case DestroyNotify:
-			return 0;
-		case ConfigureNotify:
-			if (maintain_size && (ev.xconfigure.width != xsh.width || ev.xconfigure.height != xsh.height)) {
-				printf("0x%x: configured: %dx%d\n", wnd, ev.xconfigure.width, ev.xconfigure.height);
-				printf("0x%x: maintaining size\n", wnd);
-				XResizeWindow(dpy, wnd, xsh.width, xsh.height);
+	for(;;) { 
+		while(XPending(dpy)) {
+			XNextEvent(dpy, &ev);
+			switch(ev.type) {
+			case DestroyNotify:
+				return 0;
+			case ConfigureNotify:
+				if (maintain_size && (ev.xconfigure.width != xsh.width || ev.xconfigure.height != xsh.height)) {
+					printf("0x%x: configured: %dx%d\n", wnd, ev.xconfigure.width, ev.xconfigure.height);
+					printf("0x%x: maintaining size\n", wnd);
+					XResizeWindow(dpy, wnd, xsh.width, xsh.height);
+				}
+			default:
+				break;
 			}
-		default:
-			break;
 		}
-	}
-	
-	if (grow == 1) {
-		grow_cd--;
-		if (!grow_cd) {
-			XResizeWindow(dpy, wnd, xsh.width * 2, xsh.height * 2);
-			xsh.width *= 2;
-			xsh.height *= 2;
-			grow = 0;
+		
+		if (grow == 1) {
+			grow_cd--;
+			if (!grow_cd) {
+				printf("0x%x: size increased 2x\n", wnd);
+				XResizeWindow(dpy, wnd, xsh.width * 2, xsh.height * 2);
+				xsh.width *= 2;
+				xsh.height *= 2;
+				grow = 0;
+			}
+		} else if (grow == 2) {
+			grow_cd--;
+			if (grow_cd == 0) {
+				printf("0x%x: size increased 2x\n", wnd);
+				XResizeWindow(dpy, wnd, xsh.width * 2, xsh.height * 2);
+				xsh.width *= 2;
+				xsh.height *= 2;
+			} else if (grow_cd == -GROW_PERIOD) {
+				printf("0x%x: size shrinked 2x\n", wnd);
+				xsh.width /= 2;
+				xsh.height /= 2;
+				XResizeWindow(dpy, wnd, xsh.width, xsh.height);
+				grow = 0;
+			}
 		}
-	} else if (grow == 2) {
-		grow_cd--;
-		if (grow_cd == 0) {
-			XResizeWindow(dpy, wnd, xsh.width * 2, xsh.height * 2);
-			xsh.width *= 2;
-			xsh.height *= 2;
-		} else if (grow_cd == -GROW_PERIOD) {
-			xsh.width /= 2;
-			xsh.height /= 2;
-			XResizeWindow(dpy, wnd, xsh.width, xsh.height);
-			grow = 0;
-		}
-	}
 
-	usleep(50000L);	}
+		usleep(50000L);	
+	}
 	
 	
 	return 0;

@@ -72,6 +72,10 @@ void init_default_settings()
 	settings.start_withdrawn    = 0;
 	settings.ignore_icon_resize = 0;
 	settings.respect_icon_hints = 0;
+
+#ifdef DELAY_EMBEDDING_CONFIRMATION
+	settings.confirmation_delay = 3;
+#endif
 }
 
 /* ******* general parsing utils ********* */
@@ -242,6 +246,9 @@ struct Param params[] = {
 #endif
 	{"-bg", "--background", "background", &settings.bg_color_str, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
 	{"-c", "--config", NULL, &settings.config_fname, (param_parser_t) &parse_copystr, 0, 1, 0, NULL},
+#ifdef DELAY_EMBEDDING_CONFIRMATION
+	{NULL, "--confirmation-delay", "confirmation_delay", &settings.confirmation_delay,  (param_parser_t) &parse_int, 1, 1, 0, NULL},
+#endif
 	{"-d", "--decorations", "decorations", &settings.deco_flags, (param_parser_t) &parse_deco, 1, 1, 1, "all"},
 	{"-f", "--fuzzy-edges", "fuzzy_edges", &settings.fuzzy_edges, (param_parser_t) &parse_int, 1, 1, 1, "2"},
 	{"-geometry", "--geometry", "geometry", &settings.geometry_str, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
@@ -251,7 +258,7 @@ struct Param params[] = {
 	{NULL, "--ignore-icon-resize", "ignore_icon_resize", &settings.ignore_icon_resize, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
 	{"-h", "--help", NULL, &settings.need_help, (param_parser_t) &parse_bool, 0, 0, 0, "true"},
 	{NULL, "--max-width", "max_width", &settings.max_tray_width, (param_parser_t) &parse_int, 1, 1, 0, NULL},
-	{NULL, "--man-height", "max_height", &settings.max_tray_height, (param_parser_t) &parse_int, 1, 1, 0, NULL},
+	{NULL, "--max-height", "max_height", &settings.max_tray_height, (param_parser_t) &parse_int, 1, 1, 0, NULL},
 	{NULL, "--no-shrink", "no_shrink", &settings.shrink_back_mode, (param_parser_t) &parse_bool_rev, 1, 1, 1, "true"},
 	{"-p", "--parent-bg", "parent_bg", &settings.parent_bg, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
 #ifdef XPM_SUPPORTED
@@ -281,50 +288,50 @@ void usage(char *progname)
 			"argument, which can be true (1, yes) or false (0, no).\n"
 			"\n"
 			"Possible options are:\n"
-			"    -display <display>         use X display <display>\n"
+			"    -display <display>          use X display <display>\n"
 #ifdef DEBUG
-			"    --dbg-level <n>            set the level of debug output to <n>\n"
-			"                               (defalt: 0)\n"
+			"    --dbg-level <n>             set the level of debug output to <n>\n"
+			"                                (defalt: 0)\n"
 #endif
-			"    -bg, --background <color>  select background color (default: #777777)\n"
-			"    -c, --config <filename>    read configuration from <file>\n"
-			"                               (instead of default $HOME/.stalonetrayrc)\n"
-			"    -d, --decorations [<deco>] set what part of window decorations are\n"
-			"                               visible; deco can be: none (default),\n"
-			"                               title, border, all\n"
-			"    --fuzzy-edges [<level>]    set edges fuzziness, level is from\n"
-			"                               0 (disabled) to 3 (maximum); works with\n"
-			"                               tinting and/or pixmap background\n"
-			"    -geometry <geometry>       set initial tray`s geometry\n"
-			"    --grow-gravity <gravity>   tray`s grow gravity,\n"
-			"                               one of N, S, W, E, NW, NE, SW, SE\n"
-			"    --icon-gravity <gravity>   icon positioning gravity (NW, NE, SW, SE)\n"
-			"    -i, --icon-size <n>        set basic icon size to <n>\n"
-			"    --ignore-icon-resize       ignore icons attempts to resize their windows\n"
-			"    -h, --help                 show this message\n"
-			"    --max-width <n>            set tray`s width limit to <n>\n"
-			"                               (default: 0 = unlimited)\n"
-			"    --max-height <n>           set tray`s height limit to <n>\n"
-			"                               (default: 0 = unlimited)\n"
-			"    --no-shrink                do not shrink window back after icon removal\n"
-			"    -p, --parent-bg            use parent for background\n"
-			"    --pixmap-bg <pixmap>       use pixmap for tray`s window background\n"
-			"    --respect-icon-hints       try to respect icon size hints\n"
-			"    --skip-taskbar             hide tray`s window from the taskbar\n"
-			"    --sticky                   make tray`s window sticky across multiple\n"
-			"                               desktops/pages\n"
-			"    --tint-color <color>       tint tray background with color (not used\n"
-			"                               with plain color background)\n"
-			"    --tint-level <level>       set tinting level from 0 to 255\n"
-			"    -t, --transparent          enable root transparency\n"
-			"    -v, --vertical             use vertical layout of icons (horizontal\n"
-			"                               layout is used by default)\n"
-			"    --window-layer <layer>     set tray`s window EWMH layer, one of:\n"
-			"                               bottom, normal, top\n"
-			"    --window-type <type>       set tray`s window EWMH type, one of:\n"
-			"                               normal, dock, toolbar, utility\n"
-			"    -w, --withdrawn            start in withdrawn mode as WMaker dockapp\n"
-			"    --xsync                    operate on X server synchronously (SLOW)\n"
+			"    -bg, --background <color>   select background color (default: #777777)\n"
+			"    -c, --config <filename>     read configuration from <file>\n"
+			"                                (instead of default $HOME/.stalonetrayrc)\n"
+			"    -d, --decorations [<deco>]  set what part of window decorations are\n"
+			"                                visible; deco can be: none (default),\n"
+			"                                title, border, all\n"
+			"    -f, --fuzzy-edges [<level>] set edges fuzziness, level is from\n"
+			"                                0 (disabled) to 3 (maximum); works with\n"
+			"                                tinting and/or pixmap background\n"
+			"    -geometry <geometry>        set initial tray`s geometry\n"
+			"    --grow-gravity <gravity>    tray`s grow gravity,\n"
+			"                                one of N, S, W, E, NW, NE, SW, SE\n"
+			"    --icon-gravity <gravity>    icon positioning gravity (NW, NE, SW, SE)\n"
+			"    -i, --icon-size <n>         set basic icon size to <n>, default: 24\n"
+			"    --ignore-icon-resize        ignore icons attempts to resize their windows\n"
+			"    -h, --help                  show this message\n"
+			"    --max-width <n>             set tray`s width limit to <n>\n"
+			"                                (default: 0 = unlimited)\n"
+			"    --max-height <n>            set tray`s height limit to <n>\n"
+			"                                (default: 0 = unlimited)\n"
+			"    --no-shrink                 do not shrink window back after icon removal\n"
+			"    -p, --parent-bg             use parent for background\n"
+			"    --pixmap-bg <pixmap>        use pixmap for tray`s window background\n"
+			"    --respect-icon-hints        try to respect icon size hints\n"
+			"    --skip-taskbar              hide tray`s window from the taskbar\n"
+			"    --sticky                    make tray`s window sticky across multiple\n"
+			"                                desktops/pages\n"
+			"    --tint-color <color>        tint tray background with color (not used\n"
+			"                                with plain color background)\n"
+			"    --tint-level <level>        set tinting level from 0 to 255\n"
+			"    -t, --transparent           enable root transparency\n"
+			"    -v, --vertical              use vertical layout of icons (horizontal\n"
+			"                                layout is used by default)\n"
+			"    --window-layer <layer>      set tray`s window EWMH layer, one of:\n"
+			"                                bottom, normal, top\n"
+			"    --window-type <type>        set tray`s window EWMH type, one of:\n"
+			"                                normal, dock, toolbar, utility\n"
+			"    -w, --withdrawn             start in withdrawn mode as WMaker dockapp\n"
+			"    --xsync                     operate on X server synchronously (SLOW)\n"
 			"\n"
 			);
 }
@@ -523,13 +530,6 @@ void parse_rc()
 		return;
 	}
 
-#define VALIDATE_ARGS_NUM(p) do { \
-	if (argc - 1 > (p->takes_arg ? 1 : 0) || (!p->optional_arg && argc - 1 < 1)) { \
-		ERR(("Rc file parse error at %s:%d: invalid number of args for \"%s\" (%s required)\n", settings.config_fname, lnum, argv[0], p->optional_arg ? "0/1" : "1" )); \
-		break; \
-	} \
-} while(0)
-
 	/* 3. Read the file line by line */
 	buf[READ_BUF_SZ] = 0;
 	while (!feof(cfg)) {
@@ -540,21 +540,27 @@ void parse_rc()
 		}
 
 		if (!get_args(buf, &argc, &argv)) {
-			DIE(("Rc file parse error at %s:%d: could not parse line\n", settings.config_fname, lnum));
+			DIE(("rc file parse error at %s:%d: could not parse line\n", settings.config_fname, lnum));
 		}
 		if (!argc) continue; /* This is empty/comment-only line */
 
 		match = NULL;
 		for (p = params; p->parser != NULL; p++) {
 			if (p->rc_name != NULL && strcmp(argv[0], p->rc_name) == 0) {
-				VALIDATE_ARGS_NUM(p);
+				if (argc - 1 > (p->takes_arg ? 1 : 0) || (!p->optional_arg && argc - 1 < 1)) 
+					DIE(("rc file parse error at %s:%d:" 
+								"invalid number of args for \"%s\" (%s required)\n", 
+								settings.config_fname, 
+								lnum, 
+								argv[0], 
+								p->optional_arg ? "0/1" : "1" )); 
 				match = p;
 				arg = (!p->takes_arg || (p->optional_arg && argc == 1)) ? p->default_arg_val : argv[1];
 				break;
 			}
 		}
 		if (!match) {
-			DIE(("Rc file parse error at %s:%d: unrecognized rc file keyword \"%s\".\n", settings.config_fname, lnum, argv[0]));
+			DIE(("rc file parse error at %s:%d: unrecognized rc file keyword \"%s\".\n", settings.config_fname, lnum, argv[0]));
 		}
 		assert(arg != NULL);
 		
@@ -667,6 +673,8 @@ void interpret_settings()
 #endif
 
 	/* Parse geometry-related settings */
+	/* Since WMs do not handle gravity reliable,
+	 * calculate window position by hand */
 	geom_flags = XParseGeometry(settings.geometry_str, 
 					&tray_data.xsh.x, &tray_data.xsh.y,
 					(unsigned int *) &tray_data.xsh.width, 

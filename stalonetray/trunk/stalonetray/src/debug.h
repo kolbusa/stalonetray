@@ -27,8 +27,10 @@ void print_message_to_stderr(const char *fmt,...);
 /* The following defines control what is printed in each logged line */	
 /* Print "stalonetray" */
 #undef  DBG_PRINT_TRAY_PREFIX
+/* Print the id of the process */
+#define DBG_PRINT_PID
 /* Print the name of display */
-#undef  DBG_PRINT_DPY
+#define  DBG_PRINT_DPY
 /* Print the timestamp */
 #define DBG_PRINT_TIMESTAMP
 /* Print the name of a function, file and line which outputs the message */

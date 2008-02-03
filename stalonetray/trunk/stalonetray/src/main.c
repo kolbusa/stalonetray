@@ -42,8 +42,6 @@
 #include "settings.h"
 #include "tray.h"
 
-#define TRACE_EVENTS
-
 struct TrayData tray_data;
 
 static int tray_status_requested = 0;
@@ -148,10 +146,21 @@ void add_icon(Window w, int cmode)
 	struct TrayIcon *ti;
 
 	/* Aviod adding duplicates */
-	if (icon_list_find(w) != NULL) return;
+	if ((ti = icon_list_find(w)) != NULL) {
+		DBG(4, ("ignoring second request to embed 0x%x (requested cmode=%d, current cmode=%d\n",
+					w,
+					cmode,
+					ti->cmode));
+		return;
+	}
 	/* Dear Edsger W. Dijkstra, I see you behind my back =( */
 	ti = icon_list_new(w, cmode);
 	if (ti == NULL) return;
+
+#ifdef DEBUG
+	DBG(6, ("starting embedding process for 0x%x with cmode=%d\n", w, cmode));
+	x11_dump_win_info(tray_data.dpy, w);
+#endif
 
 	if (!xembed_check_support(ti)) goto failed1;
 	
@@ -252,12 +261,14 @@ int find_invalid_icons(struct TrayIcon *ti)
 
 #ifndef NO_NATIVE_KDE
 /* Find newly available KDE icons and add them as necessary */
+/* TODO: move to kde_tray.c */
 void kde_icons_update()
 {
 	unsigned long list_len, i;
 	Window *kde_tray_icons;
 
-	if (!x11_get_root_winlist_prop(tray_data.dpy, tray_data.xa_kde_net_system_tray_windows, 
+	if (tray_data.kde_tray_old_mode || 
+		!x11_get_root_winlist_prop(tray_data.dpy, tray_data.xa_kde_net_system_tray_windows, 
 				(unsigned char **) &kde_tray_icons, &list_len)) 
 	{
 		return;
@@ -332,12 +343,14 @@ void perform_periodic_tasks()
 		/* KLUDGE TODO: resolve */
 		XWindowAttributes xwa;
 		XGetWindowAttributes(tray_data.dpy, tray_data.tray, &xwa);
-		if (xwa.width != tray_data.xsh.width || xwa.height != tray_data.xsh.height) {
-			DBG(8, ("KLUDGE: fixing window size (current: %dx%d, required: %dx%d\n",
+		if (!tray_data.is_reparented && 
+				(xwa.width != tray_data.xsh.width || xwa.height != tray_data.xsh.height)) 
+		{
+			DBG(8, ("KLUDGE: fixing window size (current: %dx%d, required: %dx%d)\n",
 						xwa.width, xwa.height,
 						tray_data.xsh.width, tray_data.xsh.height));
 			tray_update_window_size();
-		}
+		} 
 	}
 }
 
@@ -347,7 +360,8 @@ void perform_periodic_tasks()
 
 void expose(XExposeEvent ev)
 {
-	if (ev.window == tray_data.tray) tray_refresh_window(False);
+	if (ev.window == tray_data.tray && settings.parent_bg) 
+		tray_refresh_window(False);
 }
 
 void visibility_notify(XVisibilityEvent ev)
@@ -391,6 +405,23 @@ void property_notify(XPropertyEvent ev)
 	 * (currently used to track icon visibility status) */
 	if (ev.atom == tray_data.xembed_data.xa_xembed_info) {
 		icon_track_visibility_changes(ev.window);
+	}
+	if (ev.atom == tray_data.xa_net_client_list) {
+		Window *windows;
+		unsigned long nwindows, rc, i;
+		rc = x11_get_root_winlist_prop(tray_data.dpy, 
+				tray_data.xa_net_client_list,
+				(unsigned char **) &windows,
+				&nwindows);
+		if (x11_ok() && rc) {
+			tray_data.is_reparented = True;
+			for(i = 0; i < nwindows; i++) 
+				if (windows[i] == tray_data.tray) {
+					tray_data.is_reparented = False;
+					break;
+				}
+		}
+		DBG(6, ("tray is %sreparented\n", tray_data.is_reparented ? "" : "not "));
 	}
 }
 
@@ -457,9 +488,6 @@ void client_message(XClientMessageEvent ev)
 			/* This is the starting point of NET SYSTEM TRAY protocol */
 			case SYSTEM_TRAY_REQUEST_DOCK:
 				DBG(3, ("dockin' requested by 0x%x, serving in a moment\n", ev.data.l[2]));
-#ifdef DEBUG
-				x11_dump_win_info(tray_data.dpy, ev.data.l[2]);
-#endif
 #ifndef NO_NATIVE_KDE
 				if (kde_tray_check_for_icon(tray_data.dpy, ev.data.l[2])) cmode = CM_KDE;
 				if (kde_tray_is_old_icon(ev.data.l[2])) kde_tray_old_icons_remove(ev.data.l[2]);
@@ -515,27 +543,20 @@ void configure_notify(XConfigureEvent ev)
 {
 	struct TrayIcon *ti;
 	struct Point sz;
-	int x = 0, y = 0;
+	XWindowAttributes xwa;
 
 	if (ev.window == tray_data.tray) {
+		/* Tray window was resized */
 		/* TODO: distinguish between synthetic and real configure notifies */
 		/* TODO: catch rejected configure requests */
-		/* Tray window was resized */
 		DBG(8, ("window geometry from event: %ux%u+%d+%d\n", ev.width, ev.height, ev.x, ev.y));
-	
-		/* Update tray window coordinates */
-		if (x11_get_window_abs_coords(tray_data.dpy, tray_data.tray, &x, &y)) {
-			DBG(8, ("absolute position: +%d+%d\n", x, y));
-			tray_data.xsh.x = x;
-			tray_data.xsh.y = y;
-		} else 
-			DBG(0, ("could not get tray`s absolute coords\n"));
 
-		tray_data.xsh.width = ev.width;
-		tray_data.xsh.height = ev.height;
-
-		DBG(6, ("current window geometry: %ux%u+%d+%d\n", 
-				tray_data.xsh.width, tray_data.xsh.height, tray_data.xsh.x, tray_data.xsh.y));
+		/* Sometimes, configure notifies come too late, so we fetch real geometry ourselves */
+		XGetWindowAttributes(tray_data.dpy, tray_data.tray, &xwa);
+		x11_get_window_abs_coords(tray_data.dpy, tray_data.tray, &tray_data.xsh.x, &tray_data.xsh.y);
+		DBG(8, ("real window geometry: %dx%d+%d+%d\n", xwa.width, xwa.height, tray_data.xsh.x, tray_data.xsh.y));
+		tray_data.xsh.width = xwa.width;
+		tray_data.xsh.height = xwa.height;
 
 		/* Update icons positions */
 		icon_list_forall(&grid2window);
@@ -563,6 +584,7 @@ void configure_notify(XConfigureEvent ev)
 		ti->l.wnd_sz = sz;
 		ti->is_resized = True;
 		/* Do the job */
+#if 0
 		if (layout_handle_icon_resize(ti)) {
 			embedder_refresh(ti);
 #ifdef DEBUG
@@ -571,6 +593,15 @@ void configure_notify(XConfigureEvent ev)
 			embedder_update_positions(False);
 			tray_update_window_size();
 		}
+#else
+		layout_handle_icon_resize(ti);
+		embedder_refresh(ti);
+#ifdef DEBUG
+		print_icon_data(ti);
+#endif
+		embedder_update_positions(False);
+		tray_update_window_size();
+#endif
 #ifdef DEBUG
 		dump_icon_list();
 #endif
@@ -620,6 +651,21 @@ void map_notify(XMapEvent ev)
 		}
 	}
 #endif
+}
+
+void unmap_notify(XUnmapEvent ev)
+{
+	struct TrayIcon *ti;
+	ti = icon_list_find(ev.window);
+	if (ti != NULL && !ti->is_invalid && ti->cmode == CM_KDE) {
+		/* KLUDGE! sometimes KDE icons occasionally 
+		 * unmap their windows, but do _not_ destroy 
+		 * them. We map those windows back */
+		/* XXX: root cause unidentified */
+		DBG(8, ("Unmap KDE icons KLUDGE for 0x%x\n", ti->wid));
+		XMapRaised(tray_data.dpy, ti->wid);
+		if (!x11_ok()) ti->is_invalid = True;
+	}
 }
 
 /*********************************************************/
@@ -717,9 +763,13 @@ int main(int argc, char** argv)
 		case SelectionRequest:
 			DBG(5, ("SelectionRequest (from 0x%x to 0x%x)\n", ev.xselectionrequest.requestor, ev.xselectionrequest.owner));
 			break;
+		case UnmapNotify:
+			DBG(7, ("UnmapNotify(0x%x)\n", ev.xunmap.window));
+			unmap_notify(ev.xunmap);
+			break;
 		default:
 #if defined(DEBUG) && defined(TRACE_EVENTS)
-			DBG(8, ("Unhandled event: %s, serial: %d\n", x11_event_names[ev.type], ev.xany.serial));
+			DBG(8, ("Unhandled event: %s, serial: %d, window: 0x%x\n", x11_event_names[ev.type], ev.xany.serial, ev.xany.window));
 #endif
 			break;
 		}

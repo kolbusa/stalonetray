@@ -99,7 +99,7 @@ Pixmap tray_get_root_pixmap(Atom prop)
 			&length, 
 			&after, 
 			&reteval);
-	if (ret == Success && type == XA_PIXMAP && format == 32 && length == 1 && after == 0) 
+	if (x11_ok() && ret == Success && type == XA_PIXMAP && format == 32 && length == 1 && after == 0) 
 		pix = (Pixmap)(*(long *)reteval);
 	if (reteval) XFree(reteval);
 	return pix;
@@ -317,7 +317,7 @@ int tray_update_bg(int update_pixmap)
 
 	DBG(4, ("Done\n"));
 
-	return SUCCESS;
+	return x11_ok();
 }
 
 void tray_refresh_window(int exposures)
@@ -334,6 +334,9 @@ int tray_update_window_size()
 	XSizeHints xsh;
 	unsigned int layout_width, layout_height;
 	unsigned int new_width, new_height;
+
+	/* XXX: should'n we bail out if we are not top-level window? 
+	 * Or, perhaps, FvwmButtons are going to handle resises some day? */
 
 	layout_get_size(&layout_width, &layout_height);
 
@@ -357,13 +360,13 @@ int tray_update_window_size()
 	
 	xsh.min_width = new_width;
 	xsh.min_height = new_height;
-		
 
 	xsh.width_inc = settings.icon_size;
 	xsh.height_inc = settings.icon_size;
 	xsh.base_width = settings.icon_size;
 	xsh.base_height = settings.icon_size;
-	xsh.win_gravity = settings.win_gravity;
+/*    xsh.win_gravity = settings.win_gravity;*/
+	xsh.win_gravity = NorthWestGravity;
 	xsh.flags = PResizeInc|PBaseSize|PMinSize|PMaxSize|PWinGravity; 
 	XSetWMNormalHints(tray_data.dpy, tray_data.tray, &xsh);
 
@@ -382,13 +385,35 @@ int tray_update_window_size()
 	}
 #endif
 
-	tray_data.xsh.width = new_width;
-	tray_data.xsh.height = new_height;
-	XResizeWindow(tray_data.dpy, tray_data.tray, tray_data.xsh.width, tray_data.xsh.height);
-	
-	if (!x11_ok()) {
-		DBG(0, ("could not update tray window size\n"));
-		return FAILURE;
+
+	/* This check helps to avod extra (erroneous) moves of the window when
+	 * geometry changes are not updated yet, but tray_update_window_size() was
+	 * called once again */
+	if (tray_data.xsh.width != new_width || tray_data.xsh.height != new_height) {
+		/* Apparently, not every WM (hello, WindowMaker!) handles gravity the
+		 * way I have expected (i.e. using it to calculate reference point as
+		 * described in ICCM/WM specs). Perhaps, I was dreaming.  So, prior to
+		 * resizing trays window, it is necessary to recalculate window
+		 * absolute position and shift it according to grow gravity settings */
+		x11_get_window_abs_coords(tray_data.dpy, tray_data.tray, &tray_data.xsh.x, &tray_data.xsh.y);
+		DBG(8, ("old geometry: %dx%d+%d+%d\n", tray_data.xsh.x, tray_data.xsh.y, tray_data.xsh.width, tray_data.xsh.height));
+
+		if (settings.grow_gravity & GRAV_E) tray_data.xsh.x -= new_width - tray_data.xsh.width;
+		if (settings.grow_gravity & GRAV_S) tray_data.xsh.y -= new_height - tray_data.xsh.height;
+		tray_data.xsh.width = new_width;
+		tray_data.xsh.height = new_height;
+
+		DBG(8, ("new geometry: %dx%d+%d+%d\n", tray_data.xsh.x, tray_data.xsh.y, new_width, new_height));
+		
+		XResizeWindow(tray_data.dpy, tray_data.tray, new_width, new_height);
+		XMoveWindow(tray_data.dpy, tray_data.tray, tray_data.xsh.x, tray_data.xsh.y);
+		if (!x11_ok()) {
+			DBG(0, ("could not update tray window size\n"));
+			return FAILURE;
+		}
+	} else {
+		XResizeWindow(tray_data.dpy, tray_data.tray, 
+						tray_data.xsh.width, tray_data.xsh.height);
 	}
 
 	return SUCCESS;
@@ -411,13 +436,15 @@ void tray_create_window(int argc, char **argv)
 	Atom		protocols_atoms[2];
 
 	tray_data.xa_wm_delete_window = 
-		XInternAtom(tray_data.dpy, "WM_DELETE_WINDOW", False);
+		XInternAtom(tray_data.dpy, "WM_DELETE_WINDOW", True);
 	tray_data.xa_wm_take_focus = 
-		XInternAtom(tray_data.dpy, "WM_TAKE_FOCUS", False);
+		XInternAtom(tray_data.dpy, "WM_TAKE_FOCUS", True);
 	tray_data.xa_wm_protocols = 
-		XInternAtom(tray_data.dpy, "WM_PROTOCOLS", False);
+		XInternAtom(tray_data.dpy, "WM_PROTOCOLS", True);
 	tray_data.xa_kde_net_system_tray_windows = 
-		XInternAtom(tray_data.dpy, "_KDE_NET_SYSTEM_TRAY_WINDOWS", False);
+		XInternAtom(tray_data.dpy, "_KDE_NET_SYSTEM_TRAY_WINDOWS", True);
+	tray_data.xa_net_client_list =
+		XInternAtom(tray_data.dpy, "_NET_CLIENT_LIST", True);
 
 	tray_data.tray = XCreateSimpleWindow(
 						tray_data.dpy, 
@@ -464,14 +491,14 @@ void tray_create_window(int argc, char **argv)
 	xwmh->flags = (InputHint | StateHint | IconPixmapHint | 
 				   IconWindowHint | IconPositionHint | IconMaskHint | 
 				   WindowGroupHint);
-	xwmh->input = True;
+	xwmh->input = False;
 	xwmh->initial_state = settings.start_withdrawn ? WithdrawnState: NormalState;
 	xwmh->icon_pixmap = None;
 	xwmh->icon_x = 0;
 	xwmh->icon_y = 0;
 	xwmh->icon_mask = None;
-	xwmh->window_group = tray_data.tray;
-	xwmh->icon_window = tray_data.tray;
+	xwmh->window_group = settings.start_withdrawn ? tray_data.tray : None;
+	xwmh->icon_window = settings.start_withdrawn ? tray_data.tray : None;
 
 	if ((xch = XAllocClassHint()) == NULL)
 		DIE(("Could not allocate class hints\n"));
@@ -526,8 +553,18 @@ int tray_set_wm_hints()
 	mwm_set_hints(tray_data.dpy, tray_data.tray, mwm_decor, MWM_FUNC_ALL);
 
 	if (ewmh_check_support(tray_data.dpy)) {
-		if (settings.sticky) 
+		if (settings.sticky) {
 			ewmh_add_window_state(tray_data.dpy, tray_data.tray, _NET_WM_STATE_STICKY);
+			x11_send_client_msg32(tray_data.dpy, 
+					DefaultRootWindow(tray_data.dpy), 
+					tray_data.tray,
+					XInternAtom(tray_data.dpy, "_NET_WM_DESKTOP", False),
+					0xFFFFFFFF, /* all desktops */
+					1, /* source indication: normal window */
+					0,
+					0,
+					0);
+		}
 
 		if (settings.skip_taskbar)
 			ewmh_add_window_state(tray_data.dpy, tray_data.tray, _NET_WM_STATE_SKIP_TASKBAR);

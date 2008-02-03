@@ -14,9 +14,9 @@ MAINTAINERCLEANFILES=stalonetray.1 stalonetray.html stalonetray.spec stalonetray
 
 dist_hook: stalonetray.1 stalonetray.html
 
-stalonetray.xml: stalonetray.xml.in
-stalonetrayrc.sample: stalonetrayrc.sample.in
-stalonetray.spec: stalonetray.spec.in
+stalonetray.xml: stalonetray.xml.in configure.in
+stalonetrayrc.sample: stalonetrayrc.sample.in configure.in
+stalonetray.spec: stalonetray.spec.in configure.in
 
 stalonetray.xml \
 stalonetrayrc.sample \
@@ -30,7 +30,8 @@ stalonetray.html: stalonetray.xml
 	xsltproc /usr/share/xml/docbook/stylesheet/nwalsh/xhtml/docbook.xsl stalonetray.xml > stalonetray.html
 
 ChangeLog: .svn/entries src/.svn/entries
-	svn2cl 
+	svn update
+	svn2cl --linelen=90 --break-before-msg=2
 
 #docdir=$(datadir)/doc/$(PACKAGE)/
 #install-data-local:

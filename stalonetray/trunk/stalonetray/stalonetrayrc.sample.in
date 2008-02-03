@@ -35,15 +35,15 @@ fuzzy_edges 0
 # geometry <geometry>        # tray's geometry in standard X notation
 geometry 120x24-0-0
 
-# gravity <gravity>          # icon placement gravity, one of NW, NE, SW, SE
-gravity NW
-
 # grow_gravity <gravity>     # one of N, S, E, W, NW, NE, SW, SE; tray will grow
                              # in the direction opposite to one specified by
 							 # grow_gravity; if horizontal or vertical
 							 # direction is not specified, tray will not grow in
 							 # that direction
 grow_gravity NW
+
+# icon_gravity <gravity>     # icon placement gravity, one of NW, NE, SW, SE
+icon_gravity NW
 
 # icon_size <int>            # specifies dimensions of typical icon slot
 icon_size 24
@@ -79,7 +79,7 @@ skip_taskbar true
 sticky true
 
 # tint_color <color>         # set tinting color (NEW in 0.7)
-tint color white
+tint_color white
 
 # tint_level <level>         # set tinting level; level ranges from 0 (disabled)
                              # to 255 (NEW in 0.7)

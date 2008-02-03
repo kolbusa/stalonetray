@@ -41,10 +41,12 @@ int x11_connection_status()
 
 int x11_error_handler(Display *dpy, XErrorEvent *err)
 {
-	static char msg[PATH_MAX];
+	static char msg[PATH_MAX], req_num_str[32], req_str[PATH_MAX];
 	trapped_x11_error_code = err->error_code;
 	XGetErrorText(dpy, trapped_x11_error_code, msg, sizeof(msg)-1);
-	DBG(6, ("X11 error: %s (request: %u/%u, resource 0x%x)\n", msg, err->request_code, err->minor_code, err->resourceid));
+	snprintf(req_num_str, 32, "%d", err->request_code);
+	XGetErrorDatabaseText(dpy, "XRequest", req_num_str, "Unknown", req_str, PATH_MAX);
+	DBG(6, ("X11 error: %s (request: %s, resource 0x%x)\n", msg, req_str, err->request_code, err->minor_code, err->resourceid));
 	return 0;
 }
 
@@ -98,6 +100,7 @@ Time x11_get_server_timestamp(Display *dpy, Window wnd)
 	if (timestamp_atom == None) 
 		timestamp_atom = XInternAtom(dpy, "STALONETRAY_TIMESTAMP", False);
 
+	x11_ok(); /* Just reset the status (XXX) */
 	/* Trigger PropertyNotify event which has a timestamp field */
 	XChangeProperty(dpy, wnd, timestamp_atom, timestamp_atom, 8, PropModeReplace, &c, 1);
 	if (!x11_ok()) return CurrentTime;
@@ -123,7 +126,7 @@ int x11_get_win_prop32(Display *dpy, Window dst, Atom atom, Atom type, unsigned 
 			&buf_len, &bytes_after, &buf);
 
 	/* The requested property does not exist */
-	if (rc != Success || act_type != type || act_fmt != 32) return FAILURE;
+	if (!x11_ok() || rc != Success || act_type != type || act_fmt != 32) return FAILURE;
 
 	if (buf != NULL) XFree(buf);
 
@@ -145,6 +148,7 @@ int x11_get_win_prop32(Display *dpy, Window dst, Atom atom, Atom type, unsigned 
 int x11_send_client_msg32(Display *dpy, Window dst, Window wnd, Atom type, long data0, long data1, long data2, long data3, long data4)
 {
 	XEvent ev;
+	Status rc;
 	ev.xclient.type = ClientMessage;
 	ev.xclient.serial = 0;
 	ev.xclient.send_event = True;
@@ -159,21 +163,25 @@ int x11_send_client_msg32(Display *dpy, Window dst, Window wnd, Atom type, long 
 	/* XXX: Replace 0xFFFFFF for better portability? */
 	/* XXX: This should actually read NoEventMask...
 	 * seems like extra parameter is necessary */
-	return XSendEvent(dpy, dst, False, 0xFFFFFF, &ev);
+	rc = XSendEvent(dpy, dst, False, 0xFFFFFF, &ev);
+	return x11_ok() && rc != 0;
 }
 
 int x11_send_visibility(Display *dpy, Window dst, long state)
 {
 	XEvent xe;
+	int rc;
 	xe.type = VisibilityNotify;
 	xe.xvisibility.window = dst;
 	xe.xvisibility.state = state;
-	return XSendEvent(tray_data.dpy, dst, True, NoEventMask, &xe) == Success;
+	rc = XSendEvent(tray_data.dpy, dst, True, NoEventMask, &xe);
+	return x11_ok() && rc != 0;
 }
 
 int x11_send_expose(Display *dpy, Window dst, int x, int y, int width, int height)
 {
 	XEvent xe;
+	int rc;
 	xe.type = Expose;
 	xe.xexpose.window = dst;
 	xe.xexpose.x = x;
@@ -181,7 +189,8 @@ int x11_send_expose(Display *dpy, Window dst, int x, int y, int width, int heigh
 	xe.xexpose.width = width;
 	xe.xexpose.height = height;
 	xe.xexpose.count = 0;
-	return XSendEvent(tray_data.dpy, dst, True, NoEventMask, &xe) == Success; 
+	rc = XSendEvent(tray_data.dpy, dst, True, NoEventMask, &xe);
+	return x11_ok() && rc != 0;
 }
 
 int x11_refresh_window(Display *dpy, Window dst, int width, int height, int exposures)
@@ -204,7 +213,7 @@ int x11_set_window_size(Display *dpy, Window w, int x, int y)
 	XResizeWindow(dpy, w, x, y);
 
 	if (!x11_ok()) {
-		DBG(3, ("failed to force 0x%x size to %dx%d\n", w, x, y));
+		DBG(3, ("failed to set 0x%x size to %dx%d\n", w, x, y));
 		return FAILURE;
 	}
 
@@ -242,35 +251,17 @@ int x11_get_window_min_size(Display *dpy, Window w, int *x, int *y)
 			rc = SUCCESS;
 		}
 	}
-	return rc;
+	return x11_ok() && rc;
 }
 
 int x11_get_window_abs_coords(Display *dpy, Window dst, int *x, int *y)
 {
-	Window root, parent, *wjunk = NULL;
-	int x11_, y_, x11__, y__;
-	unsigned int junk;
-
-	XGetGeometry(dpy, dst, &root, &x11_, &y_, &junk, &junk, &junk, &junk);
-	XQueryTree(dpy, dst, &root, &parent, &wjunk, &junk);
-
-	if (junk != 0) XFree(wjunk);
-
-	if (!x11_ok())
-		return FAILURE;
-
-	if (parent == root) {
-		*x = x11_;
-		*y = y_;
-	} else {
-		if (x11_get_window_abs_coords(dpy, parent, &x11__, &y__)) {
-			*x = x11_ + x11__;
-			*y = y_ + y__;
-		} else
-			return FAILURE;
-	}
-	
-	return SUCCESS;
+	XWindowAttributes xwa;
+	Window child;
+	x11_ok(); /* XXX: this should go away ? */
+	XGetWindowAttributes(dpy, dst, &xwa);
+	XTranslateCoordinates(dpy, dst, xwa.root, 0, 0, x, y, &child);
+	return x11_ok();
 }
 
 void x11_extend_root_event_mask(Display *dpy, long mask)
@@ -319,16 +310,15 @@ const char *x11_event_names[LASTEvent] = {
 	"MappingNotify"
 };
 
-#define ENABLE_DUMP_WIN_INFO
 void x11_dump_win_info(Display *dpy, Window wid)
 {	
 #if defined(DEBUG) && defined(ENABLE_DUMP_WIN_INFO)
 	if (settings.dbg_level >= 8) {
 		char cmd[PATH_MAX];
 		DBG(8, ("Dumping info for 0x%x\n", wid));
-		snprintf(cmd, PATH_MAX, "xwininfo -size -bits -stats -id 0x%x\n", (unsigned int) wid);
+		snprintf(cmd, PATH_MAX, "xwininfo -size -bits -stats -id 0x%x 1>&2\n", (unsigned int) wid);
 		system(cmd);
-		snprintf(cmd, PATH_MAX, "xprop -id 0x%x\n", (unsigned int) wid);
+		snprintf(cmd, PATH_MAX, "xprop -id 0x%x 1>&2\n", (unsigned int) wid);
 		system(cmd);
 	}
 #endif

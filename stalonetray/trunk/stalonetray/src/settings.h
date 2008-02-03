@@ -67,6 +67,9 @@ struct Settings {
 
 	XColor tint_color;		/* Color used for tinting */
 
+#ifdef DELAY_EMBEDDING_CONFIRMATION
+	int confirmation_delay;
+#endif
 
 	XColor bg_color;		/* Tray background color */
 #ifdef DEBUG	

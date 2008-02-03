@@ -4,7 +4,7 @@ AC_INIT
 
 AM_CONFIG_HEADER(src/config.h)
 AC_CONFIG_SRCDIR(src/main.c)
-AM_INIT_AUTOMAKE(stalonetray, 0.7)
+AM_INIT_AUTOMAKE(stalonetray, 0.7.6)
 
 dnl ============ General =============
 
@@ -88,7 +88,7 @@ feature_list="XPM:$ac_cv_xpm_supported"
 
 dnl ========= KDE icons support
 
-AC_ARG_ENABLE(native_kde,
+AC_ARG_ENABLE(native-kde,
 	[  --disable-native-kde    disable native kde tray icons support],
 	[ac_cv_no_native_kde="$enableval"],
 	[ac_cv_no_native_kde="yes"])
@@ -96,6 +96,21 @@ AC_ARG_ENABLE(debug,
 	[  --enable-debug          enable debugging output\checks],
 	[ac_cv_debug="$enableval"],
 	[ac_cv_debug="yes"])
+AC_ARG_ENABLE(events-trace,
+	[  --enable-events-trace   enable full event trace (debug)],
+	[ac_cv_events_trace="$enableval"],
+	[ac_cv_events_trace="yes"])
+AC_ARG_ENABLE(embedding-confirmation-delay,
+	[  --enable-embedding-confirmation-delay  delay sending of embedding confirmation (debug)],
+	[
+		AC_DEFINE(DELAY_EMBEDDING_CONFIRMATION, 1, [delay sending of embedding confirmation])
+		LDFLAGS="$LDFLAGS -lpthread"
+	],
+	[])
+AC_ARG_ENABLE(enable-dump-win-info,
+	[  --enable-dump-win-info  use xprop/xwininfo to dump icon window info],
+	[ac_cv_dump_win_info="$enableval"],
+	[ac_cv_dump_win_info="yes"])
 
 case "$ac_cv_debug" in
 	yes)
@@ -124,6 +139,22 @@ case "$ac_cv_no_native_kde" in
 	;;
 esac
 AC_SUBST(kde_tray_support)
+
+case "$ac_cv_dump_win_info" in
+	yes)
+		AC_DEFINE(ENABLE_DUMP_WIN_INFO, 1, [use xprop/xwininfo to dump icon window info])
+	;;
+	*)
+	;;
+esac
+
+case "$ac_cv_events_trace" in
+	yes)
+		AC_DEFINE(TRACE_EVENTS, 1, [enable full event trace (debug)])
+	;;
+	*)
+	;;
+esac
 
 feature_list="$feature_list KDE:$ac_cv_no_native_kde"
 CPPFLAGS="$CPPFLAGS -DFEATURE_LIST='\"$feature_list\"'"
