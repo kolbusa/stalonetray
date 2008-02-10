@@ -55,20 +55,6 @@ void request_tray_status_on_signal(int sig)
 {
 	psignal(sig, NULL);
 	tray_status_requested = 1;
-	/* This message is not handled, instead it will
-	 * force event loop to spin and eventually reach
-	 * periodic tasks handler, which will read
-	 * tray_status_requestd flag and print out 
-	 * tray status */
-	x11_send_client_msg32(tray_data.async_dpy, 
-			tray_data.tray, 
-			tray_data.tray, 
-			tray_data.xa_tray_opcode, 
-			0, 
-			STALONE_TRAY_STATUS_REQUESTED,
-			0, 0, 0);
-	/* Force event delivery */
-	XSync(tray_data.async_dpy, False);
 }
 
 void cleanup()
@@ -95,7 +81,6 @@ void cleanup()
 		 * process */
 		XSync(tray_data.dpy, False);
 		XCloseDisplay(tray_data.dpy);
-		XCloseDisplay(tray_data.async_dpy);
 	}
 	cleanup_in_progress = 0;
 	clean = 1;
@@ -129,12 +114,7 @@ void dump_core_on_signal(int sig)
 void exit_on_signal(int sig)
 {
 	psignal(sig, NULL);
-	/* This is UGLY and is, probably, to be submitted to
-	 * Daily WTF, but it is the only way I found not to 
-	 * use usleep in main event loop. */
-	DBG(8, ("Sending fake WM_DELETE_WINDOW message\n"));
-	x11_send_client_msg32(tray_data.async_dpy, tray_data.tray, tray_data.tray, tray_data.xa_wm_protocols, tray_data.xa_wm_delete_window, 0, 0, 0, 0);
-	XSync(tray_data.async_dpy, False);
+	tray_data.terminated = True;
 }
 
 /**************************************
@@ -672,6 +652,13 @@ void unmap_notify(XUnmapEvent ev)
 	}
 }
 
+void my_usleep(useconds_t usec)
+{
+	struct timeval timeout;
+	timeout.tv_usec = usec;
+	select(0, NULL, NULL, NULL, &timeout);
+}
+
 /*********************************************************/
 int main(int argc, char** argv)
 {
@@ -694,8 +681,7 @@ int main(int argc, char** argv)
 	signal(SIGUSR1, &request_tray_status_on_signal);
 	
 	/* Open display */
-	if ((tray_data.dpy = XOpenDisplay(settings.display_str)) == NULL ||
-		(tray_data.async_dpy = XOpenDisplay(settings.display_str)) == NULL)
+	if ((tray_data.dpy = XOpenDisplay(settings.display_str)) == NULL)
 	{
 		DIE(("could not open display\n"));
 	}
@@ -725,63 +711,68 @@ int main(int argc, char** argv)
 #endif
 
 	/* Main event loop */
-	while ("my guitar gently wheeps") {
-		XNextEvent(tray_data.dpy, &ev);
-		xembed_handle_event(ev);
-		switch (ev.type) {
-		case VisibilityNotify:
-			DBG(7, ("VisibilityNotify (0x%x, state=%d)\n", ev.xvisibility.window, ev.xvisibility.state));
-			visibility_notify(ev.xvisibility);
-			break;
-		case Expose:
-			DBG(7, ("Expose (0x%x)\n", ev.xexpose.window));
-			expose(ev.xexpose);
-			break;
-		case PropertyNotify:
-			DBG(7, ("PropertyNotify(0x%x)\n", ev.xproperty.window));
-			property_notify(ev.xproperty);
-			break;
-		case DestroyNotify:
-			DBG(7, ("DestroyNotify(0x%x)\n", ev.xdestroywindow.window));
-			destroy_notify(ev.xdestroywindow);
-			break;
-		case ClientMessage:
-			DBG(5, ("ClientMessage(from 0x%x?)\n", ev.xclient.window));
-			client_message(ev.xclient);
-			break;
-		case ConfigureNotify:
-			DBG(7, ("ConfigureNotify(0x%x)\n", ev.xconfigure.window));
-			configure_notify(ev.xconfigure);
-			break;
-		case MapNotify:
-			DBG(7, ("MapNotify(0x%x)\n", ev.xmap.window));
-			map_notify(ev.xmap);
-			break;
-		case ReparentNotify:
-			DBG(5, ("ReparentNotify(0x%x to 0x%x)\n", ev.xreparent.window, ev.xreparent.parent));
-			reparent_notify(ev.xreparent);
-			break;
-		case SelectionClear:
-			DBG(5, ("SelectionClear (0x%x has lost selection)\n", ev.xselectionclear.window));
-			selection_clear(ev.xselectionclear);
-			break;
-		case SelectionNotify:
-			DBG(5, ("SelectionNotify\n"));
-			break;
-		case SelectionRequest:
-			DBG(5, ("SelectionRequest (from 0x%x to 0x%x)\n", ev.xselectionrequest.requestor, ev.xselectionrequest.owner));
-			break;
-		case UnmapNotify:
-			DBG(7, ("UnmapNotify(0x%x)\n", ev.xunmap.window));
-			unmap_notify(ev.xunmap);
-			break;
-		default:
+	while (!tray_data.terminated) {
+		while (XPending(tray_data.dpy)) {
+			XNextEvent(tray_data.dpy, &ev);
+			xembed_handle_event(ev);
+			switch (ev.type) {
+			case VisibilityNotify:
+				DBG(7, ("VisibilityNotify (0x%x, state=%d)\n", ev.xvisibility.window, ev.xvisibility.state));
+				visibility_notify(ev.xvisibility);
+				break;
+			case Expose:
+				DBG(7, ("Expose (0x%x)\n", ev.xexpose.window));
+				expose(ev.xexpose);
+				break;
+			case PropertyNotify:
+				DBG(7, ("PropertyNotify(0x%x)\n", ev.xproperty.window));
+				property_notify(ev.xproperty);
+				break;
+			case DestroyNotify:
+				DBG(7, ("DestroyNotify(0x%x)\n", ev.xdestroywindow.window));
+				destroy_notify(ev.xdestroywindow);
+				break;
+			case ClientMessage:
+				DBG(5, ("ClientMessage(from 0x%x?)\n", ev.xclient.window));
+				client_message(ev.xclient);
+				break;
+			case ConfigureNotify:
+				DBG(7, ("ConfigureNotify(0x%x)\n", ev.xconfigure.window));
+				configure_notify(ev.xconfigure);
+				break;
+			case MapNotify:
+				DBG(7, ("MapNotify(0x%x)\n", ev.xmap.window));
+				map_notify(ev.xmap);
+				break;
+			case ReparentNotify:
+				DBG(5, ("ReparentNotify(0x%x to 0x%x)\n", ev.xreparent.window, ev.xreparent.parent));
+				reparent_notify(ev.xreparent);
+				break;
+			case SelectionClear:
+				DBG(5, ("SelectionClear (0x%x has lost selection)\n", ev.xselectionclear.window));
+				selection_clear(ev.xselectionclear);
+				break;
+			case SelectionNotify:
+				DBG(5, ("SelectionNotify\n"));
+				break;
+			case SelectionRequest:
+				DBG(5, ("SelectionRequest (from 0x%x to 0x%x)\n", ev.xselectionrequest.requestor, ev.xselectionrequest.owner));
+				break;
+			case UnmapNotify:
+				DBG(7, ("UnmapNotify(0x%x)\n", ev.xunmap.window));
+				unmap_notify(ev.xunmap);
+				break;
+			default:
 #if defined(DEBUG) && defined(TRACE_EVENTS)
-			DBG(8, ("Unhandled event: %s, serial: %d, window: 0x%x\n", x11_event_names[ev.type], ev.xany.serial, ev.xany.window));
+				DBG(8, ("Unhandled event: %s, serial: %d, window: 0x%x\n", x11_event_names[ev.type], ev.xany.serial, ev.xany.window));
 #endif
-			break;
+				break;
+			}
+			perform_periodic_tasks();
 		}
 		perform_periodic_tasks();
+		my_usleep(100000L);
 	}
+	DBG(2, ("Clean exit\n"));
 	return 0;
 }
