@@ -552,31 +552,20 @@ int tray_set_wm_hints()
 
 	mwm_set_hints(tray_data.dpy, tray_data.tray, mwm_decor, MWM_FUNC_ALL);
 
-	if (ewmh_check_support(tray_data.dpy)) {
-		if (settings.sticky) {
-			ewmh_add_window_state(tray_data.dpy, tray_data.tray, _NET_WM_STATE_STICKY);
-			x11_send_client_msg32(tray_data.dpy, 
-					DefaultRootWindow(tray_data.dpy), 
-					tray_data.tray,
-					XInternAtom(tray_data.dpy, "_NET_WM_DESKTOP", False),
-					0xFFFFFFFF, /* all desktops */
-					1, /* source indication: normal window */
-					0,
-					0,
-					0);
-		}
-
-		if (settings.skip_taskbar)
-			ewmh_add_window_state(tray_data.dpy, tray_data.tray, _NET_WM_STATE_SKIP_TASKBAR);
-		
-		if (settings.wnd_layer != NULL)
-			ewmh_add_window_state(tray_data.dpy, tray_data.tray, settings.wnd_layer);
-
-		/* TODO: CHECK this with compiz */
-		if (strcmp(settings.wnd_type, _NET_WM_WINDOW_TYPE_NORMAL) == 0)
-			ewmh_add_window_type(tray_data.dpy, tray_data.tray, settings.wnd_type);
-		ewmh_add_window_type(tray_data.dpy, tray_data.tray, _NET_WM_WINDOW_TYPE_NORMAL);
+	if (settings.sticky) {
+		ewmh_add_window_state(tray_data.dpy, tray_data.tray, _NET_WM_STATE_STICKY);
+		ewmh_set_window_atom32(tray_data.dpy, tray_data.tray, _NET_WM_DESKTOP, 0xFFFFFFFF);
 	}
+
+	if (settings.skip_taskbar)
+		ewmh_add_window_state(tray_data.dpy, tray_data.tray, _NET_WM_STATE_SKIP_TASKBAR);
+	
+	if (settings.wnd_layer != NULL)
+		ewmh_add_window_state(tray_data.dpy, tray_data.tray, settings.wnd_layer);
+
+	if (strcmp(settings.wnd_type, _NET_WM_WINDOW_TYPE_NORMAL) != 0)
+		ewmh_add_window_type(tray_data.dpy, tray_data.tray, settings.wnd_type);
+	ewmh_add_window_type(tray_data.dpy, tray_data.tray, _NET_WM_WINDOW_TYPE_NORMAL);
 
 	return SUCCESS;
 }
