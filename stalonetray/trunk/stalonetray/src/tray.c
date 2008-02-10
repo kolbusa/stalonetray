@@ -38,7 +38,7 @@ void tray_init()
 {
 	tray_data.tray = None;
 	tray_data.dpy = NULL;
-	tray_data.async_dpy = NULL;
+	tray_data.terminated = False;
 	tray_data.bg_pmap = None;
 	tray_data.xa_xrootpmap_id = None;
 	tray_data.xa_xsetroot_id = None;
