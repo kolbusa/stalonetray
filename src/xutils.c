@@ -87,9 +87,12 @@ static Atom timestamp_atom = None;
 
 Bool x11_wait_for_timestamp(Display *dpy, XEvent *xevent, XPointer data)
 {
-	return (xevent->type == PropertyNotify &&
+	DBG(10, ("event: type=%d, window=0x%x\n", xevent->type, xevent->xany.window));
+	return ((xevent->type == PropertyNotify &&
 	    xevent->xproperty.window == *((Window *)data) &&
-		xevent->xproperty.atom == timestamp_atom);
+		xevent->xproperty.atom == timestamp_atom) ||
+	   (xevent->type == DestroyNotify &&
+		xevent->xdestroywindow.window == *((Window *)data)));
 }
 
 Time x11_get_server_timestamp(Display *dpy, Window wnd)
@@ -105,7 +108,8 @@ Time x11_get_server_timestamp(Display *dpy, Window wnd)
 	XChangeProperty(dpy, wnd, timestamp_atom, timestamp_atom, 8, PropModeReplace, &c, 1);
 	if (!x11_ok()) return CurrentTime;
 
-	/* Wait for the event */
+	/* Wait for the event
+	 * XXX: this may block... */
 	timestamp_wnd = wnd;
 	XIfEvent(dpy, &xevent, x11_wait_for_timestamp, (XPointer)&timestamp_wnd);
 
