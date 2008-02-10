@@ -34,6 +34,7 @@
 #include "embed.h"
 #include "xembed.h"
 #include "xutils.h"
+#include "wmh.h"
 
 #ifndef NO_NATIVE_KDE
 #include "kde_tray.h"
@@ -400,6 +401,9 @@ void property_notify(XPropertyEvent ev)
 			DBG(6, ("not updating KDE icons list: tray is not active\n"));
 		kde_tray_update_old_icons(tray_data.dpy);
 	}
+	/* React on WM (re)starts */
+	if (ev.atom == XInternAtom(tray_data.dpy, _NET_SUPPORTING_WM_CHECK, False))
+		ewmh_list_supported_atoms(tray_data.dpy);
 #endif
 	/* React on _XEMBED_INFO changes of embedded icons
 	 * (currently used to track icon visibility status) */
@@ -700,9 +704,13 @@ int main(int argc, char** argv)
 		XSynchronize(tray_data.dpy, True);
 
 	x11_trap_errors();
-
+	
 	/* Interpret those settings that need a display */
 	interpret_settings();
+
+#ifdef DEBUG
+	ewmh_list_supported_atoms(tray_data.dpy);
+#endif
 
 	/* Create and show tray window */
 	tray_create_window(argc, argv);
