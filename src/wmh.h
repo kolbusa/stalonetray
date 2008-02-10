@@ -29,6 +29,15 @@
 #define MWM_DECOR_MENU          (1L << 4)
 #define MWM_DECOR_MINIMIZE      (1L << 5)
 #define MWM_DECOR_MAXIMIZE      (1L << 6)
+
+/* EWMH atoms */
+#define _NET_SUPPORTED					"_NET_SUPPORTED"
+#define _NET_SUPPORTING_WM_CHECK		"_NET_SUPPORTING_WM_CHECK"
+#define _NET_WM_DESKTOP					"_NET_WM_DESKTOP"
+#define _NET_ACTIVE_WINDOW				"_NET_ACTIVE_WINDOW"
+#define _NET_CLIENT_LIST				"_NET_CLIENT_LIST"
+#define _NET_WM_PING					"_NET_WM_PING"
+
 /* Defines for EWMH window types */
 #define _NET_WM_WINDOW_TYPE_DESKTOP	"_NET_WM_WINDOW_TYPE_DESKTOP"
 #define _NET_WM_WINDOW_TYPE_DOCK	"_NET_WM_WINDOW_TYPE_DOCK"
@@ -38,6 +47,7 @@
 #define _NET_WM_WINDOW_TYPE_SPLASH	"_NET_WM_WINDOW_TYPE_SPLASH"
 #define _NET_WM_WINDOW_TYPE_DIALOG	"_NET_WM_WINDOW_TYPE_DIALOG"
 #define _NET_WM_WINDOW_TYPE_NORMAL	"_NET_WM_WINDOW_TYPE_NORMAL"
+
 /* Defined for EWMH window states */
 #define _NET_WM_STATE_MODAL				"_NET_WM_STATE_MODAL"
 #define _NET_WM_STATE_STICKY			"_NET_WM_STATE_STICKY"
@@ -52,17 +62,25 @@
 #define _NET_WM_STATE_BELOW				"_NET_WM_STATE_BELOW"
 #define _NET_WM_STATE_DEMANDS_ATTENTION	"_NET_WM_STATE_DEMANDS_ATTENTION"
 
-/* Check for EWMH support from WM */
-int ewmh_check_support(Display *dpy);
+/* Flags for window state manipulations */
+#define _NET_WM_STATE_REMOVE        0   /* remove/unset property */
+#define _NET_WM_STATE_ADD           1   /* add/set property */
+#define _NET_WM_STATE_TOGGLE        2   /* toggle property  */
+
+/* Check if WM that supports EWMH hints is present on given display */
+int ewmh_wm_present(Display *dpy);
 /* Add window type for the window wnd */
 int ewmh_add_window_state(Display *dpy, Window wnd, char *state);
 /* Add window type for the window wnd */
 int ewmh_add_window_type(Display *dpy, Window wnd, char *type);
-
+/* Set CARD32 value of EWMH atom for a given window */
+int ewmh_set_window_atom32(Display *dpy, Window wnd, char *prop_name, CARD32 value);
 /* Set Motif WM hints for window wnd; read MWM spec for more info */
 int mwm_set_hints(Display *dpy, Window wnd, unsigned long decorations, unsigned long functions);
 
 #ifdef DEBUG
+/* Dumps EWMH atoms supported by WM */
+int ewmh_list_supported_atoms(Display *dpy);
 /* Dump all EWMH states that have been set for the window wnd */
 int ewmh_dump_window_states(Display *dpy, Window wnd);
 #endif

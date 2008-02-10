@@ -13,10 +13,6 @@
 #include "debug.h"
 #include "xutils.h"
 
-#define _NET_WM_STATE_REMOVE        0   /* remove/unset property */
-#define _NET_WM_STATE_ADD           1   /* add/set property */
-#define _NET_WM_STATE_TOGGLE        2   /* toggle property  */
-
 /* Structure for Motif WM hints */
 typedef struct {
     unsigned long flags;
@@ -32,52 +28,29 @@ typedef struct {
 #define MWM_HINTS_STATUS        (1L << 3)
 /* Number of CARD32 entries in MWM hints data structure */
 #define PROP_MOTIF_WM_HINTS_ELEMENTS 5
-/* List of all EWMH atoms supoorted by WM */
-Atom			*ewmh_list = NULL;
-/* Length of previously-mentioned list */
-unsigned long	ewmh_list_len = 0;
-/* Atom: _NET_SUPPORTED */
-Atom			xa_net_supported = None;
 
-/* Check if WM supports EWMH */
-int ewmh_check_support(Display *dpy)
+/* Check if WM that supports EWMH hints is present on given display */
+int ewmh_wm_present(Display *dpy)
 {
-	unsigned long i;
-#ifdef DEBUG
-	char *atom_name;
-#endif
+	Window *check_win, *check_win_self_ref;
+	unsigned long len;
+	int rc;
 
-	/* Check for presence of _NET_SUPPORTED atom */
-	if (xa_net_supported == None) 
-		xa_net_supported = XInternAtom(dpy, "_NET_SUPPORTED", True);
-	if (xa_net_supported == None) return FAILURE;
-
-	/* Retrive the value of _NET_SUPPORTED property of root window */
-	if (!x11_get_win_prop32(dpy, DefaultRootWindow(dpy), xa_net_supported, XA_ATOM, (unsigned char **) &ewmh_list, &ewmh_list_len)) {
-		xa_net_supported = None;
-		return FAILURE;
-	}
-
-#ifdef DEBUG
-	for (i = 0; i < ewmh_list_len; i++) {
-		atom_name = XGetAtomName(dpy, ewmh_list[i]);
-		DBG(8, ("_NET_WM_SUPPORTED[%d] = 0x%x (%s)\n", i, ewmh_list[i], atom_name));
-		XFree(atom_name);
-		x11_ok();
-	}
-#endif
-	
-	return SUCCESS;
-}
-
-/* Check if atom is in the list of supported EWMH atoms */
-int ewmh_atom_supported(Atom atom)
-{
-	int i;
-	if (atom == None || xa_net_supported == None) return False;
-	for (i = 0; i < ewmh_list_len; i++) 
-		if (atom == ewmh_list[i])
+	/* see _NET_SUPPORTING_WM_CHECK in the WM spec. */
+	rc = x11_get_root_winlist_prop(dpy, 
+			XInternAtom(dpy, _NET_SUPPORTING_WM_CHECK, False), 
+			(unsigned char **) &check_win, 
+			&len);
+	if (x11_ok() && rc && len == 1) {
+		x11_get_win_prop32(dpy, 
+				check_win[0], 
+				XInternAtom(dpy, _NET_SUPPORTING_WM_CHECK, False), 
+				XA_WINDOW, 
+				(unsigned char **) &check_win_self_ref, 
+				&len);
+		if (x11_ok() && rc && len == 1 && check_win[0] == check_win_self_ref[0])
 			return True;
+	}
 	return False;
 }
 
@@ -89,22 +62,22 @@ int ewmh_add_window_state(Display *dpy, Window wnd, char *state)
 	XWindowAttributes xwa;
 	int rc;
 
-	/* Check if WM supports EWMH window states */
-	prop = XInternAtom(dpy, "_NET_WM_STATE", True);
-	atom = XInternAtom(dpy, state, True);
-	if (atom == None || prop == None || !ewmh_atom_supported(atom)) return FAILURE;
+
+	prop = XInternAtom(dpy, "_NET_WM_STATE", False);
+	atom = XInternAtom(dpy, state, False);
 
 	DBG(8, ("adding window state %s (0x%x)\n", state, atom));
 
+	/* Ping the window and get its state */
 	rc = XGetWindowAttributes(dpy, wnd, &xwa);
 	if (!x11_ok() || !rc ) return FAILURE;
 
-	if (xwa.map_state != IsUnmapped) {
-		/* For unmapped windows, ask WM to add the window state */
+	if (xwa.map_state != IsUnmapped && ewmh_wm_present(dpy)) {
+		/* For mapped windows, ask WM (if it is here) to add the window state */
 		return x11_send_client_msg32(dpy, DefaultRootWindow(dpy), wnd, prop, 
 		                             _NET_WM_STATE_ADD, atom, 0, 0, 0);
 	} else {
-		/* Else, add the window state ourselves */
+		/* Else, alter the window state atom value ourselves */
 		XChangeProperty(dpy, wnd, prop, XA_ATOM, 32, PropModeAppend, (unsigned char *)&atom, 1);
 		return x11_ok();
 	}
@@ -115,50 +88,49 @@ int ewmh_add_window_type(Display *dpy, Window wnd, char *type)
 {
 	Atom prop;
 	Atom atom;
-	/* Check if WM supports supports _NET_WM_WINDOW_TYPE and requested window type */
-	prop = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE", True);
-	atom = XInternAtom(dpy, type, True);
-	if (atom == None || prop == None || !ewmh_atom_supported(atom)) return FAILURE;
+
+	prop = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE", False);
+	atom = XInternAtom(dpy, type, False);
 	
+	DBG(8, ("0x%x: adding type %s\n", wnd, type));
+
 	/* Update property value (append) */
 	XChangeProperty(dpy, wnd, prop, XA_ATOM, 32, PropModeAppend, (unsigned char *)&atom, 1);
 
 	if (!x11_ok()) {
-		DBG(0, ("could append atom to the _NET_WM_WINDOW_TYPE list property of 0x%x\n", wnd));
+		DBG(0, ("failed to append atom to the _NET_WM_WINDOW_TYPE list property of 0x%x\n", wnd));
 		return FAILURE;
 	}
 
 	return SUCCESS;
 }
 
-#ifdef DEBUG
-/* List EWMH states that are set for the given window */
-int ewmh_dump_window_states(Display *dpy, Window wnd)
+/* Set CARD32 value of EWMH atom for a given window */
+int ewmh_set_window_atom32(Display *dpy, Window wnd, char *prop_name, CARD32 value)
 {
-	Atom prop, *data;
-	unsigned long prop_len;
-	int j;
-	char *tmp;
+	Atom prop; 
+	Atom atom;
+	XWindowAttributes xwa;
+	int rc;
 
-	/* Check if WM supports _NET_WM_STATE */
-	prop = XInternAtom(tray_data.dpy, "_NET_WM_STATE", True);
-	if (prop == None) return FAILURE;
+	prop = XInternAtom(dpy, prop_name, False);
 
-	/* Retrive the list of states */
-	if (x11_get_win_prop32(dpy, wnd, prop, XA_ATOM, (unsigned char**) &data, &prop_len)) {
-		for (j = 0; j < prop_len; j++) {
-			tmp = XGetAtomName(tray_data.dpy, data[j]);
-			if (x11_ok() && tmp != NULL) {
-				DBG(8, ("0x%x:_NET_WM_STATE[%d] = %s\n", wnd, j, tmp));
-				XFree(tmp);
-			}
-		}
-		return SUCCESS;
+	DBG(8, ("0x%x: setting atom %s to 0x%x\n", wnd, prop_name, value));
+
+	/* Ping the window and get its state */
+	rc = XGetWindowAttributes(dpy, wnd, &xwa);
+	if (!x11_ok() || !rc ) return FAILURE;
+
+	if (xwa.map_state != IsUnmapped && ewmh_wm_present(dpy)) {
+		/* For mapped windows, ask WM (if it is here) to add the window state */
+		return x11_send_client_msg32(dpy, DefaultRootWindow(dpy), wnd, prop,
+		                             value, 2 /* source indication */, 0, 0, 0);
+	} else {
+		/* Else, alter the window state atom value ourselves */
+		XChangeProperty(dpy, wnd, prop, XA_ATOM, 32, PropModeAppend, (unsigned char *)&atom, 1);
+		return x11_ok();
 	}
-
-	return FAILURE;
 }
-#endif
 
 /* Set MWM hints */
 int mwm_set_hints(Display *dpy, Window wnd, unsigned long decorations, unsigned long functions)
@@ -204,4 +176,64 @@ int mwm_set_hints(Display *dpy, Window wnd, unsigned long decorations, unsigned 
 
 	return x11_ok();
 }
+
+#ifdef DEBUG
+/* Dumps EWMH atoms supported by WM */
+int ewmh_list_supported_atoms(Display *dpy)
+{
+	Atom *atom_list;
+	unsigned long atom_list_len, i;
+	char *atom_name;
+
+	if (ewmh_wm_present(dpy)) {
+		if (x11_get_win_prop32(dpy, 
+					DefaultRootWindow(dpy),
+					XInternAtom(dpy, _NET_SUPPORTED, False),
+					XA_ATOM,
+					(unsigned char **) &atom_list,
+					&atom_list_len))
+		{
+			for (i = 0; i < atom_list_len; i++) {
+				atom_name = XGetAtomName(dpy, atom_list[i]);
+				if (atom_name != NULL) {
+					DBG(8, ("_NET_SUPPORTED[%d]: %s\n", i, atom_name));
+				} else
+					DBG(8, ("_NET_SUPPORTED[%d]: bogus value (0x%x)\n", i, atom_list[i]));
+				XFree(atom_name);
+				x11_ok();
+			}
+			return SUCCESS;
+		}
+	}
+	DBG(8, ("EWMH-compliant WM is not present on this display\n"));
+	return FAILURE;
+}
+
+/* List EWMH states that are set for the given window */
+int ewmh_dump_window_states(Display *dpy, Window wnd)
+{
+	Atom prop, *data;
+	unsigned long prop_len;
+	int j;
+	char *tmp;
+
+	/* Check if WM supports _NET_WM_STATE */
+	prop = XInternAtom(tray_data.dpy, "_NET_WM_STATE", True);
+	if (prop == None) return FAILURE;
+
+	/* Retrive the list of states */
+	if (x11_get_win_prop32(dpy, wnd, prop, XA_ATOM, (unsigned char**) &data, &prop_len)) {
+		for (j = 0; j < prop_len; j++) {
+			tmp = XGetAtomName(tray_data.dpy, data[j]);
+			if (x11_ok() && tmp != NULL) {
+				DBG(8, ("0x%x:_NET_WM_STATE[%d] = %s\n", wnd, j, tmp));
+				XFree(tmp);
+			}
+		}
+		return SUCCESS;
+	}
+
+	return FAILURE;
+}
+#endif
 
