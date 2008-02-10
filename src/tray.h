@@ -47,10 +47,10 @@ struct TrayData {
 	/* General */
 	Window tray;							/* ID of tray window */
 	Display *dpy;							/* Display pointer */
-	Display *async_dpy;						/* Display which is used to send self asynchronous messages */
 	XSizeHints xsh;							/* Size & position of the tray window */
 	XSizeHints root_wnd;					/* Size & position :) of the root window */
 	Window old_selection_owner;				/* Old owner of tray selection */
+	int terminated;							/* Exit flag */
 	int is_active;							/* Is the tray active? */
 	int is_reparented;						/* Was the tray reparented in smth like FvwmButtons ? */
 	int kde_tray_old_mode;					/* Use legacy scheme to handle KDE icons via MapNotify */
