@@ -94,9 +94,12 @@ for 0.7.6
 - focus issue in Wmaker
 
 for 0.8/0.9
-- track size changes of the icons that failed to fit into the tray?
-- profile the code 
-- valgrind
++ slot size vs. icon size
+- review ignore_icon_resize usage
 - sanitize x11 calls: check return values instead of relying on x11_ok() whenever possible
-- RENDER implementation of tinting/compositing
+- track size changes of the icons that failed to fit into the tray?
+- rework root transparency code (handle cases when root pmap size is less than root window)
 - scrollable tray area? (see http://wnd.katei.fi/weblog/entry-7)
+- valgrind
+- profile the code 
+- RENDER implementation of tinting/compositing
