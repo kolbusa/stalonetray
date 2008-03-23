@@ -537,7 +537,7 @@ void parse_rc()
 	while (!feof(cfg)) {
 		lnum++;
 		if (fgets(buf, READ_BUF_SZ, cfg) == NULL) {
-			if (errno) ERR(("read error (%s)\n", strerror(errno)));
+			if (ferror(cfg)) ERR(("read error (%s)\n", strerror(errno)));
 			break;
 		}
 
