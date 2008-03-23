@@ -176,7 +176,8 @@
   <term><option>&ndash;&ndash;icon&ndash;size</option> <replaceable>n</replaceable></term>
   <term><option>icon_size</option> <replaceable>n</replaceable></term>
   <listitem><para>Set basic icon size to <replaceable>n</replaceable>.
-  Default value: <userinput>24</userinput>.
+  Default value: <userinput>24</userinput>. Minimal value:
+  <userinput>16</userinput>.
   </para></listitem>
   </varlistentry>
 
@@ -184,7 +185,7 @@
   <term><option>&ndash;&ndash;ignore&ndash;icon&ndash;resize</option></term>
   <term><option>ignore_icon_resize <optional><replaceable>bool</replaceable></optional></option></term>
   <listitem><para>Ignore icon resizing events, effectively forcing all icons dimensions
-  to be icon_size x icon_size. Default value: <userinput>false</userinput>.
+  to be <option>icon_size</option> x <option>icon_size</option>. Default value: <userinput>false</userinput>.
   </para></listitem>
   </varlistentry>
 
@@ -244,7 +245,8 @@
   <term><option>&ndash;&ndash;respect&ndash;icon&ndash;hints</option></term>
   <term><option>respect_icon_hints</option> <optional><replaceable>bool</replaceable></optional></term>
   <listitem><para>Do respect icon window min_width/min_height size hints. This may help with unusually-sized icons, which fail
-  to resize themselves after being resized to icon_size x icon_size. Note, that if stalonetray is configured to ignore icon resize events, this 
+  to resize themselves after being resized to <option>icon_size</option> x
+  <option>icon_size</option>. Note, that if stalonetray is configured to ignore icon resize events, this 
   option has no effect. Default value: <userinput>false</userinput>.
   </para></listitem>
   </varlistentry>
@@ -254,6 +256,15 @@
   <term><option>skip_taskbar</option> <optional><replaceable>bool</replaceable></optional></term>
   <listitem><para>Hide tray`s window from the taskbar. Default value:
   <userinput>false</userinput>.
+  </para></listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term><option>&ndash;s</option> <replaceable>n</replaceable></term>
+  <term><option>&ndash;&ndash;slot&ndash;size</option> <replaceable>n</replaceable></term>
+  <term><option>slot_size</option> <replaceable>n</replaceable></term>
+  <listitem><para>Set grid slot size to <replaceable>n</replaceable>. Cannot be
+  less then <option>icon_size</option> which is default value unless specified.
   </para></listitem>
   </varlistentry>
 

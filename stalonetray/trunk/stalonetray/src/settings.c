@@ -44,6 +44,7 @@ void init_default_settings()
 #endif
 	settings.geometry_str		= "120x24+0-0";
 	settings.icon_size			= FALLBACK_ICON_SIZE;
+	settings.slot_size          = -1;
 	settings.deco_flags			= DECO_NONE;
 	settings.max_tray_width		= 0;
 	settings.max_tray_height	= 0;
@@ -266,6 +267,7 @@ struct Param params[] = {
 #endif
 	{NULL, "--respect-icon-hints", "respect_icon_hints", &settings.respect_icon_hints, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
 	{NULL, "--skip-taskbar", "skip_taskbar", &settings.skip_taskbar, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
+	{"-s", "--slot-size", "slot_size", &settings.slot_size, (param_parser_t) &parse_int, 1, 1, 0, NULL},
 	{NULL, "--sticky", "sticky", &settings.sticky, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
 	{NULL, "--tint-color", "tint_color", &settings.tint_color_str, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
 	{NULL, "--tint-level", "tint_level", &settings.tint_level, (param_parser_t) &parse_int, 1, 1, 0, NULL},
@@ -595,6 +597,7 @@ void interpret_settings()
 
 	/* Sanitize icon size */
 	val_range(settings.icon_size, MIN_ICON_SIZE, INT_MAX);
+	if (settings.slot_size < settings.icon_size) settings.slot_size = settings.icon_size;
 
 	/* Sanitize all gravity strings */
 	settings.icon_gravity |= ((settings.icon_gravity & GRAV_V) ? 0 : GRAV_N);
@@ -659,18 +662,12 @@ void interpret_settings()
 	if (!settings.max_tray_width)
 		settings.max_tray_width = root_wa.width;
 	else
-		val_range(settings.max_tray_width, settings.icon_size, INT_MAX);
+		val_range(settings.max_tray_width, settings.slot_size, INT_MAX);
 	
 	if (!settings.max_tray_height)
 		settings.max_tray_height = root_wa.height;
 	else
-		val_range(settings.max_tray_height, settings.icon_size, INT_MAX);
-
-#if 0 /* TOREMOVE */
-	settings.max_layout_width = settings.max_tray_width / settings.icon_size;
-	settings.max_layout_height = settings.max_tray_height / settings.icon_size;
-	if (settings.vertical) swap(settings.max_layout_width, settings.max_layout_height);
-#endif
+		val_range(settings.max_tray_height, settings.slot_size, INT_MAX);
 
 	/* Parse geometry-related settings */
 	/* Since WMs do not handle gravity reliable,
@@ -684,11 +681,11 @@ void interpret_settings()
 			tray_data.xsh.width, tray_data.xsh.height,
 			tray_data.xsh.x, tray_data.xsh.y));
 
-	tray_data.xsh.width = tray_data.xsh.width - tray_data.xsh.width % settings.icon_size;
-	tray_data.xsh.height = tray_data.xsh.height - tray_data.xsh.height % settings.icon_size;
+	tray_data.xsh.width = tray_data.xsh.width - tray_data.xsh.width % settings.slot_size;
+	tray_data.xsh.height = tray_data.xsh.height - tray_data.xsh.height % settings.slot_size;
 
-	val_range(tray_data.xsh.width, settings.icon_size, settings.max_tray_width);
-	val_range(tray_data.xsh.height, settings.icon_size, settings.max_tray_height);
+	val_range(tray_data.xsh.width, settings.slot_size, settings.max_tray_width);
+	val_range(tray_data.xsh.height, settings.slot_size, settings.max_tray_height);
 
 	if (geom_flags & XNegative)
 		tray_data.xsh.x = root_wa.width + tray_data.xsh.x - tray_data.xsh.width;
@@ -744,6 +741,7 @@ int read_settings(int argc, char **argv)
 	DBG(3, ("config_fname = \"%s\"\n", settings.config_fname));
 	DBG(3, ("--values--\n"));
 	DBG(3, ("icon_size = %d\n", settings.icon_size));
+	DBG(3, ("slot_size = %d\n", settings.slot_size));
 	DBG(3, ("grow_gravity = 0x%x\n", settings.grow_gravity));
 	DBG(3, ("icon_gravity = 0x%x\n", settings.icon_gravity));
 	DBG(3, ("max_tray_width = %d\n", settings.max_tray_width));

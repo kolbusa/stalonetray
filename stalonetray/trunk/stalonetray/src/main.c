@@ -296,8 +296,8 @@ void perform_periodic_tasks()
 		SHOWMSG(("===================================\n"));
 		SHOWMSG(("tray status: %sactive\n", tray_data.is_active ? "" : "not "));
 		SHOWMSG(("grid geometry: %dx%d\n", 
-					grid_w / settings.icon_size, 
-					grid_h / settings.icon_size));
+					grid_w / settings.slot_size, 
+					grid_h / settings.slot_size));
 		SHOWMSG(("tray geometry: %dx%d+%d+%d\n",
 				tray_data.xsh.width, tray_data.xsh.height,
 				tray_data.xsh.x, tray_data.xsh.y));
@@ -568,16 +568,6 @@ void configure_notify(XConfigureEvent ev)
 		ti->l.wnd_sz = sz;
 		ti->is_resized = True;
 		/* Do the job */
-#if 0
-		if (layout_handle_icon_resize(ti)) {
-			embedder_refresh(ti);
-#ifdef DEBUG
-			print_icon_data(ti);
-#endif
-			embedder_update_positions(False);
-			tray_update_window_size();
-		}
-#else
 		layout_handle_icon_resize(ti);
 		embedder_refresh(ti);
 #ifdef DEBUG
