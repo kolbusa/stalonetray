@@ -361,10 +361,10 @@ int tray_update_window_size()
 	xsh.min_width = new_width;
 	xsh.min_height = new_height;
 
-	xsh.width_inc = settings.icon_size;
-	xsh.height_inc = settings.icon_size;
-	xsh.base_width = settings.icon_size;
-	xsh.base_height = settings.icon_size;
+	xsh.width_inc = settings.slot_size;
+	xsh.height_inc = settings.slot_size;
+	xsh.base_width = settings.slot_size;
+	xsh.base_height = settings.slot_size;
 /*    xsh.win_gravity = settings.win_gravity;*/
 	xsh.win_gravity = NorthWestGravity;
 	xsh.flags = PResizeInc|PBaseSize|PMinSize|PMaxSize|PWinGravity; 
