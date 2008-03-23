@@ -172,12 +172,13 @@ int embedder_unembed(struct TrayIcon *ti)
 int embedder_hide(struct TrayIcon *ti)
 {
 	XUnmapWindow(tray_data.dpy, ti->mid_parent);
-	/* We do not wany any StructureNotify events anymore */
+	/* We do not wany any StructureNotify events for icon window anymore */
 	XSelectInput(tray_data.dpy, ti->wid, PropertyChangeMask);
 	if (!x11_ok()) {
 		ti->is_invalid = True;
 		return FAILURE;
 	} else {
+		ti->is_size_set = False;
 		ti->is_visible = False;
 		return SUCCESS;
 	}
@@ -288,8 +289,8 @@ int embedder_reset_size(struct TrayIcon *ti)
 	struct Point icon_sz;
 	int rc = FAILURE;
 
-	/* Do nothing if size was already set, icon resize requests
-	 * are handled, and this is not a KDE icon */
+	/* Do not reset size for non-KDE icons with size set if icon_resizes
+	 * are ignored */
 	if (ti->is_size_set && ti->cmode != CM_KDE && settings.ignore_icon_resize)
 		return SUCCESS;
 
@@ -297,13 +298,14 @@ int embedder_reset_size(struct TrayIcon *ti)
 		icon_sz.x = settings.icon_size < KDE_ICON_SIZE ? settings.icon_size : KDE_ICON_SIZE;
 		icon_sz.y = icon_sz.x;
 	} else {
-		/* If icon hinst are to be respected, retrive the data */
+		/* If icon hints are to be respected, retrive the data */
 		if (settings.respect_icon_hints)
 			rc = x11_get_window_min_size(tray_data.dpy, ti->wid, &icon_sz.x, &icon_sz.y);
 		/* If this has failed, or icon hinst are not respected, or minimal size hints
 		 * are too small, fall back to default values */
 		if (!rc || 
 		    !settings.respect_icon_hints ||
+		     settings.ignore_icon_resize ||
 		    (icon_sz.x < settings.icon_size && icon_sz.y < settings.icon_size))
 		{
 			icon_sz.x = settings.icon_size;
