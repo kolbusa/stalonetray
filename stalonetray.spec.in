@@ -9,7 +9,7 @@ Source: http://belnet.dl.sourceforge.net/sourceforge/stalonetray/stalonetray_@VE
 URL: http://sourceforge.net/projects/stalonetray
 Packager: Roman Dubtsov <busa_ru@users.sourceforge.net>
 
-BuildRequires: XFree86-devel
+BuildRequires: libx11-devel
 BuildRequires: glibc-devel
 
 %description
