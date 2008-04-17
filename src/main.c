@@ -549,13 +549,16 @@ void configure_notify(XConfigureEvent ev)
 		/* Adjust window background if necessary */
 		tray_update_bg(False);
 		tray_refresh_window(True);
-	} else if ((ti = icon_list_find(ev.window)) != NULL) {
-		/* Some icon has resized its window */
-		if (ti->cmode == CM_KDE) {
-			/* KDE icons are not allowed to change their size. Reset their size. */
+	} else if ((ti = icon_list_find(ev.window)) != NULL) { /* Some icon has resized its window */
+
+		/* KDE icons are not allowed to change their size. Reset icon size. */
+		if (ti->cmode == CM_KDE || settings.ignore_icon_resize) {
 			embedder_reset_size(ti);
 			return;
 		}
+		
+		if (settings.ignore_icon_resize) return;
+
 		/* Get new window size */
 		if (!x11_get_window_size(tray_data.dpy, ti->wid, &sz.x, &sz.y)) {
 			embedder_unembed(ti);
@@ -575,7 +578,6 @@ void configure_notify(XConfigureEvent ev)
 #endif
 		embedder_update_positions(False);
 		tray_update_window_size();
-#endif
 #ifdef DEBUG
 		dump_icon_list();
 #endif

@@ -19,6 +19,9 @@
 #define MIN_ICON_SIZE 16
 /* Default KDE icon size */
 #define KDE_ICON_SIZE 22
+/* Number of time icon is allowed to change its size after which
+ * stalonetray gives up */
+#define ICON_SIZE_RESETS_THRESHOLD 2
 
 /* Meaningful names for return values */
 #define SUCCESS 1

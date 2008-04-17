@@ -40,6 +40,7 @@ struct TrayIcon {
 	int is_updated;				/* Flag: the position of the icon needs to be updated */
 	int is_xembed_supported;	/* Flag: does the icon support xembed */
 	unsigned long xembed_data[2];/* XEMBED data */
+	int num_size_resets;        /* How many times size was reset */
 	int is_size_set;			/* Flag: has the size for the icon been set */
 	int is_xembed_accepts_focus;/* Flag: does the icon want focus */
 	long xembed_last_timestamp; /* The timestamp of last processed xembed message */
