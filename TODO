@@ -96,6 +96,7 @@ for 0.7.6
 for 0.8/0.9
 + slot size vs. icon size
 - review ignore_icon_resize usage
+- strut WM hints
 - sanitize x11 calls: check return values instead of relying on x11_ok() whenever possible
 - track size changes of the icons that failed to fit into the tray?
 - rework root transparency code (handle cases when root pmap size is less than root window)
