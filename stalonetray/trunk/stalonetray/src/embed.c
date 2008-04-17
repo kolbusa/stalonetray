@@ -87,7 +87,11 @@ int embedder_embed(struct TrayIcon *ti)
 
 	xswa.win_gravity = settings.bit_gravity;
 	XChangeWindowAttributes(tray_data.dpy, ti->mid_parent, CWWinGravity, &xswa);
+#ifndef DEBUG_HIGHLIGHT_MIDPARENT
 	XSetWindowBackgroundPixmap(tray_data.dpy, ti->mid_parent, ParentRelative);
+#else
+	XSetWindowBackgroundPixmap(tray_data.dpy, ti->mid_parent, 0);
+#endif
 	
 	DBG(8, ("created the mid-parent 0x%x\n", ti->mid_parent));
 	
@@ -179,6 +183,7 @@ int embedder_hide(struct TrayIcon *ti)
 		return FAILURE;
 	} else {
 		ti->is_size_set = False;
+		ti->num_size_resets = 0;
 		ti->is_visible = False;
 		return SUCCESS;
 	}
@@ -283,16 +288,23 @@ int embedder_refresh(struct TrayIcon *ti)
 	return NO_MATCH;
 }
 
-/* Icon size policy is defined here */
+/* This function defines initial icon size or
+ * is used to reset size of the icon window */
 int embedder_reset_size(struct TrayIcon *ti)
 {
 	struct Point icon_sz;
 	int rc = FAILURE;
 
 	/* Do not reset size for non-KDE icons with size set if icon_resizes
-	 * are ignored */
-	if (ti->is_size_set && ti->cmode != CM_KDE && settings.ignore_icon_resize)
+	 * are handled */
+	if (ti->is_size_set && ti->cmode != CM_KDE && !settings.ignore_icon_resize)
 		return SUCCESS;
+
+	/* Increase counter of size resets for given icon. If this number 
+	 * exeeds the threshold, do nothing. This should work around the icons
+	 * that react badly to size changes */
+	if (ti->is_size_set) ti->num_size_resets++;
+	if (ti->num_size_resets > ICON_SIZE_RESETS_THRESHOLD) return SUCCESS;
 
 	if (ti->cmode == CM_KDE) {
 		icon_sz.x = settings.icon_size < KDE_ICON_SIZE ? settings.icon_size : KDE_ICON_SIZE;
