@@ -320,7 +320,7 @@
   <term><option>&ndash;&ndash;window-type</option> <replaceable>type</replaceable></term>
   <term><option>window_type</option> <replaceable>type</replaceable></term>
   <listitem><para>Sets the <abbrev>EWMH</abbrev>&ndash;compliant type of tray`s window. Possible values for <replaceable>type</replaceable>: 
-  <userinput>dock</userinput>, <userinput>normal</userinput>, <userinput>toolbar</userinput>,
+  <userinput>desktop</userinput>, <userinput>dock</userinput>, <userinput>normal</userinput>, <userinput>toolbar</userinput>,
   <userinput>utility</userinput>. Default value: <userinput>dock</userinput>.</para></listitem>
   </varlistentry>
 

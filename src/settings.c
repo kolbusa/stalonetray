@@ -181,6 +181,8 @@ int parse_wnd_type(char *str, char **tgt, int silent)
 		*tgt = _NET_WM_WINDOW_TYPE_UTILITY;
 	else if (!strcasecmp(str, "normal"))
 		*tgt = _NET_WM_WINDOW_TYPE_NORMAL;
+	else if (!strcasecmp(str, "desktop"))
+		*tgt = _NET_WM_WINDOW_TYPE_DESKTOP;
 	else {
 		PARSING_ERROR("window type expected", str);
 		return FAILURE;
@@ -331,7 +333,7 @@ void usage(char *progname)
 			"    --window-layer <layer>      set tray`s window EWMH layer, one of:\n"
 			"                                bottom, normal, top\n"
 			"    --window-type <type>        set tray`s window EWMH type, one of:\n"
-			"                                normal, dock, toolbar, utility\n"
+			"                                normal, dock, toolbar, utility, desktop\n"
 			"    -w, --withdrawn             start in withdrawn mode as WMaker dockapp\n"
 			"    --xsync                     operate on X server synchronously (SLOW)\n"
 			"\n"

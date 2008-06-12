@@ -71,6 +71,9 @@ parent_bg false
 # respect_icon_hints [<bool>] # try to respect icon hints (NEW in 0.7)
 respect_icon_hints false
 
+# slot_size <int>            # specifies size of icon slot, defaults to
+                             # icon_size (NEW in 0.8)
+
 # skip_taskbar [<bool>]      # hide tray`s window from the taskbar
 skip_taskbar true
 
@@ -98,7 +101,7 @@ vertical false
 window_layer normal
 
 # window_type <type>         # set the EWMH-compatible window type; one of:
-                             # dock, normal, toolbar, utility
+                             # desktop, dock, normal, toolbar, utility
 window_type dock
 
 # withdrawn [<bool>]         # start withdrawn (NEW in 0.7, prior to that
