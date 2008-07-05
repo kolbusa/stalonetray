@@ -12,6 +12,9 @@
 /* Init support for KDE tray icons. */
 void kde_tray_init(Display *dpy);
 
+/* Check if WM supports KDE tray icons */
+int kde_tray_update_fallback_mode(Display *dpy);
+
 /* Update the list of "old" KDE icons. Icon is considered "old"
  * if it was present before the tray was started. */
 int  kde_tray_update_old_icons(Display *dpy);
