@@ -18,14 +18,10 @@
  * already embedded into some tray and, therefore, are to be ignored. The 
  * list is empty initially */
 Window *old_kde_icons = NULL;
-unsigned long n_old_kde_icons = 0;
+unsigned long n_old_kde_icons = -1;
 
-void kde_tray_init(Display *dpy)
+int kde_tray_update_fallback_mode(Display *dpy)
 {
-	unsigned long n_client_windows, i;
-	Window *client_windows;
-	Atom xa_net_client_list;
-
 	/* Get the contents of KDE_NET_SYSTEM_TRAY_WINDOWS root window property.
 	 * All windows that are listed there are considered to be "old" KDE icons,
 	 * i.e. icons that are to be ignored on the tray startup.
@@ -37,8 +33,24 @@ void kde_tray_init(Display *dpy)
 		DBG(3, ("WM does not support KDE_NET_SYSTEM_TRAY_WINDOWS, using fallback mode\n"));
 		x11_extend_root_event_mask(tray_data.dpy, SubstructureNotifyMask);
 		tray_data.kde_tray_old_mode = 1;
-		return;
+	} else {
+		tray_data.kde_tray_old_mode = 0;
 	}
+
+	return tray_data.kde_tray_old_mode;
+}
+
+void kde_tray_init(Display *dpy)
+{
+	unsigned long n_client_windows, i;
+	Window *client_windows;
+	Atom xa_net_client_list;
+
+	if (!kde_tray_update_fallback_mode(dpy)) return;
+
+	/* n_old_kde_icons == -1 iff this is the first time this function is called
+	 * with fallback mode disabled */
+	if (n_old_kde_icons != -1) return;
 
 	/* If theres no previous tray selection owner, try to embed all available
 	 * KDE icons and, therefore, leave the list of old KDE icons empty */
