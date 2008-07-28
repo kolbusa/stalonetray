@@ -49,6 +49,7 @@ struct TrayIcon *icon_list_new(Window wid, int cmode)
 	new_icon->is_invalid = False;
 	new_icon->is_xembed_supported = False;
 	new_icon->is_size_set = False;
+	new_icon->num_size_resets = 0;
 
 	LIST_ADD_ITEM(icons_head, new_icon);
 	return new_icon;
