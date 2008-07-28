@@ -12,14 +12,16 @@
 #include <X11/Xatom.h>
 #include <X11/X.h>
 
+#include <sys/time.h>
+#include <sys/types.h>
 #include <string.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "config.h"
 
 #ifdef DEBUG
-#include <unistd.h>
 #if defined(HAVE_BACKTRACE)
 	#include <execinfo.h>
 #elif defined(HAVE_PRINTSTACK)
@@ -650,8 +652,12 @@ void unmap_notify(XUnmapEvent ev)
 void my_usleep(useconds_t usec)
 {
 	struct timeval timeout;
+	fd_set rfds;
+	FD_ZERO(&rfds);
+
+	timeout.tv_sec = 0;
 	timeout.tv_usec = usec;
-	select(0, NULL, NULL, NULL, &timeout);
+	select(1, &rfds, NULL, NULL, &timeout);
 }
 
 /*********************************************************/
