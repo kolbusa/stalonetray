@@ -30,7 +30,7 @@ int kde_tray_update_fallback_mode(Display *dpy)
 	    !x11_get_root_winlist_prop(dpy, tray_data.xa_kde_net_system_tray_windows, 
 				(unsigned char **) &old_kde_icons, &n_old_kde_icons)) 
 	{
-		DBG(3, ("WM does not support KDE_NET_SYSTEM_TRAY_WINDOWS, using fallback mode\n"));
+		DBG(3, ("WM does not support KDE_NET_SYSTEM_TRAY_WINDOWS, will use legacy scheme\n"));
 		x11_extend_root_event_mask(tray_data.dpy, SubstructureNotifyMask);
 		tray_data.kde_tray_old_mode = 1;
 	} else {

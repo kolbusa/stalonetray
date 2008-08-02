@@ -265,6 +265,7 @@ int grid_update(struct TrayIcon *ti, int sort)
 	grid_sz.x = 0;
 	grid_sz.y = 0;
 	icon_list_forall(&grid_recalc_size);
+	DBG(3, ("final grid size: %dx%d\n", grid_sz.x, grid_sz.y));
 	return SUCCESS;
 }
 
