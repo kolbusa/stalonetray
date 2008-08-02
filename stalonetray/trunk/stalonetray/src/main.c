@@ -52,7 +52,6 @@ static int tray_status_requested = 0;
 /****************************
  * Signal handlers, cleanup
  ***************************/
-
 void request_tray_status_on_signal(int sig)
 {
 	psignal(sig, NULL);
@@ -120,6 +119,55 @@ void exit_on_signal(int sig)
 }
 
 /**************************************
+ * Helper functions
+ **************************************/
+
+/* Print tray status */
+void dump_tray_status()
+{
+	unsigned int grid_w, grid_h;
+	tray_status_requested = 0;
+	layout_get_size(&grid_w, &grid_h);
+
+#ifdef DEBUG
+#	define SHOWMSG(msg) DBG(0, msg)
+#else
+#	define SHOWMSG(msg)	print_message_to_stderr msg
+#endif
+
+#ifdef DEBUG
+	trace_mode = 1;
+#endif
+	SHOWMSG(("Someone asked for tray status. Here it comes.\n"));
+	SHOWMSG(("===================================\n"));
+	SHOWMSG(("tray status: %sactive\n", tray_data.is_active ? "" : "not "));
+	SHOWMSG(("grid geometry: %dx%d\n", 
+				grid_w / settings.slot_size, 
+				grid_h / settings.slot_size));
+	SHOWMSG(("tray geometry: %dx%d+%d+%d\n",
+			tray_data.xsh.width, tray_data.xsh.height,
+			tray_data.xsh.x, tray_data.xsh.y));
+#ifdef DEBUG
+	{
+		XWindowAttributes xwa;
+		XGetWindowAttributes(tray_data.dpy, tray_data.tray, &xwa);
+		SHOWMSG(("real tray geometry: %dx%d+%d+%d\n",
+					xwa.width, xwa.height, xwa.x, xwa.y));
+	}
+	if (tray_data.xembed_data.current)
+		SHOWMSG(("icon with focus: 0x%x (pointer %p)\n", tray_data.xembed_data.current->wid, tray_data.xembed_data.current));
+	else
+		SHOWMSG(("no icon is focused\n"));
+#endif
+	dump_icon_list();
+	SHOWMSG(("===================================\n"));
+#ifdef DEBUG
+	trace_mode = 0;
+#endif
+#undef SHOWMSG
+}
+
+/**************************************
  * (Un)embedding cycle implementation
  **************************************/
 
@@ -164,9 +212,7 @@ void add_icon(Window w, int cmode)
 	tray_update_window_size();
 
 	DBG(0, ("0x%x: icon added as %s\n", ti->wid, ti->is_visible ? "visible" : "hidden"));
-#ifdef DEBUG
-	print_icon_data(ti);
-#endif
+	dump_tray_status();
 	return;
 
 failed2:
@@ -174,9 +220,9 @@ failed2:
 failed1:
 #ifdef DEBUG
 	DBG(0, ("0x%x: embedding failed\n", ti->wid));
-	print_icon_data(ti);	
 #endif
 	icon_list_free(ti);
+	dump_tray_status();
 	return;
 }
 
@@ -187,6 +233,7 @@ void remove_icon(Window w)
 	
 	if ((ti = icon_list_find(w)) == NULL) return;
 
+	dump_tray_status();
 	embedder_unembed(ti);
 	xembed_unembed(ti);
 	layout_remove(ti);
@@ -196,6 +243,7 @@ void remove_icon(Window w)
 
 	embedder_update_positions(False);
 	tray_update_window_size();
+	dump_tray_status();
 }
 
 /* Track icon visibility state changes */
@@ -280,48 +328,8 @@ void perform_periodic_tasks()
 		remove_icon(ti->wid);
 	}
 	/* 2. Print tray status if asked to */
-	if (tray_status_requested) {
-		unsigned int grid_w, grid_h;
-		tray_status_requested = 0;
-		layout_get_size(&grid_w, &grid_h);
+	if (tray_status_requested) dump_tray_status();
 
-#ifdef DEBUG
-#	define SHOWMSG(msg) DBG(0, msg)
-#else
-#	define SHOWMSG(msg)	print_message_to_stderr msg
-#endif
-
-#ifdef DEBUG
-		trace_mode = 1;
-#endif
-		SHOWMSG(("Someone asked for tray status. Here it comes.\n"));
-		SHOWMSG(("===================================\n"));
-		SHOWMSG(("tray status: %sactive\n", tray_data.is_active ? "" : "not "));
-		SHOWMSG(("grid geometry: %dx%d\n", 
-					grid_w / settings.slot_size, 
-					grid_h / settings.slot_size));
-		SHOWMSG(("tray geometry: %dx%d+%d+%d\n",
-				tray_data.xsh.width, tray_data.xsh.height,
-				tray_data.xsh.x, tray_data.xsh.y));
-#ifdef DEBUG
-		{
-			XWindowAttributes xwa;
-			XGetWindowAttributes(tray_data.dpy, tray_data.tray, &xwa);
-			SHOWMSG(("real tray geometry: %dx%d+%d+%d\n",
-						xwa.width, xwa.height, xwa.x, xwa.y));
-		}
-		if (tray_data.xembed_data.current)
-			SHOWMSG(("icon with focus: 0x%x (pointer %p)\n", tray_data.xembed_data.current->wid, tray_data.xembed_data.current));
-		else
-			SHOWMSG(("no icon is focused\n"));
-#endif
-		dump_icon_list();
-		SHOWMSG(("===================================\n"));
-#ifdef DEBUG
-		trace_mode = 0;
-#endif
-#undef SHOWMSG
-	}
 	{
 		/* KLUDGE TODO: resolve */
 		XWindowAttributes xwa;
