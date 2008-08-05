@@ -62,12 +62,14 @@ int layout_remove(struct TrayIcon *ti)
 int layout_handle_icon_resize(struct TrayIcon *ti)
 {
 	struct Rect old_grd_rect;
+	struct Point old_grid_sz;
 	int rc;
 #ifdef DEBUG
 	dump_icon_list();
 #endif
 
 	icon_list_backup();
+	old_grid_sz = grid_sz;
 	
 	if (ti->is_layed_out) {
 		/* if the icon is already layed up and
@@ -110,6 +112,7 @@ int layout_handle_icon_resize(struct TrayIcon *ti)
 	} else {
 		/* Error has occured */
 		icon_list_restore();
+		grid_sz = old_grid_sz;
 		rc = FAILURE;
 	}
 #ifdef DEBUG
