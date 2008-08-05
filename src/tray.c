@@ -336,7 +336,9 @@ int tray_update_window_size()
 	unsigned int new_width, new_height;
 
 	/* XXX: should'n we bail out if we are not top-level window? 
-	 * Or, perhaps, FvwmButtons are going to handle resises some day? */
+	 * Or, perhaps, FvwmButtons are going to handle resises some day?
+	 * Currently, this is handled one level up (sometimes only; move it down here?)
+	 */
 
 	layout_get_size(&layout_width, &layout_height);
 
@@ -398,8 +400,21 @@ int tray_update_window_size()
 		x11_get_window_abs_coords(tray_data.dpy, tray_data.tray, &tray_data.xsh.x, &tray_data.xsh.y);
 		DBG(8, ("old geometry: %dx%d+%d+%d\n", tray_data.xsh.x, tray_data.xsh.y, tray_data.xsh.width, tray_data.xsh.height));
 
+#if 0
 		if (settings.grow_gravity & GRAV_E) tray_data.xsh.x -= new_width - tray_data.xsh.width;
 		if (settings.grow_gravity & GRAV_S) tray_data.xsh.y -= new_height - tray_data.xsh.height;
+#endif
+
+		if (settings.grow_gravity & GRAV_E) 
+			tray_data.xsh.x -= new_width - tray_data.xsh.width;
+		else if (!(settings.grow_gravity & GRAV_H))
+			tray_data.xsh.x -= (new_width - tray_data.xsh.width) / 2;
+		
+		if (settings.grow_gravity & GRAV_S) 
+			tray_data.xsh.y -= new_height - tray_data.xsh.height;
+		else if (!(settings.grow_gravity & GRAV_V)) 
+			tray_data.xsh.y -= (new_height - tray_data.xsh.height) / 2;
+
 		tray_data.xsh.width = new_width;
 		tray_data.xsh.height = new_height;
 

@@ -154,12 +154,13 @@
   <userinput>NW</userinput>, <userinput>NE</userinput>,
   <userinput>SW</userinput>, <userinput>SE</userinput>). Grow gravity specifies
   directions in which tray may and will grow.  For instance, if you specify
-  <userinput>W</userinput>, tray will be allowed to grow to the left (oppisite
-  to West) side only; <userinput>NW</userinput> will allow tray to grow down
-  and to the right (these are sides, that are opposite to upper-left, or
-  North-West, corner). Default value: <userinput>NE</userinput>.
-  </para></listitem>
-  </varlistentry>
+  <userinput>NW</userinput> it will make tray grow down vertically and to the
+  right horizontally (these are sides that are opposite to upper-left or
+  North-West corner); with <userinput>W</userinput> tray will be allowed to grow
+  horizontally to the left (opposite to West) side only and vertically it will
+  grow equally both to the top and bottom sides. Please note that the latter
+  behaviour is new in 0.8. Default value: <userinput>NW</userinput>.
+  </para></listitem> </varlistentry>
 
   <varlistentry>
   <term><option>&ndash;&ndash;icon&ndash;gravity</option> <replaceable>gravity</replaceable></term>
@@ -167,7 +168,7 @@
   <listitem><para>Specify icon positioning gravity (one of <userinput>NW</userinput>,
   <userinput>NE</userinput>, <userinput>SW</userinput>, <userinput>SE</userinput>). If you specify,
   for instance, <userinput>SW</userinput>, icons will appear starting from the lower-left corner
-  of stalonetray window. Default value: <userinput>NE</userinput>.
+  of stalonetray window. Default value: <userinput>NW</userinput>.
   </para></listitem>
   </varlistentry>
 
