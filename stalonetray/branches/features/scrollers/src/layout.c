@@ -35,10 +35,9 @@ int grid_add(struct TrayIcon *ti);
 int grid_add_wrapper(struct TrayIcon *ti);
 int grid_remove(struct TrayIcon *ti);
 int grid_update(struct TrayIcon *ti, int sort);
+int grid_translate_from_window(struct TrayIcon *ti);
 
-int window2grid(struct TrayIcon *ti);
-int grid2window(struct TrayIcon *ti);
-
+int layout_translate_to_window(struct TrayIcon *ti);
 int layout_unset_flag(struct TrayIcon *ti);
 
 /************************
@@ -77,7 +76,7 @@ int layout_handle_icon_resize(struct TrayIcon *ti)
 		 * since its position inside grid cell will be
 		 * updated by embedder_update_positions */
 		old_grd_rect = ti->l.grd_rect;
-		window2grid(ti);
+		grid_translate_from_window(ti);
 		if (ti->l.grd_rect.w == old_grd_rect.w &&
 		    ti->l.grd_rect.h == old_grd_rect.h)
 		{
@@ -165,7 +164,7 @@ int trayicon_cmp_func(struct TrayIcon *ti1, struct TrayIcon *ti2);
 int grid_recalc_size(struct TrayIcon *ti);
 
 /* A. Coords translations */
-int window2grid(struct TrayIcon *ti)
+int grid_translate_from_window(struct TrayIcon *ti)
 {
 	ti->l.grd_rect.w = ti->l.wnd_sz.x / settings.slot_size + (ti->l.wnd_sz.x % settings.slot_size != 0); \
 	ti->l.grd_rect.h = ti->l.wnd_sz.y / settings.slot_size + (ti->l.wnd_sz.y % settings.slot_size != 0); \
@@ -173,55 +172,46 @@ int window2grid(struct TrayIcon *ti)
 	return NO_MATCH;
 }
 
-/* Update val by tgt and set flag to 1 if tgt was not equal
- * to val prior to the update */
-#define UPD(tgt,val,flag) do { \
-	flag = (tgt!=val) || flag; \
-	tgt = val; \
-} while(0)
-
-int grid2window(struct TrayIcon *ti)
+int layout_translate_to_window(struct TrayIcon *ti)
 {
-	struct Rect *in = &ti->l.grd_rect;
-	struct Rect *out = &ti->l.icn_rect;
+	struct Rect old_icn_rect = ti->l.icn_rect;
 
 	if (!ti->is_layed_out) return NO_MATCH;
 
 	if (settings.vertical) {
-		swap(in->w, in->h);
-		swap(in->x, in->y);
+		swap(ti->l.grd_rect.w, ti->l.grd_rect.h);
+		swap(ti->l.grd_rect.x, ti->l.grd_rect.y);
 	}
 	
-	if (settings.icon_gravity & GRAV_W) {
-		UPD(out->x, 
-			in->x * settings.slot_size, 
-			ti->is_updated);
-	} else {
-		UPD(out->x, 
-			tray_data.xsh.width - (in->x + in->w) * settings.slot_size, 
-			ti->is_updated);
-	}
-	UPD(out->w, in->w * settings.slot_size, ti->is_updated);
+	if (settings.icon_gravity & GRAV_W)
+		ti->l.icn_rect.x = ti->l.grd_rect.x * settings.slot_size;
+	else
+		ti->l.icn_rect.x = tray_data.xsh.width - (ti->l.grd_rect.x + ti->l.grd_rect.w) * settings.slot_size;
 	
-	if (settings.icon_gravity & GRAV_N) {
-		UPD(out->y, 
-			in->y * settings.slot_size, 
-			ti->is_updated);
-	} else {
-		UPD(out->y,
-			tray_data.xsh.height - (in->y + in->h) * settings.slot_size, 
-			ti->is_updated);
-	}
-	UPD(out->h, in->h * settings.slot_size, ti->is_updated);
+	if (settings.icon_gravity & GRAV_N)
+		ti->l.icn_rect.y =	ti->l.grd_rect.y * settings.slot_size;
+	else 
+		ti->l.icn_rect.y = tray_data.xsh.height - (ti->l.grd_rect.y + ti->l.grd_rect.h) * settings.slot_size;
+
+	ti->l.icn_rect.w = ti->l.grd_rect.w * settings.slot_size;
+	ti->l.icn_rect.h = ti->l.grd_rect.h * settings.slot_size;
 
 	if (settings.vertical) {
-		swap(in->w, in->h);
-		swap(in->x, in->y);
+		swap(ti->l.grd_rect.w, ti->l.grd_rect.h);
+		swap(ti->l.grd_rect.x, ti->l.grd_rect.y);
 	}
 
+	ti->l.icn_rect.x -= tray_data.scroll_base.x + tray_data.scroll_pos.x;
+	ti->l.icn_rect.y -= tray_data.scroll_base.y + tray_data.scroll_pos.y;
+
 	DBG(6, ("grid %dx%d+%d+%d -> window  %dx%d+%d+%d\n",
-				in->w, in->h, in->x, in->y,
-				out->w, out->h, out->x, out->y));
+				ti->l.grd_rect.w, ti->l.grd_rect.h, ti->l.grd_rect.x, ti->l.grd_rect.y,
+				ti->l.icn_rect.w, ti->l.icn_rect.h, ti->l.icn_rect.x, ti->l.icn_rect.y));
+
+	ti->is_updated = !(ti->l.icn_rect.x == old_icn_rect.x && 
+	                   ti->l.icn_rect.y == old_icn_rect.y &&
+	                   ti->l.icn_rect.w == old_icn_rect.w &&
+	                   ti->l.icn_rect.h == old_icn_rect.h);
 	
 	return NO_MATCH;
 }
@@ -231,7 +221,7 @@ int grid_add(struct TrayIcon *ti)
 {
 	struct IconPlacement *pmt;
 
-	window2grid(ti);
+	grid_translate_from_window(ti);
 
 	pmt = grid_find_placement(ti);
 	if (pmt == NULL) {
@@ -262,7 +252,7 @@ int grid_remove(struct TrayIcon *ti)
 /* C. Grid manipulations */
 int grid_update(struct TrayIcon *ti, int sort)
 {
-	icon_list_forall_from(ti, &grid2window);
+	icon_list_forall_from(ti, &layout_translate_to_window);
 	if (sort) icon_list_sort(&trayicon_cmp_func);
 	/* recalculate minimal size */
 	grid_sz.x = 0;
@@ -290,7 +280,7 @@ int grid_place_icon(struct TrayIcon *ti, struct IconPlacement *ip)
 	grid_sz.x += ip->sz_delta.x;
 	grid_sz.y += ip->sz_delta.y;
 	/* Update icon position */	
-	grid2window(ti);
+	layout_translate_to_window(ti);
 	DBG(6, ("grid size: %dx%d\n", grid_sz.x, grid_sz.y));
 #ifdef DEBUG
 	print_icon_data(ti);

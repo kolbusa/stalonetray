@@ -48,6 +48,10 @@ void tray_init()
 	tray_data.xsh.width = 10;
 	tray_data.xsh.height = 10;
 	tray_data.kde_tray_old_mode = 0;
+	tray_data.scroll_pos.x = 0;
+	tray_data.scroll_pos.y = 0;
+	tray_data.scroll_base.x = 0;
+	tray_data.scroll_base.y = 0;
 }
 
 #ifdef XPM_SUPPORTED

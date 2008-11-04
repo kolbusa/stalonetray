@@ -49,6 +49,7 @@
 struct TrayData tray_data;
 
 static int tray_status_requested = 0;
+static int scroll_change_requested = 0;
 
 /****************************
  * Signal handlers, cleanup
@@ -57,6 +58,11 @@ void request_tray_status_on_signal(int sig)
 {
 	psignal(sig, NULL);
 	tray_status_requested = 1;
+}
+
+void change_scroll_params_on_signal(int sig)
+{
+	scroll_change_requested = 1;
 }
 
 void cleanup()
@@ -331,6 +337,7 @@ void perform_periodic_tasks()
 	/* 2. Print tray status if asked to */
 	if (tray_status_requested) dump_tray_status();
 
+	/* 3. KLUDGE to fix window size on (buggy?) WMs */
 	{
 		/* KLUDGE TODO: resolve */
 		XWindowAttributes xwa;
@@ -343,6 +350,18 @@ void perform_periodic_tasks()
 						tray_data.xsh.width, tray_data.xsh.height));
 			tray_update_window_size();
 		} 
+	}
+
+	/* 4. TEMPORARY: randomly change scroll position */
+	{
+		if (scroll_change_requested) {
+			tray_data.scroll_pos.x += (rand() % 3 - 2);
+			tray_data.scroll_pos.y += (rand() % 3 - 2);
+			DBG(8, ("scrollers positions updated (%d,%d)\n", tray_data.scroll_pos.x, tray_data.scroll_pos.y));
+			icon_list_forall(&layout_translate_to_window);
+			embedder_update_positions(True);
+			scroll_change_requested = 0;
+		}
 	}
 }
 
@@ -557,7 +576,8 @@ void configure_notify(XConfigureEvent ev)
 		tray_data.xsh.height = xwa.height;
 
 		/* Update icons positions */
-		icon_list_forall(&grid2window);
+		/* XXX: internal API is bad. example below */
+		icon_list_forall(&layout_translate_to_window);
 		embedder_update_positions(True);
 
 		/* Adjust window background if necessary */
@@ -689,6 +709,7 @@ int main(int argc, char** argv)
 	signal(SIGQUIT, &dump_core_on_signal);
 
 	signal(SIGUSR1, &request_tray_status_on_signal);
+	signal(SIGUSR2, &change_scroll_params_on_signal);
 	
 	/* Open display */
 	if ((tray_data.dpy = XOpenDisplay(settings.display_str)) == NULL)

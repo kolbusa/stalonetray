@@ -266,7 +266,7 @@ static int embedder_update_window_position(struct TrayIcon *ti)
 
 int embedder_update_positions(int forced)
 {
-	/* I wich C had closures =( */
+	/* I wish C had closures =( */
 	update_forced = forced;
 	icon_list_forall(&embedder_update_window_position);
 	return SUCCESS;

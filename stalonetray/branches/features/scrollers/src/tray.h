@@ -55,6 +55,10 @@ struct TrayData {
 	int is_reparented;						/* Was the tray reparented in smth like FvwmButtons ? */
 	int kde_tray_old_mode;					/* Use legacy scheme to handle KDE icons via MapNotify */
 
+	/* Scrollers data */
+	struct Point scroll_base;
+	struct Point scroll_pos;
+
 	/* Atoms */
 	Atom xa_tray_selection;					/* Atom: _NET_SYSTEM_TRAY_SELECTION_S<creen number> */
 	Atom xa_tray_opcode;					/* Atom: _NET_SYSTEM_TRAY_MESSAGE_OPCODE */
