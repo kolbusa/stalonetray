@@ -352,7 +352,7 @@ void perform_periodic_tasks()
 
 void expose(XExposeEvent ev)
 {
-	if (ev.window == tray_data.tray && settings.parent_bg) 
+	if (ev.window == tray_data.tray && settings.parent_bg && ev.count == 0) 
 		tray_refresh_window(False);
 }
 
