@@ -42,6 +42,12 @@
 #define DECO_NONE 0
 #define DECO_ALL (DECO_BORDER | DECO_TITLE)
 
+#define SC_WND_TOP	0
+#define SC_WND_BOT	1
+#define SC_WND_LFT	2
+#define SC_WND_RHT	3
+#define SC_WND_MAX	4
+
 /* Structure to hold all tray data */
 struct TrayData {
 	/* General */
@@ -58,6 +64,10 @@ struct TrayData {
 	/* Scrollers data */
 	struct Point scroll_base;
 	struct Point scroll_pos;
+
+	/* Scrollers windows */
+	Window scrollers[SC_WND_MAX];
+	int	scrollers_state;
 
 	/* Atoms */
 	Atom xa_tray_selection;					/* Atom: _NET_SYSTEM_TRAY_SELECTION_S<creen number> */

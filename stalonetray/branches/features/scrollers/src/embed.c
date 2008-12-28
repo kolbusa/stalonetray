@@ -39,17 +39,24 @@
 void *send_delayed_confirmation(void *dummy)
 {
 	struct TrayIcon* ti = (struct TrayIcon *) dummy;
-	DBG(8, ("delayed embedding confirmation thread is here; sleeping for %d seconds\n", settings.confirmation_delay));
-	sleep(settings.confirmation_delay);
-	DBG(8, ("sending embedding confirmation\n"));
-	x11_send_client_msg32(tray_data.async_dpy, 
-			tray_data.tray, 
-			tray_data.tray, 
-			tray_data.xa_tray_opcode, 
-			0, 
-			STALONE_TRAY_DOCK_CONFIRMED, 
-			ti->wid, 0, 0);
-	XSync(tray_data.async_dpy, False);
+	Display *dpy;
+
+	if ((dpy = XOpenDisplay(settings.display_str)) != NULL) {
+		DBG(8, ("delayed embedding confirmation thread is here; sleeping for %d seconds\n", settings.confirmation_delay));
+		sleep(settings.confirmation_delay);
+		DBG(8, ("sending embedding confirmation\n"));
+		x11_send_client_msg32(dpy, 
+				tray_data.tray, 
+				tray_data.tray, 
+				tray_data.xa_tray_opcode, 
+				0, 
+				STALONE_TRAY_DOCK_CONFIRMED, 
+				ti->wid, 0, 0);
+		XSync(dpy, False);
+		XClose(dpy);
+	} else {
+		DIE(("failed to initialize display"));
+	}
 	pthread_exit(NULL);
 }
 #endif

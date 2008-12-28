@@ -344,6 +344,7 @@ int tray_update_window_size()
 	 * Currently, this is handled one level up (sometimes only; move it down here?)
 	 */
 
+	tray_update_scrollers_states();
 	layout_get_size(&layout_width, &layout_height);
 
 	if (settings.shrink_back_mode) {
@@ -361,6 +362,9 @@ int tray_update_window_size()
 		xsh.max_width = settings.max_tray_width;
 		xsh.max_height = settings.max_tray_height;
 	}
+
+	if (tray_data.scrollers_state & SC_STATE_HORZ) new_width += settings.scrollers_sz * 2;
+	if (tray_data.scrollers_state & SC_STATE_HORZ) new_width += settings.scrollers_sz * 2;
 	
 	DBG(3, ("proposed new window size: %dx%d (old: %dx%d)\n", new_width, new_height, tray_data.xsh.width, tray_data.xsh.height));
 	
