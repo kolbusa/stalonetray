@@ -120,7 +120,7 @@ int layout_handle_icon_resize(struct TrayIcon *ti)
 	return rc;
 }
 
-void layout_get_size(unsigned int *width, unsigned int *height)
+void layout_get_size(int *width, int *height)
 {
 	*width = grid_sz.x * settings.slot_size;
 	*height = grid_sz.y * settings.slot_size;
@@ -201,8 +201,8 @@ int layout_translate_to_window(struct TrayIcon *ti)
 		swap(ti->l.grd_rect.x, ti->l.grd_rect.y);
 	}
 
-	ti->l.icn_rect.x -= tray_data.scroll_base.x + tray_data.scroll_pos.x;
-	ti->l.icn_rect.y -= tray_data.scroll_base.y + tray_data.scroll_pos.y;
+	ti->l.icn_rect.x += tray_data.scrollbars_data.scroll_base.x - tray_data.scrollbars_data.scroll_pos.x;
+	ti->l.icn_rect.y += tray_data.scrollbars_data.scroll_base.y - tray_data.scrollbars_data.scroll_pos.y;
 
 	DBG(6, ("grid %dx%d+%d+%d -> window  %dx%d+%d+%d\n",
 				ti->l.grd_rect.w, ti->l.grd_rect.h, ti->l.grd_rect.x, ti->l.grd_rect.y,
@@ -240,7 +240,7 @@ int grid_remove(struct TrayIcon *ti)
 	/* implementation is similar to that of layout_handle_icon_resize(),
 	 * see detailed description there */
 	icon_list_forall_from(ti, &layout_unset_flag);
-	if (settings.shrink_back_mode) grid_update(ti, False);
+	if (settings.shrink_back_mode || settings.scrollbar_mode != SB_MODE_NONE) grid_update(ti, False);
 	/* Since NULL is a special case for icon_list_froall_from,
 	 * avoid calling it for the last icon */
 	if (ti->next != NULL)
@@ -341,9 +341,14 @@ int grid_check_rect_free(int x, int y, int w, int h)
 int icon_placement_create(struct IconPlacement *ip, int x, int y, struct Rect *rect)
 {
 
-	/* tray orientation-aware shortcuts for maximal layout dimensions */
-	#define max_layout_width ((settings.vertical ? settings.max_tray_height : settings.max_tray_width) / settings.slot_size)
-	#define max_layout_height ((settings.vertical ? settings.max_tray_width : settings.max_tray_height) / settings.slot_size)
+	/* scrollbar & tray orientation-aware shortcuts for maximal layout dimensions.
+	 * if scrollbar is enabled in some direction, layout size in this dimension is not limited */
+	#define max_layout_width (settings.scrollbar_mode & SB_MODE_HORZ ? \
+			INT_MAX : \
+			((settings.vertical ? settings.max_tray_dims.y : settings.max_tray_dims.x) / settings.slot_size))
+	#define max_layout_height (settings.scrollbar_mode & SB_MODE_VERT ? \
+			INT_MAX : \
+			((settings.vertical ? settings.max_tray_dims.x : settings.max_tray_dims.y) / settings.slot_size))
 
 	ip->valid = 0;
 
@@ -397,7 +402,7 @@ void icon_placement_choose_best(struct IconPlacement *old, struct IconPlacement 
 	 * (just for readability sake) */
 	if (settings.vertical) {
 		swap(tray_data.xsh.width, tray_data.xsh.height);
-		swap(settings.orig_width, settings.orig_height);
+		swap(settings.orig_tray_dims.x, settings.orig_tray_dims.y);
 	}
 
 	calc_wnd_sz_delta(old_wnd_sz_delta, old);
@@ -407,11 +412,11 @@ void icon_placement_choose_best(struct IconPlacement *old, struct IconPlacement 
 	 * supposed to understand this. The basic idea is that sometimes
 	 * layout resize means window resize. Sometimes it does not. */
 	if (settings.shrink_back_mode) {
-		if (grid_sz.x >= settings.orig_width / settings.slot_size) {
+		if (grid_sz.x >= settings.orig_tray_dims.x / settings.slot_size) {
 			old_wnd_sz_delta.x = old->sz_delta.x * settings.slot_size;
 			new_wnd_sz_delta.x = new->sz_delta.x * settings.slot_size;
 		}
-		if (grid_sz.y >= settings.orig_height / settings.slot_size) {
+		if (grid_sz.y >= settings.orig_tray_dims.y / settings.slot_size) {
 			old_wnd_sz_delta.y = old->sz_delta.y * settings.slot_size;
 			new_wnd_sz_delta.y = new->sz_delta.y * settings.slot_size;
 		}
@@ -420,7 +425,7 @@ void icon_placement_choose_best(struct IconPlacement *old, struct IconPlacement 
 	/* Restore values */
 	if (settings.vertical) {
 		swap(tray_data.xsh.width, tray_data.xsh.height);
-		swap(settings.orig_width, settings.orig_height);
+		swap(settings.orig_tray_dims.x, settings.orig_tray_dims.y);
 	}
 
 	DBG(8, ("old = (%d, %d, %d, %d, %d, %d)\n",

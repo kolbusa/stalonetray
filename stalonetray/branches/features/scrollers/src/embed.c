@@ -114,7 +114,11 @@ int embedder_embed(struct TrayIcon *ti)
 	}
 
 	/* 4. Show mid-parent */
-	XMapRaised(tray_data.dpy, ti->mid_parent);
+	XMapWindow(tray_data.dpy, ti->mid_parent);
+	/* mid-parent must be lowered so that it does not osbcure 
+	 * scollbar windows */
+	/* XXX: check if this is necessary */
+	XLowerWindow(tray_data.dpy, ti->mid_parent);
 
 	if (!x11_ok()) {
 		DBG(3, ("failed\n"));

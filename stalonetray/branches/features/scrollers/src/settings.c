@@ -42,12 +42,12 @@ void init_default_settings()
 #ifdef DEBUG
 	settings.dbg_level			= 0;
 #endif
-	settings.geometry_str		= "120x24+0-0";
+	settings.geometry_str		= "5x1+0-0";
 	settings.icon_size			= FALLBACK_ICON_SIZE;
 	settings.slot_size          = -1;
 	settings.deco_flags			= DECO_NONE;
-	settings.max_tray_width		= 0;
-	settings.max_tray_height	= 0;
+	settings.max_tray_dims.x	= 0;
+	settings.max_tray_dims.y	= 0;
 	settings.parent_bg			= 0;
 	settings.shrink_back_mode   = 1;
 	settings.sticky				= 1;
@@ -74,6 +74,10 @@ void init_default_settings()
 	settings.ignore_icon_resize = 0;
 	settings.respect_icon_hints = 0;
 
+	settings.scrollbar_size     = 8;
+	settings.scrollbar_mode     = SB_MODE_VERT | SB_MODE_HORZ;
+	settings.scrollbar_inc		= -1;
+
 #ifdef DELAY_EMBEDDING_CONFIRMATION
 	settings.confirmation_delay = 3;
 #endif
@@ -85,7 +89,7 @@ void init_default_settings()
 
 /* Parse gravity string ORing resulting value
  * with current value of tgt */
-int parse_gravity(char *str, int *target, int silent)
+int parse_gravity(char *str, int **tgt, int silent)
 {
 	int i, r = 0, s;
 
@@ -107,7 +111,7 @@ int parse_gravity(char *str, int *target, int silent)
 	if ((r & GRAV_N && r & GRAV_S) || (r & GRAV_E && r & GRAV_W)) 
 		goto fail;
 
-	*target = r;
+	**tgt = r;
 
 	return SUCCESS;
 fail:
@@ -116,13 +120,13 @@ fail:
 }
 
 /* Parse integer string storing resulting value in tgt */
-int parse_int(char *str, int *tgt, int silent)
+int parse_int(char *str, int **tgt, int silent)
 {
 	int r;
 	char *tail;
 	r = strtol(str, &tail, 0);
 	if (*tail == 0) {
-		*tgt = r;
+		**tgt = r;
 		return SUCCESS;
 	} else {
 		PARSING_ERROR("integer expected", str);
@@ -131,12 +135,12 @@ int parse_int(char *str, int *tgt, int silent)
 }
 
 /* Parse boolean string storing result in tgt*/
-int parse_bool(char *str, int *tgt, int silent)
+int parse_bool(char *str, int **tgt, int silent)
 {
 	if (!strcasecmp(str, "yes") || !strcasecmp(str, "on") || !strcasecmp(str, "true") || !strcasecmp(str, "1"))
-		*tgt = True;
+		**tgt = True;
 	else if (!strcasecmp(str, "no") || !strcasecmp(str, "off") || !strcasecmp(str, "false") || !strcasecmp(str, "0"))
-		*tgt = False;
+		**tgt = False;
 	else {
 		PARSING_ERROR("boolean expected", str);
 		return FAILURE;
@@ -145,24 +149,24 @@ int parse_bool(char *str, int *tgt, int silent)
 }
 
 /* Backwards version of the boolean parser */
-int parse_bool_rev(char *str, int *tgt, int silent)
+int parse_bool_rev(char *str, int **tgt, int silent)
 {
 	if (parse_bool(str, tgt, silent)) {
-		*tgt = !*tgt;
+		**tgt = !**tgt;
 		return SUCCESS;
 	}	
 		return FAILURE;
 }
 
 /* Parse window layer string storing result in tgt */
-int parse_wnd_layer(char *str, char **tgt, int silent)
+int parse_wnd_layer(char *str, char ***tgt, int silent)
 {
 	if (!strcasecmp(str, "top"))
-		*tgt = _NET_WM_STATE_ABOVE;
+		**tgt = _NET_WM_STATE_ABOVE;
 	else if (!strcasecmp(str, "bottom"))
-		*tgt = _NET_WM_STATE_BELOW;
+		**tgt = _NET_WM_STATE_BELOW;
 	else if (!strcasecmp(str, "normal"))
-		*tgt = NULL;
+		**tgt = NULL;
 	else {
 		PARSING_ERROR("window layer expected", str);
 		return FAILURE;
@@ -171,18 +175,18 @@ int parse_wnd_layer(char *str, char **tgt, int silent)
 }
 
 /* Parse window type string storing result in tgt */
-int parse_wnd_type(char *str, char **tgt, int silent)
+int parse_wnd_type(char *str, char ***tgt, int silent)
 {
 	if (!strcasecmp(str, "dock"))
-		*tgt = _NET_WM_WINDOW_TYPE_DOCK;
+		**tgt = _NET_WM_WINDOW_TYPE_DOCK;
 	else if (!strcasecmp(str, "toolbar"))
-		*tgt = _NET_WM_WINDOW_TYPE_TOOLBAR;
+		**tgt = _NET_WM_WINDOW_TYPE_TOOLBAR;
 	else if (!strcasecmp(str, "utility"))
-		*tgt = _NET_WM_WINDOW_TYPE_UTILITY;
+		**tgt = _NET_WM_WINDOW_TYPE_UTILITY;
 	else if (!strcasecmp(str, "normal"))
-		*tgt = _NET_WM_WINDOW_TYPE_NORMAL;
+		**tgt = _NET_WM_WINDOW_TYPE_NORMAL;
 	else if (!strcasecmp(str, "desktop"))
-		*tgt = _NET_WM_WINDOW_TYPE_DESKTOP;
+		**tgt = _NET_WM_WINDOW_TYPE_DESKTOP;
 	else {
 		PARSING_ERROR("window type expected", str);
 		return FAILURE;
@@ -191,24 +195,24 @@ int parse_wnd_type(char *str, char **tgt, int silent)
 }
 
 /* Just copy string from arg to *tgt */
-int parse_copystr(char *str, char **tgt, int silent)
+int parse_copystr(char *str, char ***tgt, int silent)
 {
-	*tgt = strdup(str);
-	if (*tgt == NULL) DIE(("Out of memory"));
+	**tgt = strdup(str);
+	if (**tgt == NULL) DIE(("Out of memory"));
 	return SUCCESS;
 }
 
 /* Parses window decoration specification */
-int parse_deco(char *str, int *tgt, int silent)
+int parse_deco(char *str, int **tgt, int silent)
 {
 	if (!strcasecmp(str, "none"))
-		*tgt = DECO_NONE;
+		**tgt = DECO_NONE;
 	else if (!strcasecmp(str, "all"))
-		*tgt = DECO_ALL;
+		**tgt = DECO_ALL;
 	else if (!strcasecmp(str, "border"))
-		*tgt = DECO_BORDER;
+		**tgt = DECO_BORDER;
 	else if (!strcasecmp(str, "title"))
-		*tgt = DECO_TITLE;
+		**tgt = DECO_TITLE;
 	else {
 		PARSING_ERROR("decoration specification expected", str);
 		return FAILURE;
@@ -218,15 +222,17 @@ int parse_deco(char *str, int *tgt, int silent)
 
 /************ CLI **************/
 
+#define MAX_TARGETS 10
+
 /* parameter parser function */
-typedef int (*param_parser_t) (char *str, void *tgt, int silent);
+typedef int (*param_parser_t) (char *str, void *tgt[MAX_TARGETS], int silent);
 
 struct Param {
 	char *short_name;		/* Short command line parameter name */
 	char *long_name;		/* Long command line parameter name */
 	char *rc_name;			/* Parameter name for rc file */
 
-	void *target;			/* Pointer to the value that is set by this parameter */
+	void *target[MAX_TARGETS];/* Pointers to the values that are set by this parameter */
 
 	param_parser_t parser;	/* Pointer to parsing function */
 
@@ -243,43 +249,43 @@ struct Param {
 };
 
 struct Param params[] = {
-	{"-display", NULL, "display", &settings.display_str, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
+	{"-display", NULL, "display", {&settings.display_str}, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
 #ifdef DEBUG
-	{NULL, "--dbg-level", "dbg_level", &settings.dbg_level, (param_parser_t) &parse_int, 1, 1, 0, NULL},
+	{NULL, "--dbg-level", "dbg_level", {&settings.dbg_level}, (param_parser_t) &parse_int, 1, 1, 0, NULL},
 #endif
-	{"-bg", "--background", "background", &settings.bg_color_str, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
-	{"-c", "--config", NULL, &settings.config_fname, (param_parser_t) &parse_copystr, 0, 1, 0, NULL},
+	{"-bg", "--background", "background", {&settings.bg_color_str}, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
+	{"-c", "--config", NULL, {&settings.config_fname}, (param_parser_t) &parse_copystr, 0, 1, 0, NULL},
 #ifdef DELAY_EMBEDDING_CONFIRMATION
-	{NULL, "--confirmation-delay", "confirmation_delay", &settings.confirmation_delay,  (param_parser_t) &parse_int, 1, 1, 0, NULL},
+	{NULL, "--confirmation-delay", "confirmation_delay", {&settings.confirmation_delay},  (param_parser_t) &parse_int, 1, 1, 0, NULL},
 #endif
-	{"-d", "--decorations", "decorations", &settings.deco_flags, (param_parser_t) &parse_deco, 1, 1, 1, "all"},
-	{"-f", "--fuzzy-edges", "fuzzy_edges", &settings.fuzzy_edges, (param_parser_t) &parse_int, 1, 1, 1, "2"},
-	{"-geometry", "--geometry", "geometry", &settings.geometry_str, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
-	{NULL, "--grow-gravity", "grow_gravity", &settings.grow_gravity, (param_parser_t) &parse_gravity, 1, 1, 0, NULL},
-	{NULL, "--icon-gravity", "icon_gravity", &settings.icon_gravity, (param_parser_t) &parse_gravity, 1, 1, 0, NULL},
-	{"-i", "--icon-size", "icon_size", &settings.icon_size, (param_parser_t) &parse_int, 1, 1, 0, NULL},
-	{NULL, "--ignore-icon-resize", "ignore_icon_resize", &settings.ignore_icon_resize, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
-	{"-h", "--help", NULL, &settings.need_help, (param_parser_t) &parse_bool, 0, 0, 0, "true"},
-	{NULL, "--max-width", "max_width", &settings.max_tray_width, (param_parser_t) &parse_int, 1, 1, 0, NULL},
-	{NULL, "--max-height", "max_height", &settings.max_tray_height, (param_parser_t) &parse_int, 1, 1, 0, NULL},
-	{NULL, "--no-shrink", "no_shrink", &settings.shrink_back_mode, (param_parser_t) &parse_bool_rev, 1, 1, 1, "true"},
-	{"-p", "--parent-bg", "parent_bg", &settings.parent_bg, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
+	{"-d", "--decorations", "decorations", {&settings.deco_flags}, (param_parser_t) &parse_deco, 1, 1, 1, "all"},
+	{"-f", "--fuzzy-edges", "fuzzy_edges", {&settings.fuzzy_edges}, (param_parser_t) &parse_int, 1, 1, 1, "2"},
+	{"-geometry", "--geometry", "geometry", {&settings.geometry_str}, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
+	{NULL, "--grow-gravity", "grow_gravity", {&settings.grow_gravity}, (param_parser_t) &parse_gravity, 1, 1, 0, NULL},
+	{NULL, "--icon-gravity", "icon_gravity", {&settings.icon_gravity}, (param_parser_t) &parse_gravity, 1, 1, 0, NULL},
+	{"-i", "--icon-size", "icon_size", {&settings.icon_size}, (param_parser_t) &parse_int, 1, 1, 0, NULL},
+	{NULL, "--ignore-icon-resize", "ignore_icon_resize", {&settings.ignore_icon_resize}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
+	{"-h", "--help", NULL, {&settings.need_help}, (param_parser_t) &parse_bool, 0, 0, 0, "true"},
+	{NULL, "--max-width", "max_width", {&settings.max_tray_dims.x}, (param_parser_t) &parse_int, 1, 1, 0, NULL},
+	{NULL, "--max-height", "max_height", {&settings.max_tray_dims.y}, (param_parser_t) &parse_int, 1, 1, 0, NULL},
+	{NULL, "--no-shrink", "no_shrink", {&settings.shrink_back_mode}, (param_parser_t) &parse_bool_rev, 1, 1, 1, "true"},
+	{"-p", "--parent-bg", "parent_bg", {&settings.parent_bg}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
 #ifdef XPM_SUPPORTED
-	{NULL, "--pixmap-bg", "pixmap_bg", &settings.bg_pmap_path, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
+	{NULL, "--pixmap-bg", "pixmap_bg", {&settings.bg_pmap_path}, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
 #endif
-	{NULL, "--respect-icon-hints", "respect_icon_hints", &settings.respect_icon_hints, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
-	{NULL, "--skip-taskbar", "skip_taskbar", &settings.skip_taskbar, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
-	{"-s", "--slot-size", "slot_size", &settings.slot_size, (param_parser_t) &parse_int, 1, 1, 0, NULL},
-	{NULL, "--sticky", "sticky", &settings.sticky, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
-	{NULL, "--tint-color", "tint_color", &settings.tint_color_str, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
-	{NULL, "--tint-level", "tint_level", &settings.tint_level, (param_parser_t) &parse_int, 1, 1, 0, NULL},
-	{"-t", "--transparent", "transparent", &settings.transparent, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
-	{"-v", "--vertical", "vertical", &settings.vertical, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
-	{NULL, "--window-layer", "window_layer", &settings.wnd_layer, (param_parser_t) &parse_wnd_layer, 1, 1, 1, NULL},
-	{NULL, "--window-type", "window_type", &settings.wnd_type, (param_parser_t) &parse_wnd_type, 1, 1, 1, NULL},
-	{"-w", "--withdrawn", "withdrawn", &settings.start_withdrawn, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
-	{NULL, "--xsync", "xsync", &settings.xsync, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
-	{NULL, NULL, NULL, NULL}
+	{NULL, "--respect-icon-hints", "respect_icon_hints", {&settings.respect_icon_hints}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
+	{NULL, "--skip-taskbar", "skip_taskbar", {&settings.skip_taskbar}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
+	{"-s", "--slot-size", "slot_size", {&settings.slot_size}, (param_parser_t) &parse_int, 1, 1, 0, NULL},
+	{NULL, "--sticky", "sticky", {&settings.sticky}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
+	{NULL, "--tint-color", "tint_color", {&settings.tint_color_str}, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
+	{NULL, "--tint-level", "tint_level", {&settings.tint_level}, (param_parser_t) &parse_int, 1, 1, 0, NULL},
+	{"-t", "--transparent", "transparent", {&settings.transparent}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
+	{"-v", "--vertical", "vertical", {&settings.vertical}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
+	{NULL, "--window-layer", "window_layer", {&settings.wnd_layer}, (param_parser_t) &parse_wnd_layer, 1, 1, 1, NULL},
+	{NULL, "--window-type", "window_type", {&settings.wnd_type}, (param_parser_t) &parse_wnd_type, 1, 1, 1, NULL},
+	{"-w", "--withdrawn", "withdrawn", {&settings.start_withdrawn}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
+	{NULL, "--xsync", "xsync", {&settings.xsync}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
+	{NULL, NULL, NULL, {NULL}}
 };
 
 void usage(char *progname) 
@@ -600,6 +606,7 @@ void interpret_settings()
 	/* Sanitize icon size */
 	val_range(settings.icon_size, MIN_ICON_SIZE, INT_MAX);
 	if (settings.slot_size < settings.icon_size) settings.slot_size = settings.icon_size;
+	if (settings.scrollbar_inc < settings.slot_size / 2) settings.scrollbar_inc = settings.slot_size / 2;
 
 	/* Sanitize all gravity strings */
 	settings.icon_gravity |= ((settings.icon_gravity & GRAV_V) ? 0 : GRAV_N);
@@ -661,15 +668,29 @@ void interpret_settings()
 	tray_data.root_wnd.height = root_wa.height;
 
 	/* Set tray maximal width/height */
-	if (!settings.max_tray_width)
-		settings.max_tray_width = root_wa.width;
+#if 1
+	settings.max_tray_dims.x *= settings.slot_size;
+	settings.max_tray_dims.y *= settings.slot_size;
+	if (!settings.max_tray_dims.x)
+		settings.max_tray_dims.x = root_wa.width;
 	else
-		val_range(settings.max_tray_width, settings.slot_size, INT_MAX);
+		val_range(settings.max_tray_dims.x, settings.slot_size, INT_MAX);
+	
+	if (!settings.max_tray_dims.y)
+		settings.max_tray_dims.y = root_wa.height;
+	else
+		val_range(settings.max_tray_dims.y, settings.slot_size, INT_MAX);
+#else
+	if (!settings.max_tray_width)
+		settings.max_tray_width = root_wa.width / settings.slot_size;
+	else 
+		val_range(settings.max_tray_width, 1, INT_MAX);
 	
 	if (!settings.max_tray_height)
-		settings.max_tray_height = root_wa.height;
+		settings.max_tray_height = root_wa.height / settings.slot_size;
 	else
-		val_range(settings.max_tray_height, settings.slot_size, INT_MAX);
+		val_range(settings.max_tray_height, 1, INT_MAX);
+#endif
 
 	/* Parse geometry-related settings */
 	/* Since WMs do not handle gravity reliable,
@@ -683,11 +704,16 @@ void interpret_settings()
 			tray_data.xsh.width, tray_data.xsh.height,
 			tray_data.xsh.x, tray_data.xsh.y));
 
-	tray_data.xsh.width = tray_data.xsh.width - tray_data.xsh.width % settings.slot_size;
-	tray_data.xsh.height = tray_data.xsh.height - tray_data.xsh.height % settings.slot_size;
+	val_range(tray_data.xsh.width, 1, settings.max_tray_dims.x);
+	val_range(tray_data.xsh.height, 1, settings.max_tray_dims.y);
 
-	val_range(tray_data.xsh.width, settings.slot_size, settings.max_tray_width);
-	val_range(tray_data.xsh.height, settings.slot_size, settings.max_tray_height);
+	tray_data.xsh.width *= settings.slot_size;
+	tray_data.xsh.height *= settings.slot_size;
+
+	settings.orig_tray_dims.x = tray_data.xsh.width;
+	settings.orig_tray_dims.y = tray_data.xsh.height;
+
+	tray_calc_window_size(tray_data.xsh.width, tray_data.xsh.height, &tray_data.xsh.width, &tray_data.xsh.height);
 
 	if (geom_flags & XNegative)
 		tray_data.xsh.x = root_wa.width + tray_data.xsh.x - tray_data.xsh.width;
@@ -699,9 +725,6 @@ void interpret_settings()
 			tray_data.xsh.width, tray_data.xsh.height,
 			tray_data.xsh.x, tray_data.xsh.y));
 
-	settings.orig_width = tray_data.xsh.width;
-	settings.orig_height = tray_data.xsh.height;
-
 	if ((geom_flags & XNegative) && (geom_flags & YNegative)) 
 		settings.geom_gravity = SouthEastGravity;
 	else if (geom_flags & YNegative) 
@@ -711,6 +734,11 @@ void interpret_settings()
 	else
 		settings.geom_gravity = NorthWestGravity;
 
+	/* XXX: this assumes certain degree of symmetry and in some point 
+	 * in the future this may not be the case... */
+	tray_calc_window_size(0, 0, &tray_data.scrollbars_data.scroll_base.x, &tray_data.scrollbars_data.scroll_base.y);
+	tray_data.scrollbars_data.scroll_base.x /= 2;
+	tray_data.scrollbars_data.scroll_base.y /= 2;
 }
 
 /************** "main" ***********/
@@ -746,8 +774,8 @@ int read_settings(int argc, char **argv)
 	DBG(3, ("slot_size = %d\n", settings.slot_size));
 	DBG(3, ("grow_gravity = 0x%x\n", settings.grow_gravity));
 	DBG(3, ("icon_gravity = 0x%x\n", settings.icon_gravity));
-	DBG(3, ("max_tray_width = %d\n", settings.max_tray_width));
-	DBG(3, ("max_tray_height = %d\n", settings.max_tray_height));
+	DBG(3, ("max_tray_dims.x = %d\n", settings.max_tray_dims.x));
+	DBG(3, ("max_tray_dims.y = %d\n", settings.max_tray_dims.y));
 	DBG(3, ("dbg_level = %d\n", settings.dbg_level));
 #endif
 	return SUCCESS;
