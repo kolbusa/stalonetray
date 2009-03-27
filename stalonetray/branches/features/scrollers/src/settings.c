@@ -31,7 +31,6 @@
 #include "xutils.h"
 #include "wmh.h"
 
-
 /* Here we keep our filthy settings */
 struct Settings settings;
 /* Initialize data */
@@ -220,6 +219,24 @@ int parse_deco(char *str, int **tgt, int silent)
 	return SUCCESS;
 }
 
+/* Parses window decoration specification */
+int parse_sb_mode(char *str, int **tgt, int silent)
+{
+	if (!strcasecmp(str, "none"))
+		**tgt = 0;
+	else if (!strcasecmp(str, "vertical"))
+		**tgt = SB_MODE_VERT;
+	else if (!strcasecmp(str, "horizontal"))
+		**tgt = SB_MODE_HORZ;
+	else if (!strcasecmp(str, "all"))
+		**tgt = SB_MODE_HORZ | SB_MODE_VERT;
+	else {
+		PARSING_ERROR("scrollbars specification expected", str);
+		return FAILURE;
+	}
+	return SUCCESS;
+}
+
 /************ CLI **************/
 
 #define MAX_TARGETS 10
@@ -256,24 +273,25 @@ struct Param params[] = {
 	{"-bg", "--background", "background", {&settings.bg_color_str}, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
 	{"-c", "--config", NULL, {&settings.config_fname}, (param_parser_t) &parse_copystr, 0, 1, 0, NULL},
 #ifdef DELAY_EMBEDDING_CONFIRMATION
-	{NULL, "--confirmation-delay", "confirmation_delay", {&settings.confirmation_delay},  (param_parser_t) &parse_int, 1, 1, 0, NULL},
+	{NULL, "--confirmation-delay", "confirmation_delay", {&settings.confirmation_delay}, (param_parser_t) &parse_int, 1, 1, 0, NULL},
 #endif
 	{"-d", "--decorations", "decorations", {&settings.deco_flags}, (param_parser_t) &parse_deco, 1, 1, 1, "all"},
 	{"-f", "--fuzzy-edges", "fuzzy_edges", {&settings.fuzzy_edges}, (param_parser_t) &parse_int, 1, 1, 1, "2"},
 	{"-geometry", "--geometry", "geometry", {&settings.geometry_str}, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
 	{NULL, "--grow-gravity", "grow_gravity", {&settings.grow_gravity}, (param_parser_t) &parse_gravity, 1, 1, 0, NULL},
 	{NULL, "--icon-gravity", "icon_gravity", {&settings.icon_gravity}, (param_parser_t) &parse_gravity, 1, 1, 0, NULL},
-	{"-i", "--icon-size", "icon_size", {&settings.icon_size}, (param_parser_t) &parse_int, 1, 1, 0, NULL},
+	{ "-i", "--icon-size", "icon_size", {&settings.icon_size}, (param_parser_t) &parse_int, 1, 1, 0, NULL}, 
 	{NULL, "--ignore-icon-resize", "ignore_icon_resize", {&settings.ignore_icon_resize}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
-	{"-h", "--help", NULL, {&settings.need_help}, (param_parser_t) &parse_bool, 0, 0, 0, "true"},
-	{NULL, "--max-width", "max_width", {&settings.max_tray_dims.x}, (param_parser_t) &parse_int, 1, 1, 0, NULL},
-	{NULL, "--max-height", "max_height", {&settings.max_tray_dims.y}, (param_parser_t) &parse_int, 1, 1, 0, NULL},
+	{"-h", "--help", NULL, {&settings.need_help}, (param_parser_t) &parse_bool, 0, 0, 0, "true" },
+	{NULL, "--max-geometry", "max_geometry", {&settings.max_tray_dims.x}, (param_parser_t) &parse_int, 1, 1, 0, NULL},
 	{NULL, "--no-shrink", "no_shrink", {&settings.shrink_back_mode}, (param_parser_t) &parse_bool_rev, 1, 1, 1, "true"},
 	{"-p", "--parent-bg", "parent_bg", {&settings.parent_bg}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
 #ifdef XPM_SUPPORTED
 	{NULL, "--pixmap-bg", "pixmap_bg", {&settings.bg_pmap_path}, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
 #endif
 	{NULL, "--respect-icon-hints", "respect_icon_hints", {&settings.respect_icon_hints}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
+	{NULL, "--scrollbars", "scrollbars", {&settings.scrollbar_mode}, (param_parser_t) &parse_sb_mode, 1, 1, 0, "all"},
+	{NULL, "--scrollbars-step", "scrollbars_step", {&settings.scrollbar_inc}, (param_parser_t) &parse_int, 1, 1, 0, "8"},
 	{NULL, "--skip-taskbar", "skip_taskbar", {&settings.skip_taskbar}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
 	{"-s", "--slot-size", "slot_size", {&settings.slot_size}, (param_parser_t) &parse_int, 1, 1, 0, NULL},
 	{NULL, "--sticky", "sticky", {&settings.sticky}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
@@ -327,6 +345,9 @@ void usage(char *progname)
 			"    -p, --parent-bg             use parent for background\n"
 			"    --pixmap-bg <pixmap>        use pixmap for tray`s window background\n"
 			"    --respect-icon-hints        try to respect icon size hints\n"
+			"    --scrollbars <mode>         set scrollbar mode, one of: all, horizontal,\n"
+			"                                vertical, none\n"
+			"    --scrollbars-step <n>       set scrollbar step to n pixels\n"
 			"    --skip-taskbar              hide tray`s window from the taskbar\n"
 			"    --sticky                    make tray`s window sticky across multiple\n"
 			"                                desktops/pages\n"

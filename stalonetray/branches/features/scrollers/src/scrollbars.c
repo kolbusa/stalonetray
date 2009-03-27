@@ -6,6 +6,8 @@
  * scrollbars functions
  * ************************************/
 
+#include <limits.h>
+
 #include <X11/Xmd.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -200,6 +202,9 @@ int scrollbars_click(int id)
 	max_scroll_pos.x = layout_width - settings.slot_size;
 	max_scroll_pos.y = layout_height - settings.slot_size;
 
+	val_range(max_scroll_pos.x, 0, INT_MAX);
+	val_range(max_scroll_pos.y, 0, INT_MAX);
+
 	val_range(tray_data.scrollbars_data.scroll_pos.x, 0, max_scroll_pos.x);
 	val_range(tray_data.scrollbars_data.scroll_pos.y, 0, max_scroll_pos.y);
 
@@ -217,30 +222,53 @@ void scrollbars_handle_event(XEvent ev)
 	int id;
 	switch (ev.type) {
 	case ButtonPress:
-		if ((id = scrollbars_get_id(ev.xbutton.window, ev.xbutton.x, ev.xbutton.y)) != -1) {
-			tray_data.scrollbars_data.scrollbar_down = id;
-			tray_data.scrollbars_data.scrollbar_repeat_active = 1;
-			tray_data.scrollbars_data.scrollbar_repeat_counter = SCROLLBAR_REPEAT_COUNTDOWN_MAX_1ST;
-			tray_data.scrollbars_data.scrollbar_repeats_done = 0;
-		}
+		DBG(8, ("ButtonPress, state=0x%x\n", ev.xbutton.state));
+		if (ev.xbutton.button == Button1 && 
+				(id = scrollbars_get_id(ev.xbutton.window, ev.xbutton.x, ev.xbutton.y)) != -1) 
+		{
+				tray_data.scrollbars_data.scrollbar_down = id;
+				tray_data.scrollbars_data.scrollbar_repeat_active = 1;
+				tray_data.scrollbars_data.scrollbar_repeat_counter = SCROLLBAR_REPEAT_COUNTDOWN_MAX_1ST;
+				tray_data.scrollbars_data.scrollbar_repeats_done = 0;
+			}
 		break;
 	case MotionNotify:
+		DBG(8, ("MotionNotify, state=0x%x\n", ev.xbutton.state));
 		if (tray_data.scrollbars_data.scrollbar_down != -1) {
 			tray_data.scrollbars_data.scrollbar_repeat_active = 
 				(scrollbars_get_id(ev.xmotion.window, ev.xmotion.x, ev.xmotion.y) == tray_data.scrollbars_data.scrollbar_down);
 		}
 		break;
 	case ButtonRelease:
-		if (tray_data.scrollbars_data.scrollbar_down != -1) {
-			/* If no repeats were done, advance scroll position */
-			if ((scrollbars_get_id(ev.xbutton.window, ev.xbutton.x, ev.xbutton.y) != -1) &&
-				(tray_data.scrollbars_data.scrollbar_repeats_done == 0)) 
-			{
-				scrollbars_click(tray_data.scrollbars_data.scrollbar_down);
+		DBG(8, ("ButtonRelease, state=0x%x\n", ev.xbutton.state));
+		switch (ev.xbutton.button) {
+		case Button1:
+			if (tray_data.scrollbars_data.scrollbar_down != -1) {
+				/* If no repeats were done, advance scroll position */
+				if ((scrollbars_get_id(ev.xbutton.window, ev.xbutton.x, ev.xbutton.y) != -1) &&
+					(tray_data.scrollbars_data.scrollbar_repeats_done == 0)) 
+				{
+					scrollbars_click(tray_data.scrollbars_data.scrollbar_down);
+				}
+				tray_data.scrollbars_data.scrollbar_down = -1;
+				tray_data.scrollbars_data.scrollbar_repeat_active = 0;
 			}
-			tray_data.scrollbars_data.scrollbar_down = -1;
-			tray_data.scrollbars_data.scrollbar_repeat_active = 0;
-		}
+			break;
+		case Button4:
+			if (settings.vertical && settings.scrollbar_mode & SB_MODE_VERT) 
+				scrollbars_click(SB_WND_TOP); 
+			else if (settings.scrollbar_mode & SB_MODE_HORZ) 
+				scrollbars_click(SB_WND_LFT);
+			break;
+		case Button5:
+			if (settings.vertical && settings.scrollbar_mode & SB_MODE_VERT) 
+				scrollbars_click(SB_WND_BOT); 
+			else if (settings.scrollbar_mode & SB_MODE_HORZ) 
+				scrollbars_click(SB_WND_RHT);
+			break;
+		default:
+			break;
+		} 
 		break;
 	}
 }
