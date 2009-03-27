@@ -44,11 +44,13 @@
 #endif
 
 #include "settings.h"
+#include "scrollbars.h"
 #include "tray.h"
 
 struct TrayData tray_data;
 
 static int tray_status_requested = 0;
+static int scroll_change_requested = 0;
 
 /****************************
  * Signal handlers, cleanup
@@ -57,6 +59,11 @@ void request_tray_status_on_signal(int sig)
 {
 	psignal(sig, NULL);
 	tray_status_requested = 1;
+}
+
+void change_scroll_params_on_signal(int sig)
+{
+	scroll_change_requested = 1;
 }
 
 void cleanup()
@@ -126,7 +133,7 @@ void exit_on_signal(int sig)
 /* Print tray status */
 void dump_tray_status()
 {
-	unsigned int grid_w, grid_h;
+	int grid_w, grid_h;
 	tray_status_requested = 0;
 	layout_get_size(&grid_w, &grid_h);
 
@@ -210,7 +217,7 @@ void add_icon(Window w, int cmode)
 	if (!embedder_embed(ti)) goto failed2;
 
 	embedder_update_positions(False);
-	tray_update_window_size();
+	tray_update_window_props();
 
 	DBG(0, ("0x%x: icon added as %s\n", ti->wid, ti->is_visible ? "visible" : "hidden"));
 	dump_tray_status();
@@ -242,8 +249,13 @@ void remove_icon(Window w)
 
 	DBG(0, ("0x%x: icon removed\n", w));
 
+#if 0
 	embedder_update_positions(False);
-	tray_update_window_size();
+#else
+	/* This will call embedde_update_positions() */
+	scrollbars_click(SB_WND_MAX);
+#endif
+	tray_update_window_props();
 	dump_tray_status();
 }
 
@@ -282,7 +294,7 @@ void icon_track_visibility_changes(Window w)
 		embedder_hide(ti);
 	}
 	embedder_update_positions(False);
-	tray_update_window_size();
+	tray_update_window_props();
 }
 
 /* helper to identify invalid icons */
@@ -331,6 +343,8 @@ void perform_periodic_tasks()
 	/* 2. Print tray status if asked to */
 	if (tray_status_requested) dump_tray_status();
 
+#if 0
+	/* 3. KLUDGE to fix window size on (buggy?) WMs */
 	{
 		/* KLUDGE TODO: resolve */
 		XWindowAttributes xwa;
@@ -341,9 +355,24 @@ void perform_periodic_tasks()
 			DBG(8, ("KLUDGE: fixing window size (current: %dx%d, required: %dx%d)\n",
 						xwa.width, xwa.height,
 						tray_data.xsh.width, tray_data.xsh.height));
-			tray_update_window_size();
+			tray_update_window_props();
 		} 
 	}
+
+	/* 4. TEMPORARY: randomly change scroll position */
+	{
+		if (scroll_change_requested) {
+			tray_data.scroll_pos.x += (rand() % 3 - 2);
+			tray_data.scroll_pos.y += (rand() % 3 - 2);
+			DBG(8, ("scrollers positions updated (%d,%d)\n", tray_data.scroll_pos.x, tray_data.scroll_pos.y));
+			icon_list_forall(&layout_translate_to_window);
+			embedder_update_positions(True);
+			scroll_change_requested = 0;
+		}
+	}
+#endif
+	/* 5. run scrollbars periodic tasks */
+	scrollbars_periodic_tasks();
 }
 
 /**********************
@@ -504,7 +533,7 @@ void client_message(XClientMessageEvent ev)
 					dump_icon_list();
 #endif
 				}
-				tray_update_window_size();
+				tray_update_window_props();
 				break;
 			/* We ignore these messages, since we do not show
 			 * any baloons anyways */
@@ -557,12 +586,14 @@ void configure_notify(XConfigureEvent ev)
 		tray_data.xsh.height = xwa.height;
 
 		/* Update icons positions */
-		icon_list_forall(&grid2window);
+		/* XXX: internal API is bad. example below */
+		icon_list_forall(&layout_translate_to_window);
 		embedder_update_positions(True);
 
 		/* Adjust window background if necessary */
 		tray_update_bg(False);
 		tray_refresh_window(True);
+		scrollbars_update();
 	} else if ((ti = icon_list_find(ev.window)) != NULL) { /* Some icon has resized its window */
 
 		/* KDE icons are not allowed to change their size. Reset icon size. */
@@ -591,7 +622,7 @@ void configure_notify(XConfigureEvent ev)
 		print_icon_data(ti);
 #endif
 		embedder_update_positions(False);
-		tray_update_window_size();
+		tray_update_window_props();
 #ifdef DEBUG
 		dump_icon_list();
 #endif
@@ -689,6 +720,7 @@ int main(int argc, char** argv)
 	signal(SIGQUIT, &dump_core_on_signal);
 
 	signal(SIGUSR1, &request_tray_status_on_signal);
+	signal(SIGUSR2, &change_scroll_params_on_signal);
 	
 	/* Open display */
 	if ((tray_data.dpy = XOpenDisplay(settings.display_str)) == NULL)
@@ -725,6 +757,7 @@ int main(int argc, char** argv)
 		while (XPending(tray_data.dpy)) {
 			XNextEvent(tray_data.dpy, &ev);
 			xembed_handle_event(ev);
+			scrollbars_handle_event(ev);
 			switch (ev.type) {
 			case VisibilityNotify:
 				DBG(7, ("VisibilityNotify (0x%x, state=%d)\n", ev.xvisibility.window, ev.xvisibility.state));

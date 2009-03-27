@@ -48,6 +48,7 @@ void tray_init()
 	tray_data.xsh.width = 10;
 	tray_data.xsh.height = 10;
 	tray_data.kde_tray_old_mode = 0;
+	scrollbars_init();
 }
 
 #ifdef XPM_SUPPORTED
@@ -70,8 +71,8 @@ int tray_init_pixmap_bg()
 	}
 	/* Ignore the mask */
 	if (mask != None) XFreePixmap(tray_data.dpy, mask);
-	tray_data.bg_pmap_height = xpma.height;
-	tray_data.bg_pmap_width = xpma.width;
+	tray_data.bg_pmap_dims.x = xpma.height;
+	tray_data.bg_pmap_dims.y = xpma.width;
 	DBG(8, ("created background pixmap\n"));
 	return SUCCESS;
 }
@@ -241,11 +242,11 @@ int tray_update_bg(int update_pixmap)
 	{
 		int i, j;
 		recreate_pixmap(bg_pmap, bg_gc);
-		for (i = 0; i < tray_data.xsh.width / tray_data.bg_pmap_width + 1; i++)
-			for (j = 0; j < tray_data.xsh.height / tray_data.bg_pmap_height + 1; j++) {
+		for (i = 0; i < tray_data.xsh.width / tray_data.bg_pmap_dims.x + 1; i++)
+			for (j = 0; j < tray_data.xsh.height / tray_data.bg_pmap_dims.y + 1; j++) {
 				XCopyArea(tray_data.dpy, tray_data.bg_pmap, bg_pmap, bg_gc, 
-						0, 0, tray_data.bg_pmap_width, tray_data.bg_pmap_height, 
-						i * tray_data.bg_pmap_width, j * tray_data.bg_pmap_height);
+						0, 0, tray_data.bg_pmap_dims.x, tray_data.bg_pmap_dims.y,
+						i * tray_data.bg_pmap_dims.x, j * tray_data.bg_pmap_dims.y);
 			}
 		bg_pmap_updated = True;
 	} else if (settings.transparent) {
@@ -322,52 +323,100 @@ int tray_update_bg(int update_pixmap)
 
 void tray_refresh_window(int exposures)
 {
-	
 	DBG(8, ("refreshing tray window\n"));
 	icon_list_forall(&embedder_refresh);
 	x11_refresh_window(tray_data.dpy, tray_data.tray, tray_data.xsh.width, tray_data.xsh.height, exposures);
+	scrollbars_refresh(exposures);
 }
 
-int tray_update_window_size()
+int tray_calc_window_size(int base_width, int base_height, int *wnd_width, int *wnd_height)
 {
-	/* XXX: do we need some caching here? */
-	XSizeHints xsh;
-	unsigned int layout_width, layout_height;
-	unsigned int new_width, new_height;
+	*wnd_width = base_width;
+	*wnd_height = base_height;
+	if (settings.scrollbar_mode & SB_MODE_HORZ) *wnd_width += settings.scrollbar_size * 2;
+	if (settings.scrollbar_mode & SB_MODE_VERT) *wnd_height += settings.scrollbar_size * 2;
+	return SUCCESS;
+}
 
-	/* XXX: should'n we bail out if we are not top-level window? 
+int tray_calc_tray_area_size(int wnd_width, int wnd_height, int *base_width, int *base_height)
+{
+	*base_width = wnd_width;
+	*base_height = wnd_height;
+	if (settings.scrollbar_mode & SB_MODE_HORZ) *base_width -= settings.scrollbar_size * 2;
+	if (settings.scrollbar_mode & SB_MODE_VERT) *base_height -= settings.scrollbar_size * 2;
+	return SUCCESS;
+}
+
+int tray_update_window_props()
+{
+	XSizeHints xsh;
+/*    int w, h;*/
+	int cur_base_width, cur_base_height;
+	int new_width, new_height;
+	int layout_width, layout_height;
+
+	/* Algorithm summary:
+	 *
+	 *      if (layout_dims > max_dims) max_dims;
+	 * else if ((shrink_back && layout_dims > orig_dims) ||
+	 *          (layout_dims > current_dims)) layout_dims;
+	 * else if (shrink_back) orig_dims;
+	 * else                  current_dims;
+	 *
+	 */
+
+	layout_get_size(&layout_width, &layout_height);
+	tray_calc_tray_area_size(tray_data.xsh.width, tray_data.xsh.height, &cur_base_width, &cur_base_height);
+
+#define CALC_DIM(tgt,cur,layout,max,orig) \
+	if (layout > max) tgt = max; \
+	else if ((settings.shrink_back_mode && layout > orig) || layout > cur) tgt = layout; \
+	else if (settings.shrink_back_mode) tgt = orig; \
+	else tgt = cur;
+
+	CALC_DIM(new_width, cur_base_width, layout_width, settings.max_tray_dims.x, settings.orig_tray_dims.x);
+	CALC_DIM(new_height, cur_base_height, layout_height, settings.max_tray_dims.y, settings.orig_tray_dims.y);
+
+	tray_calc_window_size(new_width, new_height, &new_width, &new_height);
+
+#if 0
+	if (settings.shrink_back_mode) {
+		w = settings.orig_width;
+		h = settings.orig_height;
+	} else {
+		w = tray_data.xsh.width;
+		h = tray_data.xsh.height;
+	}
+
+
+	new_width = layout_width > cur_base_width ? 
+						layout_width : cur_base_width;
+	new_height = layout_height > cur_base_height ? 
+						layout_height : cur_base_height;
+
+	/* XXX: shouldn't we bail out if we are not top-level window? 
 	 * Or, perhaps, FvwmButtons are going to handle resises some day?
 	 * Currently, this is handled one level up (sometimes only; move it down here?)
 	 */
 
-	layout_get_size(&layout_width, &layout_height);
+	tray_calc_window_size(new_width, new_height, &new_width, &new_height);
+
+	DBG(3, ("proposed new window size: %dx%d (old: %dx%d)\n", new_width, new_height, tray_data.xsh.width, tray_data.xsh.height));
 
 	if (settings.shrink_back_mode) {
-		new_width = layout_width > settings.orig_width ?
-							layout_width : settings.orig_width;
-		new_height = layout_height > settings.orig_height ?
-							layout_height : settings.orig_height;
 		xsh.max_width = new_width;
 		xsh.max_height = new_height;
 	} else {
-		new_width = layout_width > tray_data.xsh.width ? 
-							layout_width : tray_data.xsh.width;
-		new_height = layout_height > tray_data.xsh.height ? 
-							layout_height : tray_data.xsh.height;
 		xsh.max_width = settings.max_tray_width;
 		xsh.max_height = settings.max_tray_height;
 	}
-	
-	DBG(3, ("proposed new window size: %dx%d (old: %dx%d)\n", new_width, new_height, tray_data.xsh.width, tray_data.xsh.height));
-	
+#endif
+
 	xsh.min_width = new_width;
 	xsh.min_height = new_height;
-
 	xsh.width_inc = settings.slot_size;
 	xsh.height_inc = settings.slot_size;
-	xsh.base_width = settings.slot_size;
-	xsh.base_height = settings.slot_size;
-/*    xsh.win_gravity = settings.win_gravity;*/
+	tray_calc_window_size(0, 0, &xsh.base_width, &xsh.base_height);
 	xsh.win_gravity = NorthWestGravity;
 	xsh.flags = PResizeInc|PBaseSize|PMinSize|PMaxSize|PWinGravity; 
 	XSetWMNormalHints(tray_data.dpy, tray_data.tray, &xsh);
@@ -387,23 +436,17 @@ int tray_update_window_size()
 	}
 #endif
 
-
 	/* This check helps to avod extra (erroneous) moves of the window when
-	 * geometry changes are not updated yet, but tray_update_window_size() was
+	 * geometry changes are not updated yet, but tray_update_window_props() was
 	 * called once again */
-	if (tray_data.xsh.width != new_width || tray_data.xsh.height != new_height) {
+	if (new_width != tray_data.xsh.width || new_height != tray_data.xsh.height) {
 		/* Apparently, not every WM (hello, WindowMaker!) handles gravity the
 		 * way I have expected (i.e. using it to calculate reference point as
 		 * described in ICCM/WM specs). Perhaps, I was dreaming.  So, prior to
 		 * resizing trays window, it is necessary to recalculate window
 		 * absolute position and shift it according to grow gravity settings */
 		x11_get_window_abs_coords(tray_data.dpy, tray_data.tray, &tray_data.xsh.x, &tray_data.xsh.y);
-		DBG(8, ("old geometry: %dx%d+%d+%d\n", tray_data.xsh.x, tray_data.xsh.y, tray_data.xsh.width, tray_data.xsh.height));
-
-#if 0
-		if (settings.grow_gravity & GRAV_E) tray_data.xsh.x -= new_width - tray_data.xsh.width;
-		if (settings.grow_gravity & GRAV_S) tray_data.xsh.y -= new_height - tray_data.xsh.height;
-#endif
+		DBG(8, ("old geometry: %dx%d+%d+%d\n", new_width, new_height, tray_data.xsh.x, tray_data.xsh.y));
 
 		if (settings.grow_gravity & GRAV_E) 
 			tray_data.xsh.x -= new_width - tray_data.xsh.width;
@@ -418,7 +461,7 @@ int tray_update_window_size()
 		tray_data.xsh.width = new_width;
 		tray_data.xsh.height = new_height;
 
-		DBG(8, ("new geometry: %dx%d+%d+%d\n", tray_data.xsh.x, tray_data.xsh.y, new_width, new_height));
+		DBG(8, ("new geometry: %dx%d+%d+%d\n", new_width, new_height, tray_data.xsh.x, tray_data.xsh.y));
 		
 		XResizeWindow(tray_data.dpy, tray_data.tray, new_width, new_height);
 		XMoveWindow(tray_data.dpy, tray_data.tray, tray_data.xsh.x, tray_data.xsh.y);
@@ -427,9 +470,12 @@ int tray_update_window_size()
 			return FAILURE;
 		}
 	} else {
+		/* XXX: Why do we need this again? */
 		XResizeWindow(tray_data.dpy, tray_data.tray, 
 						tray_data.xsh.width, tray_data.xsh.height);
 	}
+
+	scrollbars_update();
 
 	return SUCCESS;
 }
@@ -461,6 +507,7 @@ void tray_create_window(int argc, char **argv)
 	tray_data.xa_net_client_list =
 		XInternAtom(tray_data.dpy, "_NET_CLIENT_LIST", False);
 
+	/* we could as well create 1x1 window and update tray window size later */
 	tray_data.tray = XCreateSimpleWindow(
 						tray_data.dpy, 
 						DefaultRootWindow(tray_data.dpy),
@@ -554,6 +601,7 @@ void tray_create_window(int argc, char **argv)
 #ifdef XPM_SUPPORTED
 	if (settings.pixmap_bg) tray_init_pixmap_bg();
 #endif
+	scrollbars_create();
 }
 
 int tray_set_wm_hints()
@@ -633,11 +681,12 @@ void tray_acquire_selection()
 
 void tray_show_window()
 {
+	/* XXX: UGLY */
 	tray_set_wm_hints();
-	tray_update_window_size();
+	tray_update_window_props();
 	XMapRaised(tray_data.dpy, tray_data.tray);
 	XMoveWindow(tray_data.dpy, tray_data.tray, tray_data.xsh.x, tray_data.xsh.y);
 	tray_set_wm_hints();
-	tray_update_window_size();
+	tray_update_window_props();
 }
 

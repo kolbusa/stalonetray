@@ -35,10 +35,9 @@ int grid_add(struct TrayIcon *ti);
 int grid_add_wrapper(struct TrayIcon *ti);
 int grid_remove(struct TrayIcon *ti);
 int grid_update(struct TrayIcon *ti, int sort);
+int grid_translate_from_window(struct TrayIcon *ti);
 
-int window2grid(struct TrayIcon *ti);
-int grid2window(struct TrayIcon *ti);
-
+int layout_translate_to_window(struct TrayIcon *ti);
 int layout_unset_flag(struct TrayIcon *ti);
 
 /************************
@@ -77,7 +76,7 @@ int layout_handle_icon_resize(struct TrayIcon *ti)
 		 * since its position inside grid cell will be
 		 * updated by embedder_update_positions */
 		old_grd_rect = ti->l.grd_rect;
-		window2grid(ti);
+		grid_translate_from_window(ti);
 		if (ti->l.grd_rect.w == old_grd_rect.w &&
 		    ti->l.grd_rect.h == old_grd_rect.h)
 		{
@@ -121,7 +120,7 @@ int layout_handle_icon_resize(struct TrayIcon *ti)
 	return rc;
 }
 
-void layout_get_size(unsigned int *width, unsigned int *height)
+void layout_get_size(int *width, int *height)
 {
 	*width = grid_sz.x * settings.slot_size;
 	*height = grid_sz.y * settings.slot_size;
@@ -165,7 +164,7 @@ int trayicon_cmp_func(struct TrayIcon *ti1, struct TrayIcon *ti2);
 int grid_recalc_size(struct TrayIcon *ti);
 
 /* A. Coords translations */
-int window2grid(struct TrayIcon *ti)
+int grid_translate_from_window(struct TrayIcon *ti)
 {
 	ti->l.grd_rect.w = ti->l.wnd_sz.x / settings.slot_size + (ti->l.wnd_sz.x % settings.slot_size != 0); \
 	ti->l.grd_rect.h = ti->l.wnd_sz.y / settings.slot_size + (ti->l.wnd_sz.y % settings.slot_size != 0); \
@@ -173,55 +172,46 @@ int window2grid(struct TrayIcon *ti)
 	return NO_MATCH;
 }
 
-/* Update val by tgt and set flag to 1 if tgt was not equal
- * to val prior to the update */
-#define UPD(tgt,val,flag) do { \
-	flag = (tgt!=val) || flag; \
-	tgt = val; \
-} while(0)
-
-int grid2window(struct TrayIcon *ti)
+int layout_translate_to_window(struct TrayIcon *ti)
 {
-	struct Rect *in = &ti->l.grd_rect;
-	struct Rect *out = &ti->l.icn_rect;
+	struct Rect old_icn_rect = ti->l.icn_rect;
 
 	if (!ti->is_layed_out) return NO_MATCH;
 
 	if (settings.vertical) {
-		swap(in->w, in->h);
-		swap(in->x, in->y);
+		swap(ti->l.grd_rect.w, ti->l.grd_rect.h);
+		swap(ti->l.grd_rect.x, ti->l.grd_rect.y);
 	}
 	
-	if (settings.icon_gravity & GRAV_W) {
-		UPD(out->x, 
-			in->x * settings.slot_size, 
-			ti->is_updated);
-	} else {
-		UPD(out->x, 
-			tray_data.xsh.width - (in->x + in->w) * settings.slot_size, 
-			ti->is_updated);
-	}
-	UPD(out->w, in->w * settings.slot_size, ti->is_updated);
+	if (settings.icon_gravity & GRAV_W)
+		ti->l.icn_rect.x = ti->l.grd_rect.x * settings.slot_size;
+	else
+		ti->l.icn_rect.x = tray_data.xsh.width - (ti->l.grd_rect.x + ti->l.grd_rect.w) * settings.slot_size;
 	
-	if (settings.icon_gravity & GRAV_N) {
-		UPD(out->y, 
-			in->y * settings.slot_size, 
-			ti->is_updated);
-	} else {
-		UPD(out->y,
-			tray_data.xsh.height - (in->y + in->h) * settings.slot_size, 
-			ti->is_updated);
-	}
-	UPD(out->h, in->h * settings.slot_size, ti->is_updated);
+	if (settings.icon_gravity & GRAV_N)
+		ti->l.icn_rect.y =	ti->l.grd_rect.y * settings.slot_size;
+	else 
+		ti->l.icn_rect.y = tray_data.xsh.height - (ti->l.grd_rect.y + ti->l.grd_rect.h) * settings.slot_size;
+
+	ti->l.icn_rect.w = ti->l.grd_rect.w * settings.slot_size;
+	ti->l.icn_rect.h = ti->l.grd_rect.h * settings.slot_size;
 
 	if (settings.vertical) {
-		swap(in->w, in->h);
-		swap(in->x, in->y);
+		swap(ti->l.grd_rect.w, ti->l.grd_rect.h);
+		swap(ti->l.grd_rect.x, ti->l.grd_rect.y);
 	}
 
+	ti->l.icn_rect.x += tray_data.scrollbars_data.scroll_base.x - tray_data.scrollbars_data.scroll_pos.x;
+	ti->l.icn_rect.y += tray_data.scrollbars_data.scroll_base.y - tray_data.scrollbars_data.scroll_pos.y;
+
 	DBG(6, ("grid %dx%d+%d+%d -> window  %dx%d+%d+%d\n",
-				in->w, in->h, in->x, in->y,
-				out->w, out->h, out->x, out->y));
+				ti->l.grd_rect.w, ti->l.grd_rect.h, ti->l.grd_rect.x, ti->l.grd_rect.y,
+				ti->l.icn_rect.w, ti->l.icn_rect.h, ti->l.icn_rect.x, ti->l.icn_rect.y));
+
+	ti->is_updated = !(ti->l.icn_rect.x == old_icn_rect.x && 
+	                   ti->l.icn_rect.y == old_icn_rect.y &&
+	                   ti->l.icn_rect.w == old_icn_rect.w &&
+	                   ti->l.icn_rect.h == old_icn_rect.h);
 	
 	return NO_MATCH;
 }
@@ -231,7 +221,7 @@ int grid_add(struct TrayIcon *ti)
 {
 	struct IconPlacement *pmt;
 
-	window2grid(ti);
+	grid_translate_from_window(ti);
 
 	pmt = grid_find_placement(ti);
 	if (pmt == NULL) {
@@ -250,7 +240,7 @@ int grid_remove(struct TrayIcon *ti)
 	/* implementation is similar to that of layout_handle_icon_resize(),
 	 * see detailed description there */
 	icon_list_forall_from(ti, &layout_unset_flag);
-	if (settings.shrink_back_mode) grid_update(ti, False);
+	if (settings.shrink_back_mode || settings.scrollbar_mode != SB_MODE_NONE) grid_update(ti, False);
 	/* Since NULL is a special case for icon_list_froall_from,
 	 * avoid calling it for the last icon */
 	if (ti->next != NULL)
@@ -262,7 +252,7 @@ int grid_remove(struct TrayIcon *ti)
 /* C. Grid manipulations */
 int grid_update(struct TrayIcon *ti, int sort)
 {
-	icon_list_forall_from(ti, &grid2window);
+	icon_list_forall_from(ti, &layout_translate_to_window);
 	if (sort) icon_list_sort(&trayicon_cmp_func);
 	/* recalculate minimal size */
 	grid_sz.x = 0;
@@ -290,7 +280,7 @@ int grid_place_icon(struct TrayIcon *ti, struct IconPlacement *ip)
 	grid_sz.x += ip->sz_delta.x;
 	grid_sz.y += ip->sz_delta.y;
 	/* Update icon position */	
-	grid2window(ti);
+	layout_translate_to_window(ti);
 	DBG(6, ("grid size: %dx%d\n", grid_sz.x, grid_sz.y));
 #ifdef DEBUG
 	print_icon_data(ti);
@@ -351,9 +341,14 @@ int grid_check_rect_free(int x, int y, int w, int h)
 int icon_placement_create(struct IconPlacement *ip, int x, int y, struct Rect *rect)
 {
 
-	/* tray orientation-aware shortcuts for maximal layout dimensions */
-	#define max_layout_width ((settings.vertical ? settings.max_tray_height : settings.max_tray_width) / settings.slot_size)
-	#define max_layout_height ((settings.vertical ? settings.max_tray_width : settings.max_tray_height) / settings.slot_size)
+	/* scrollbar & tray orientation-aware shortcuts for maximal layout dimensions.
+	 * if scrollbar is enabled in some direction, layout size in this dimension is not limited */
+	#define max_layout_width (settings.scrollbar_mode & SB_MODE_HORZ ? \
+			INT_MAX : \
+			((settings.vertical ? settings.max_tray_dims.y : settings.max_tray_dims.x) / settings.slot_size))
+	#define max_layout_height (settings.scrollbar_mode & SB_MODE_VERT ? \
+			INT_MAX : \
+			((settings.vertical ? settings.max_tray_dims.x : settings.max_tray_dims.y) / settings.slot_size))
 
 	ip->valid = 0;
 
@@ -407,7 +402,7 @@ void icon_placement_choose_best(struct IconPlacement *old, struct IconPlacement 
 	 * (just for readability sake) */
 	if (settings.vertical) {
 		swap(tray_data.xsh.width, tray_data.xsh.height);
-		swap(settings.orig_width, settings.orig_height);
+		swap(settings.orig_tray_dims.x, settings.orig_tray_dims.y);
 	}
 
 	calc_wnd_sz_delta(old_wnd_sz_delta, old);
@@ -417,11 +412,11 @@ void icon_placement_choose_best(struct IconPlacement *old, struct IconPlacement 
 	 * supposed to understand this. The basic idea is that sometimes
 	 * layout resize means window resize. Sometimes it does not. */
 	if (settings.shrink_back_mode) {
-		if (grid_sz.x >= settings.orig_width / settings.slot_size) {
+		if (grid_sz.x >= settings.orig_tray_dims.x / settings.slot_size) {
 			old_wnd_sz_delta.x = old->sz_delta.x * settings.slot_size;
 			new_wnd_sz_delta.x = new->sz_delta.x * settings.slot_size;
 		}
-		if (grid_sz.y >= settings.orig_height / settings.slot_size) {
+		if (grid_sz.y >= settings.orig_tray_dims.y / settings.slot_size) {
 			old_wnd_sz_delta.y = old->sz_delta.y * settings.slot_size;
 			new_wnd_sz_delta.y = new->sz_delta.y * settings.slot_size;
 		}
@@ -430,7 +425,7 @@ void icon_placement_choose_best(struct IconPlacement *old, struct IconPlacement 
 	/* Restore values */
 	if (settings.vertical) {
 		swap(tray_data.xsh.width, tray_data.xsh.height);
-		swap(settings.orig_width, settings.orig_height);
+		swap(settings.orig_tray_dims.x, settings.orig_tray_dims.y);
 	}
 
 	DBG(8, ("old = (%d, %d, %d, %d, %d, %d)\n",
