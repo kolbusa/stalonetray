@@ -16,6 +16,7 @@
 #include "config.h"
 #include "common.h"
 #include "icons.h"
+#include "scrollbars.h"
 #include "xembed.h"
 
 /* Tray opcode messages from System Tray Protocol Specification 
@@ -69,11 +70,13 @@ struct TrayData {
 	Atom xa_xrootpmap_id;					/* Atom: _XROOTPMAP_ID */
 	Atom xa_xsetroot_id;					/* Atom: _XSETROOT_ID */
 	Pixmap bg_pmap;							/* Pixmap for tray background */
-	unsigned int bg_pmap_width;				/* Width of background pixmap */
-	unsigned int bg_pmap_height;			/* Height of background pixmap */
+	struct Point bg_pmap_dims;              /* Background pixmap dimensions */
 
-	/* XEMBED data*/
+	/* XEMBED data */
 	struct XEMBEDData xembed_data;			/* XEMBED data */
+
+	/* Scrollbar data */
+	struct ScrollbarsData scrollbars_data;
 };
 extern struct TrayData tray_data;
 
@@ -89,8 +92,12 @@ void tray_show_window();
 void tray_refresh_window(int exposures);
 /* Update tray background (and pixmap, if update_pixmap is true) */
 int tray_update_bg(int update_pixmap);
+/* Calculate tray window size given the size of icon area in pixels. */
+int tray_calc_window_size(int base_width, int base_height, int *new_width, int *new_height);
+/* Calculate size of icon area given the tray window size in pixels. */
+int tray_calc_tray_area_size(int wnd_width, int wnd_height, int *base_width, int *base_height);
 /* Update tray window size and hints */
-int tray_update_window_size();
+int tray_update_window_props();
 /* Set tray window WM hints */
 int tray_set_wm_hints();
 

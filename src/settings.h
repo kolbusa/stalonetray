@@ -56,15 +56,14 @@ struct Settings {
     int win_gravity;           /* Tray window gravity (computed using grow gravity) */
     int bit_gravity;           /* Tray window bit gravity (computed using icon_gravity) */
     int geom_gravity;          /* Tray window gravity when mapping the window (computed using geometry_str) */
-    int max_tray_width;        /* Maximal tray width */
-    int max_tray_height;       /* Maximal tray height */
-    int max_layout_width;      /* Maximal layout width */
-    int max_layout_height;     /* Maximal layout height */
     int fuzzy_edges;           /* Level of edges fuzziness (0 = disabled) */
     int tint_level;            /* Tinting level (0 = disabled) */
-
-    int orig_width;            /* Original tray width */ 
-    int orig_height;           /* Original tray height */
+	int scrollbar_mode;        /* SB_MODE_NONE | SB_MODE_VERT | SB_MODE_HORZ */
+	int scrollbar_size;        /* Size of scrollbar windows in pixels */
+	int scrollbar_inc;         /* Step of scrollbar */
+	struct Point max_tray_dims;/* Maximal tray dimensions */
+	struct Point max_layout_dims;/* Maximal layout dimensions */
+	struct Point orig_tray_dims;/* Original tray dimensions */
 
     XColor tint_color;         /* Color used for tinting */
 

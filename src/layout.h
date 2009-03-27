@@ -35,10 +35,10 @@ int layout_remove(struct TrayIcon *ti);
 int layout_handle_icon_resize(struct TrayIcon *ti);
 
 /* Get current layout dimensions */
-void layout_get_size(unsigned int *width, unsigned int *height);
+void layout_get_size(int *width, int *height);
 
 /* Translate grid coordinates into window coordinates */
-int grid2window(struct TrayIcon *ti);
+int layout_translate_to_window(struct TrayIcon *ti);
 
 /* Return next icon in tab chain */
 struct TrayIcon *layout_next(struct TrayIcon *current);
