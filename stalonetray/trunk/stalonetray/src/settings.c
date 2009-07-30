@@ -41,7 +41,8 @@ void init_default_settings()
 #ifdef DEBUG
 	settings.dbg_level			= 0;
 #endif
-	settings.geometry_str		= "5x1+0-0";
+	settings.geometry_str		= NULL;
+	settings.max_geometry_str	= "0x0";
 	settings.icon_size			= FALLBACK_ICON_SIZE;
 	settings.slot_size          = -1;
 	settings.deco_flags			= DECO_NONE;
@@ -69,13 +70,17 @@ void init_default_settings()
 	settings.tint_color.pixel   = 0xffffff;
 	settings.fuzzy_edges        = 0;
 
-	settings.start_withdrawn    = 0;
+	settings.dockapp_mode		= DOCKAPP_NONE;
 	settings.ignore_icon_resize = 0;
 	settings.respect_icon_hints = 0;
 
 	settings.scrollbar_size     = 8;
 	settings.scrollbar_mode     = SB_MODE_VERT | SB_MODE_HORZ;
 	settings.scrollbar_inc		= -1;
+
+	settings.wm_strut_mode		= WM_STRUT_AUTO;
+
+	settings.kludge_flags		= 0;
 
 #ifdef DELAY_EMBEDDING_CONFIRMATION
 	settings.confirmation_delay = 3;
@@ -85,6 +90,22 @@ void init_default_settings()
 /* ******* general parsing utils ********* */
 
 #define PARSING_ERROR(msg,str) if (!silent) ERR(("Parsing error: " msg ", \"%s\" found\n", str));
+
+/* Parse dockapp mode */
+int parse_dockapp_mode(char *str, int **tgt, int silent)
+{
+	if (!strcmp(str, "none"))
+		**tgt = DOCKAPP_NONE;
+	else if (!strcmp(str, "simple"))
+		**tgt = DOCKAPP_SIMPLE;
+	else if (!strcmp(str, "wmaker"))
+		**tgt = DOCKAPP_WMAKER;
+	else {
+		PARSING_ERROR("none, simple, or wmaker expected", str);
+		return FAILURE;
+	}
+	return SUCCESS;
+}
 
 /* Parse gravity string ORing resulting value
  * with current value of tgt */
@@ -131,6 +152,47 @@ int parse_int(char *str, int **tgt, int silent)
 		PARSING_ERROR("integer expected", str);
 		return FAILURE;
 	}
+}
+
+/* Parse kludges mode */
+int parse_kludges(char *str, int **tgt, int silent)
+{
+	char *curtok = str, *rest = str;
+	do {
+		if ((rest = strchr(rest, ',')) != NULL) *(rest++) = 0;
+		if (!strcasecmp(curtok, "wndpos"))
+			**tgt = KLUDGE_FIX_WND_POS;
+		else if (!strcasecmp(curtok, "wndsize"))
+			**tgt = KLUDGE_FIX_WND_SIZE;
+		else {
+			PARSING_ERROR("kludge flag expected", curtok);
+			return FAILURE;
+		}
+		curtok = rest;
+	} while (rest != NULL);
+	return SUCCESS;
+}
+
+/* Parse strut mode */
+int parse_strut_mode(char *str, int **tgt, int silent)
+{
+	if (!strcasecmp(str, "auto"))
+		**tgt = WM_STRUT_AUTO;
+	else if (!strcasecmp(str, "top"))
+		**tgt = WM_STRUT_TOP;
+	else if (!strcasecmp(str, "bottom"))
+		**tgt = WM_STRUT_BOT;
+	else if (!strcasecmp(str, "left"))
+		**tgt = WM_STRUT_LFT;
+	else if (!strcasecmp(str, "right"))
+		**tgt = WM_STRUT_RHT;
+	else if (!strcasecmp(str, "none"))
+		**tgt = WM_STRUT_NONE;
+	else {
+		PARSING_ERROR("one of top, bottom, left, right, or auto expected", str);
+		return FAILURE;
+	}
+	return SUCCESS;
 }
 
 /* Parse boolean string storing result in tgt*/
@@ -276,6 +338,7 @@ struct Param params[] = {
 	{NULL, "--confirmation-delay", "confirmation_delay", {&settings.confirmation_delay}, (param_parser_t) &parse_int, 1, 1, 0, NULL},
 #endif
 	{"-d", "--decorations", "decorations", {&settings.deco_flags}, (param_parser_t) &parse_deco, 1, 1, 1, "all"},
+	{NULL, "--dockapp-mode", "dockapp_mode", {&settings.dockapp_mode}, (param_parser_t) &parse_dockapp_mode, 1, 1, 1, "simple"},
 	{"-f", "--fuzzy-edges", "fuzzy_edges", {&settings.fuzzy_edges}, (param_parser_t) &parse_int, 1, 1, 1, "2"},
 	{"-geometry", "--geometry", "geometry", {&settings.geometry_str}, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
 	{NULL, "--grow-gravity", "grow_gravity", {&settings.grow_gravity}, (param_parser_t) &parse_gravity, 1, 1, 0, NULL},
@@ -283,14 +346,15 @@ struct Param params[] = {
 	{ "-i", "--icon-size", "icon_size", {&settings.icon_size}, (param_parser_t) &parse_int, 1, 1, 0, NULL}, 
 	{NULL, "--ignore-icon-resize", "ignore_icon_resize", {&settings.ignore_icon_resize}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
 	{"-h", "--help", NULL, {&settings.need_help}, (param_parser_t) &parse_bool, 0, 0, 0, "true" },
-	{NULL, "--max-geometry", "max_geometry", {&settings.max_tray_dims.x}, (param_parser_t) &parse_int, 1, 1, 0, NULL},
+	{NULL, "--kludges", "kludges", {&settings.kludge_flags}, (param_parser_t) &parse_kludges, 1, 1, 0, NULL},
+	{NULL, "--max-geometry", "max_geometry", {&settings.max_geometry_str}, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
 	{NULL, "--no-shrink", "no_shrink", {&settings.shrink_back_mode}, (param_parser_t) &parse_bool_rev, 1, 1, 1, "true"},
 	{"-p", "--parent-bg", "parent_bg", {&settings.parent_bg}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
 #ifdef XPM_SUPPORTED
 	{NULL, "--pixmap-bg", "pixmap_bg", {&settings.bg_pmap_path}, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
 #endif
 	{NULL, "--respect-icon-hints", "respect_icon_hints", {&settings.respect_icon_hints}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
-	{NULL, "--scrollbars", "scrollbars", {&settings.scrollbar_mode}, (param_parser_t) &parse_sb_mode, 1, 1, 0, "all"},
+	{NULL, "--scrollbars", "scrollbars", {&settings.scrollbar_mode}, (param_parser_t) &parse_sb_mode, 1, 1, 0, "none"},
 	{NULL, "--scrollbars-step", "scrollbars_step", {&settings.scrollbar_inc}, (param_parser_t) &parse_int, 1, 1, 0, "8"},
 	{NULL, "--skip-taskbar", "skip_taskbar", {&settings.skip_taskbar}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
 	{"-s", "--slot-size", "slot_size", {&settings.slot_size}, (param_parser_t) &parse_int, 1, 1, 0, NULL},
@@ -300,8 +364,8 @@ struct Param params[] = {
 	{"-t", "--transparent", "transparent", {&settings.transparent}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
 	{"-v", "--vertical", "vertical", {&settings.vertical}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
 	{NULL, "--window-layer", "window_layer", {&settings.wnd_layer}, (param_parser_t) &parse_wnd_layer, 1, 1, 1, NULL},
+	{NULL, "--window-strut", "window_strut", {&settings.wm_strut_mode}, (param_parser_t) &parse_strut_mode, 1, 1, 1, NULL},
 	{NULL, "--window-type", "window_type", {&settings.wnd_type}, (param_parser_t) &parse_wnd_type, 1, 1, 1, NULL},
-	{"-w", "--withdrawn", "withdrawn", {&settings.start_withdrawn}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
 	{NULL, "--xsync", "xsync", {&settings.xsync}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
 	{NULL, NULL, NULL, {NULL}}
 };
@@ -327,20 +391,24 @@ void usage(char *progname)
 			"    -d, --decorations [<deco>]  set what part of window decorations are\n"
 			"                                visible; deco can be: none (default),\n"
 			"                                title, border, all\n"
+			"    --dockapp-mode [<mode>]     enable dockapp mode; mode can be none (default),\n"
+			"                                simple (default if no mode specified), or wmaker\n"
 			"    -f, --fuzzy-edges [<level>] set edges fuzziness, level is from\n"
 			"                                0 (disabled) to 3 (maximum); works with\n"
 			"                                tinting and/or pixmap background\n"
-			"    -geometry <geometry>        set initial tray`s geometry\n"
+			"    [-]-geometry <geometry>     set initial tray`s geometry (width and height are\n"
+			"                                in icon slots; offsets are in pixels)\n"
 			"    --grow-gravity <gravity>    tray`s grow gravity,\n"
 			"                                one of N, S, W, E, NW, NE, SW, SE\n"
 			"    --icon-gravity <gravity>    icon positioning gravity (NW, NE, SW, SE)\n"
 			"    -i, --icon-size <n>         set basic icon size to <n>, default: 24\n"
 			"    --ignore-icon-resize        ignore icons attempts to resize their windows\n"
 			"    -h, --help                  show this message\n"
-			"    --max-width <n>             set tray`s width limit to <n>\n"
-			"                                (default: 0 = unlimited)\n"
-			"    --max-height <n>            set tray`s height limit to <n>\n"
-			"                                (default: 0 = unlimited)\n"
+			"    --kludges <list>            enable specific kludges for non-conforming WMs\n"
+			"                                and/or stalonetray bugs; list is a comma\n"
+			"                                separated list of: wndpos, wndsize\n"
+			"    --max-geometry <geometry>   set tray maximal width and height; 0 indicates\n"
+			"                                no limit in respective direction\n"
 			"    --no-shrink                 do not shrink window back after icon removal\n"
 			"    -p, --parent-bg             use parent for background\n"
 			"    --pixmap-bg <pixmap>        use pixmap for tray`s window background\n"
@@ -348,6 +416,7 @@ void usage(char *progname)
 			"    --scrollbars <mode>         set scrollbar mode, one of: all, horizontal,\n"
 			"                                vertical, none\n"
 			"    --scrollbars-step <n>       set scrollbar step to n pixels\n"
+			"    --slot-size <n>             set icon slot size to n\n"
 			"    --skip-taskbar              hide tray`s window from the taskbar\n"
 			"    --sticky                    make tray`s window sticky across multiple\n"
 			"                                desktops/pages\n"
@@ -359,9 +428,10 @@ void usage(char *progname)
 			"                                layout is used by default)\n"
 			"    --window-layer <layer>      set tray`s window EWMH layer, one of:\n"
 			"                                bottom, normal, top\n"
+			"    --window-strut <mode>       set window strut mode, one of: auto,\n"
+			"                                left, right, top, bottom\n"
 			"    --window-type <type>        set tray`s window EWMH type, one of:\n"
 			"                                normal, dock, toolbar, utility, desktop\n"
-			"    -w, --withdrawn             start in withdrawn mode as WMaker dockapp\n"
 			"    --xsync                     operate on X server synchronously (SLOW)\n"
 			"\n"
 			);
@@ -594,9 +664,7 @@ void parse_rc()
 			DIE(("rc file parse error at %s:%d: unrecognized rc file keyword \"%s\".\n", settings.config_fname, lnum, argv[0]));
 		}
 		assert(arg != NULL);
-		
 		DBG(4, ("rc: param \"%s\", arg \"%s\"\n", match->rc_name, arg));
-		
 		if (!match->parser(arg, match->target, False)) {
 			DIE(("Rc file parse error at %s:%d: could not parse argument for \"%s\".\n", settings.config_fname, lnum, argv[0]));
 		}
@@ -622,6 +690,7 @@ void interpret_settings()
 	};
 	int geom_flags; 
 	int rc;
+	int dummy;
 	XWindowAttributes root_wa;
 
 	/* Sanitize icon size */
@@ -690,6 +759,13 @@ void interpret_settings()
 
 	/* Set tray maximal width/height */
 #if 1
+	geom_flags = XParseGeometry(settings.max_geometry_str,
+					&dummy, &dummy,
+					(unsigned int *) &settings.max_tray_dims.x,
+					(unsigned int *) &settings.max_tray_dims.y);
+	DBG(9, ("max geometry from max_geometry_str: %dx%d\n",
+					settings.max_tray_dims.x,
+					settings.max_tray_dims.y));
 	settings.max_tray_dims.x *= settings.slot_size;
 	settings.max_tray_dims.y *= settings.slot_size;
 	if (!settings.max_tray_dims.x)
@@ -712,36 +788,36 @@ void interpret_settings()
 	else
 		val_range(settings.max_tray_height, 1, INT_MAX);
 #endif
+	DBG(9, ("max geometry after normalization: %dx%d\n",
+					settings.max_tray_dims.x,
+					settings.max_tray_dims.y));
 
-	/* Parse geometry-related settings */
-	/* Since WMs do not handle gravity reliable,
-	 * calculate window position by hand */
-	geom_flags = XParseGeometry(settings.geometry_str, 
-					&tray_data.xsh.x, &tray_data.xsh.y,
-					(unsigned int *) &tray_data.xsh.width, 
-					(unsigned int *) &tray_data.xsh.height);
+#	define DEFAULT_GEOMETRY "1x1+0+0"
+	tray_data.xsh.flags = PResizeInc | PBaseSize;
+	tray_data.xsh.x = 0;
+	tray_data.xsh.y = 0;
+	tray_data.xsh.width_inc = settings.slot_size;
+	tray_data.xsh.height_inc = settings.slot_size;
+	tray_data.xsh.base_width = 0;
+	tray_data.xsh.base_height = 0;
+	tray_calc_window_size(0, 0, &tray_data.xsh.base_width, &tray_data.xsh.base_height);
+	geom_flags = XWMGeometry(tray_data.dpy, DefaultScreen(tray_data.dpy),
+			settings.geometry_str, DEFAULT_GEOMETRY, 0,
+			&tray_data.xsh, &tray_data.xsh.x, &tray_data.xsh.y,
+			&tray_data.xsh.width, &tray_data.xsh.height, &tray_data.xsh.win_gravity);
+	tray_data.xsh.win_gravity = settings.win_gravity;
+	tray_data.xsh.min_width = tray_data.xsh.width;
+	tray_data.xsh.min_height = tray_data.xsh.height;
+	tray_data.xsh.max_width = tray_data.xsh.width;
+	tray_data.xsh.min_height = tray_data.xsh.height;
+	tray_data.xsh.flags = PResizeInc | PBaseSize | PMinSize | PMaxSize | PWinGravity; 
 
-	DBG(6, ("geometry from XParseGeometry: %dx%d at (%d,%d)\n", 
-			tray_data.xsh.width, tray_data.xsh.height,
-			tray_data.xsh.x, tray_data.xsh.y));
-
-	val_range(tray_data.xsh.width, 1, settings.max_tray_dims.x);
-	val_range(tray_data.xsh.height, 1, settings.max_tray_dims.y);
-
-	tray_data.xsh.width *= settings.slot_size;
-	tray_data.xsh.height *= settings.slot_size;
-
-	settings.orig_tray_dims.x = tray_data.xsh.width;
-	settings.orig_tray_dims.y = tray_data.xsh.height;
-
-	tray_calc_window_size(tray_data.xsh.width, tray_data.xsh.height, &tray_data.xsh.width, &tray_data.xsh.height);
-
-	if (geom_flags & XNegative)
-		tray_data.xsh.x = root_wa.width + tray_data.xsh.x - tray_data.xsh.width;
-
-	if (geom_flags & YNegative)
-		tray_data.xsh.y = root_wa.height + tray_data.xsh.y - tray_data.xsh.height;
-	
+	if (settings.dockapp_mode == DOCKAPP_WMAKER) 
+		tray_data.xsh.flags |= USPosition; 
+	else {
+		if (geom_flags & (XValue | YValue)) tray_data.xsh.flags |= USPosition; else tray_data.xsh.flags |= PPosition;
+		if (geom_flags & (WidthValue | HeightValue)) tray_data.xsh.flags |= USSize; else tray_data.xsh.flags |= PSize;
+	}
 	DBG(3, ("final geometry: %dx%d at (%d,%d)\n", 
 			tray_data.xsh.width, tray_data.xsh.height,
 			tray_data.xsh.x, tray_data.xsh.y));
@@ -784,7 +860,7 @@ int read_settings(int argc, char **argv)
 	DBG(3, ("need_help = %d\n", settings.need_help));
 	DBG(3, ("xsync = %d\n", settings.xsync));
 	DBG(3, ("vertical = %d\n", settings.vertical));
-	DBG(3, ("withdrawn = %d\n", settings.start_withdrawn));
+	DBG(3, ("dockapp_mode = %d\n", settings.dockapp_mode));
 	DBG(3, ("--strings--\n"));
 	DBG(3, ("display_str = \"%s\"\n", settings.display_str));
 	DBG(3, ("bg_color_str = \"%s\"\n", settings.bg_color_str));

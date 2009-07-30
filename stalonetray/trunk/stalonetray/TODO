@@ -96,17 +96,22 @@ for 0.7.6
 for 0.8/0.9
 + slot size vs. icon size
 + review ignore_icon_resize usage
-- strut WM hints (requires Xinerama?)
-- sanitize x11 calls: check return values instead of relying on x11_ok() whenever possible
-- track size changes of the icons that failed to fit into the tray?
-- rework root transparency code (handle cases when root pmap size is less than root window) (WONTDO)
++ all dims must be given in slots not in pixels
 + scrollable tray area? (see http://wnd.katei.fi/weblog/entry-7)
 	+ need repeater mode
-	+ support for mouse wheel
+	+ support for mouse wheel (scroll vertically if mousewheeling over vert sb and 
+	  horizontally if over horz sb; default to orientation otherwise)
++ strut WM hints (requires Xinerama?)
++ add --kludge command line param that turns kludges on/off
+	- move respect icon hints under this category
+- fix geometry code
+- fix wmaker docking mode (--widthrawn=off/simple/wmaker)
 - valgrind
-- profile the code 
-- RENDER implementation of tinting/compositing
-- some issues still left with window placement (i.e. gravity) (WUT?)
-- restructure command line params and reduce their count
-- add --kludge command line param that turns kludges on/off
-+ all dims must be given in slots not in pixels
+- profile the code
+	+ powertop; fix event loop to block if there are no events and no scrolling
+	- gprofile; use array in icons.c instead of list (LATER)
+- RENDER implementation of tinting/compositing, take implementation from rxvt (LATER)
+- sanitize x11 calls: check return values instead of relying on x11_ok() whenever possible (LATER)
+- track size changes of the icons that failed to fit into the tray? (WONTDO)
+- rework root transparency code (handle cases when root pmap size is less than root window) (WONTDO)
+- restructure command line params and reduce their count (WONTDO)

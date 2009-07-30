@@ -37,16 +37,12 @@
 void tray_init()
 {
 	tray_data.tray = None;
+	tray_data.hint_win = None;
 	tray_data.dpy = NULL;
 	tray_data.terminated = False;
 	tray_data.bg_pmap = None;
 	tray_data.xa_xrootpmap_id = None;
 	tray_data.xa_xsetroot_id = None;
-	tray_data.xsh.flags = (PSize | PPosition | PWinGravity);
-	tray_data.xsh.x = 100;
-	tray_data.xsh.y = 100;
-	tray_data.xsh.width = 10;
-	tray_data.xsh.height = 10;
 	tray_data.kde_tray_old_mode = 0;
 	scrollbars_init();
 }
@@ -257,9 +253,12 @@ int tray_update_bg(int update_pixmap)
 				0, 0);
 	}
 
+	/* XXX: must correctly work around situations when bg pixmap is smaller than root window (but how?) */
 	bg_img = XGetImage(tray_data.dpy, bg_pmap,
 			0, 0, tray_data.xsh.width, tray_data.xsh.height,
 			XAllPlanes(), ZPixmap);
+
+	if (bg_img == NULL) return FAILURE;
 
 	/* Tint the image if necessary. If bg_pmap was not updated, tinting
 	 * is not needed, since it has been already done */
@@ -285,6 +284,12 @@ int tray_update_bg(int update_pixmap)
 		static XImage *tmp_img = NULL;
 		static Pixmap tmp_pmap = None;
 		static GC tmp_gc = None;	
+
+		if (root_img == NULL) {
+			DBG(9, ("Failed to get image of root pixmap under the tray\n"));
+			DBG(9, ("Clipping rectangle: %dx%d+%d+%d\n", clr.w, clr.h, clr.x, clr.y));
+			return x11_ok();
+		}
 
 		/* Alpha mask needs to be updated only on size changes */
 		if (old_width != tray_data.xsh.width || old_height != tray_data.xsh.height) {
@@ -312,6 +317,8 @@ int tray_update_bg(int update_pixmap)
 			0, 0, tray_data.xsh.width, tray_data.xsh.height);
 
 	XSetWindowBackgroundPixmap(tray_data.dpy, tray_data.tray, final_pmap);
+
+/*    XDestroyImage(bg_img);*/
 
 	old_width = tray_data.xsh.width;
 	old_height = tray_data.xsh.height;
@@ -350,7 +357,6 @@ int tray_calc_tray_area_size(int wnd_width, int wnd_height, int *base_width, int
 int tray_update_window_props()
 {
 	XSizeHints xsh;
-/*    int w, h;*/
 	int cur_base_width, cur_base_height;
 	int new_width, new_height;
 	int layout_width, layout_height;
@@ -366,7 +372,8 @@ int tray_update_window_props()
 	 */
 
 	layout_get_size(&layout_width, &layout_height);
-	tray_calc_tray_area_size(tray_data.xsh.width, tray_data.xsh.height, &cur_base_width, &cur_base_height);
+	tray_calc_tray_area_size(tray_data.xsh.width, tray_data.xsh.height, 
+			&cur_base_width, &cur_base_height);
 
 #define CALC_DIM(tgt,cur,layout,max,orig) \
 	if (layout > max) tgt = max; \
@@ -374,46 +381,17 @@ int tray_update_window_props()
 	else if (settings.shrink_back_mode) tgt = orig; \
 	else tgt = cur;
 
-	CALC_DIM(new_width, cur_base_width, layout_width, settings.max_tray_dims.x, settings.orig_tray_dims.x);
-	CALC_DIM(new_height, cur_base_height, layout_height, settings.max_tray_dims.y, settings.orig_tray_dims.y);
+	CALC_DIM(new_width, cur_base_width, layout_width, 
+			settings.max_tray_dims.x, settings.orig_tray_dims.x);
+	CALC_DIM(new_height, cur_base_height, layout_height, 
+			settings.max_tray_dims.y, settings.orig_tray_dims.y);
 
 	tray_calc_window_size(new_width, new_height, &new_width, &new_height);
-
-#if 0
-	if (settings.shrink_back_mode) {
-		w = settings.orig_width;
-		h = settings.orig_height;
-	} else {
-		w = tray_data.xsh.width;
-		h = tray_data.xsh.height;
-	}
-
-
-	new_width = layout_width > cur_base_width ? 
-						layout_width : cur_base_width;
-	new_height = layout_height > cur_base_height ? 
-						layout_height : cur_base_height;
-
-	/* XXX: shouldn't we bail out if we are not top-level window? 
-	 * Or, perhaps, FvwmButtons are going to handle resises some day?
-	 * Currently, this is handled one level up (sometimes only; move it down here?)
-	 */
-
-	tray_calc_window_size(new_width, new_height, &new_width, &new_height);
-
-	DBG(3, ("proposed new window size: %dx%d (old: %dx%d)\n", new_width, new_height, tray_data.xsh.width, tray_data.xsh.height));
-
-	if (settings.shrink_back_mode) {
-		xsh.max_width = new_width;
-		xsh.max_height = new_height;
-	} else {
-		xsh.max_width = settings.max_tray_width;
-		xsh.max_height = settings.max_tray_height;
-	}
-#endif
 
 	xsh.min_width = new_width;
 	xsh.min_height = new_height;
+	xsh.max_width = new_width;
+	xsh.max_height = new_height;
 	xsh.width_inc = settings.slot_size;
 	xsh.height_inc = settings.slot_size;
 	tray_calc_window_size(0, 0, &xsh.base_width, &xsh.base_height);
@@ -445,8 +423,10 @@ int tray_update_window_props()
 		 * described in ICCM/WM specs). Perhaps, I was dreaming.  So, prior to
 		 * resizing trays window, it is necessary to recalculate window
 		 * absolute position and shift it according to grow gravity settings */
-		x11_get_window_abs_coords(tray_data.dpy, tray_data.tray, &tray_data.xsh.x, &tray_data.xsh.y);
-		DBG(8, ("old geometry: %dx%d+%d+%d\n", new_width, new_height, tray_data.xsh.x, tray_data.xsh.y));
+		x11_get_window_abs_coords(tray_data.dpy, tray_data.tray, 
+				&tray_data.xsh.x, &tray_data.xsh.y);
+		DBG(8, ("old geometry: %dx%d+%d+%d\n", new_width, new_height, 
+					tray_data.xsh.x, tray_data.xsh.y));
 
 		if (settings.grow_gravity & GRAV_E) 
 			tray_data.xsh.x -= new_width - tray_data.xsh.width;
@@ -461,7 +441,8 @@ int tray_update_window_props()
 		tray_data.xsh.width = new_width;
 		tray_data.xsh.height = new_height;
 
-		DBG(8, ("new geometry: %dx%d+%d+%d\n", new_width, new_height, tray_data.xsh.x, tray_data.xsh.y));
+		DBG(8, ("new geometry: %dx%d+%d+%d\n", new_width, new_height, 
+					tray_data.xsh.x, tray_data.xsh.y));
 		
 		XResizeWindow(tray_data.dpy, tray_data.tray, new_width, new_height);
 		XMoveWindow(tray_data.dpy, tray_data.tray, tray_data.xsh.x, tray_data.xsh.y);
@@ -484,18 +465,14 @@ void tray_create_window(int argc, char **argv)
 {
 	char *wnd_name = PROGNAME;
 	XTextProperty wm_name;
-
 	XSetWindowAttributes xswa;
-	
-	XClassHint	*xch = NULL;
-	XWMHints	*xwmh = NULL;
-	XSizeHints	*xsh = NULL;
-	
-	Atom		net_system_tray_orientation;
-	Atom 		orient;
+	XClassHint xch;
+	XWMHints xwmh;
+	Atom net_system_tray_orientation;
+	Atom orient;
+	Atom protocols_atoms[2];
 
-	Atom		protocols_atoms[2];
-
+	/* Create some atoms */
 	tray_data.xa_wm_delete_window = 
 		XInternAtom(tray_data.dpy, "WM_DELETE_WINDOW", False);
 	tray_data.xa_wm_take_focus = 
@@ -507,7 +484,7 @@ void tray_create_window(int argc, char **argv)
 	tray_data.xa_net_client_list =
 		XInternAtom(tray_data.dpy, "_NET_CLIENT_LIST", False);
 
-	/* we could as well create 1x1 window and update tray window size later */
+	/* Create tray window */
 	tray_data.tray = XCreateSimpleWindow(
 						tray_data.dpy, 
 						DefaultRootWindow(tray_data.dpy),
@@ -516,91 +493,94 @@ void tray_create_window(int argc, char **argv)
 						0, 
 						settings.bg_color.pixel, 
 						settings.bg_color.pixel);
+	if (settings.dockapp_mode == DOCKAPP_WMAKER)
+		tray_data.hint_win = XCreateSimpleWindow(
+							tray_data.dpy,
+							DefaultRootWindow(tray_data.dpy),
+							0, 0,
+							1, 1,
+							0,
+							settings.bg_color.pixel, 
+							settings.bg_color.pixel);
+	DBG(3, ("created tray window: 0x%x\n", tray_data.tray));
+	DBG(3, ("created hint_win window: 0x%x\n", tray_data.hint_win));
 
-	DBG(3, ("created tray`s window: 0x%x\n", tray_data.tray));
+	/* Set tray window background if necessary */	
+	if (settings.parent_bg)
+		XSetWindowBackgroundPixmap(tray_data.dpy, tray_data.tray, ParentRelative);
+	else if (settings.transparent) {
+		tray_data.xa_xrootpmap_id = XInternAtom(tray_data.dpy, "_XROOTPMAP_ID", False);
+		tray_data.xa_xsetroot_id = XInternAtom(tray_data.dpy, "_XSETROOT_ID", False);
+		tray_update_bg(True);
+	} 
+#ifdef XPM_SUPPORTED
+	else if (settings.pixmap_bg) tray_init_pixmap_bg();
+#endif
 
+	/* Set tray window properties */
 	xswa.bit_gravity = settings.bit_gravity;
 	xswa.win_gravity = settings.win_gravity;
 	xswa.backing_store = settings.parent_bg ? NotUseful : WhenMapped;
-	tray_data.xsh.win_gravity = settings.win_gravity;
-
 	XChangeWindowAttributes(tray_data.dpy, 
 			tray_data.tray, 
 			CWBitGravity | CWWinGravity | CWBackingStore, 
 			&xswa);
 
-	if (settings.transparent || settings.parent_bg || settings.fuzzy_edges) {
-		tray_data.xa_xrootpmap_id = XInternAtom(tray_data.dpy, "_XROOTPMAP_ID", False);
-		tray_data.xa_xsetroot_id = XInternAtom(tray_data.dpy, "_XSETROOT_ID", False);
-	}
-		
-	if (settings.parent_bg)
-		XSetWindowBackgroundPixmap(tray_data.dpy, tray_data.tray, ParentRelative);
-
-	if (settings.transparent) {
-		if (tray_data.xa_xrootpmap_id == None && tray_data.xa_xsetroot_id == None) {
-			DBG(0, ("transparent background could not be supported.\n"));
-			DBG(0, ("use compatible tool to set wallpaper --- e.g. Esetroot, fvwm-root, etc.\n"));
-		} else 
-			tray_update_bg(True);
-	}
-
 	if (XmbTextListToTextProperty(tray_data.dpy, &wnd_name, 1, XTextStyle, &wm_name) != Success)
 		DIE(("Invalid window name (THIS IS A BUG)\n"));
+	XSetWMName(tray_data.dpy, tray_data.tray, &wm_name);
+	XFree(wm_name.value);
 
-	if ((xwmh = XAllocWMHints()) == NULL)
-		DIE(("Could not allocate WM hints\n"));
-	xwmh->flags = (InputHint | StateHint | IconPixmapHint | 
-				   IconWindowHint | IconPositionHint | IconMaskHint | 
-				   WindowGroupHint);
-	xwmh->input = False;
-	xwmh->initial_state = settings.start_withdrawn ? WithdrawnState: NormalState;
-	xwmh->icon_pixmap = None;
-	xwmh->icon_x = 0;
-	xwmh->icon_y = 0;
-	xwmh->icon_mask = None;
-	xwmh->window_group = settings.start_withdrawn ? tray_data.tray : None;
-	xwmh->icon_window = settings.start_withdrawn ? tray_data.tray : None;
+	xch.res_class = PROGNAME;
+	xch.res_name = PROGNAME;
 
-	if ((xch = XAllocClassHint()) == NULL)
-		DIE(("Could not allocate class hints\n"));
-	xch->res_class = PROGNAME;
-	xch->res_name = PROGNAME;
-
-	if ((xsh = XAllocSizeHints()) == NULL)
-		DIE(("Could not allocate size hints\n"));
-	*xsh = tray_data.xsh;
-	xsh->flags = PWinGravity | PSize | PPosition;
-	xsh->win_gravity = settings.geom_gravity;
-
-	XSetWMProperties(tray_data.dpy, tray_data.tray, &wm_name, NULL, argv, argc, xsh, xwmh, xch);
-
-	XFree(xch);
-	XFree(xsh);
-	XFree(xwmh);
-	XFree((char *)wm_name.value);
+	xwmh.flags = InputHint | StateHint; 
+	xwmh.initial_state = settings.dockapp_mode != DOCKAPP_NONE ? WithdrawnState: NormalState;
+	xwmh.input = False;
+#if 0
+	if (settings.dockapp_mode == DOCKAPP_WMAKER) {
+		xwmh.flags |= IconWindowHint | IconPositionHint | WindowGroupHint;
+		xwmh.icon_x = tray_data.xsh.x;
+		xwmh.icon_y = tray_data.xsh.y;
+		xwmh.icon_window = tray_data.tray;
+		xwmh.window_group = tray_data.hint_win;
+	}
+#endif
+	XSetWMHints(tray_data.dpy, tray_data.tray, &xwmh);
+	XSetClassHint(tray_data.dpy, tray_data.tray, &xch);
+	XSetWMNormalHints(tray_data.dpy, tray_data.tray, &tray_data.xsh);
+	XSetCommand(tray_data.dpy, tray_data.tray, argv, argc);
+#if 0
+	if (settings.dockapp_mode == DOCKAPP_WMAKER) 
+		XSetClassHint(tray_data.dpy, tray_data.hint_win, &xch);
+#else
+	if (settings.dockapp_mode == DOCKAPP_WMAKER) {
+		xwmh.flags |= IconWindowHint | IconPositionHint | WindowGroupHint;
+		xwmh.icon_x = tray_data.xsh.x;
+		xwmh.icon_y = tray_data.xsh.y;
+		xwmh.icon_window = tray_data.tray;
+		xwmh.window_group = tray_data.hint_win;
+		XSetClassHint(tray_data.dpy, tray_data.hint_win, &xch);
+		XSetWMHints(tray_data.dpy, tray_data.hint_win, &xwmh);
+	}
+#endif
 
 	/* v0.2 tray protocol support */
-	orient = settings.vertical ? _NET_SYSTEM_TRAY_ORIENTATION_HORZ : _NET_SYSTEM_TRAY_ORIENTATION_VERT;
+	orient = 
+		settings.vertical ? _NET_SYSTEM_TRAY_ORIENTATION_HORZ : _NET_SYSTEM_TRAY_ORIENTATION_VERT;
 	net_system_tray_orientation = XInternAtom(tray_data.dpy, TRAY_ORIENTATION_ATOM, False);
 	XChangeProperty(tray_data.dpy, tray_data.tray, 
 			net_system_tray_orientation, net_system_tray_orientation, 32, 
 			PropModeReplace, 
 			(unsigned char *) &orient, 1);
 
-	if (settings.parent_bg)
-		XSetWindowBackgroundPixmap(tray_data.dpy, tray_data.tray, ParentRelative);
-
+	/* Ask X server / WM to report certain events */
 	protocols_atoms[0] = tray_data.xa_wm_delete_window;
 	protocols_atoms[1] = tray_data.xa_wm_take_focus;
 	XSetWMProtocols(tray_data.dpy, tray_data.tray, protocols_atoms, 2);
-	XSelectInput(tray_data.dpy, tray_data.tray, StructureNotifyMask | FocusChangeMask | PropertyChangeMask | ExposureMask );
-
+	XSelectInput(tray_data.dpy, tray_data.tray, 
+			StructureNotifyMask | FocusChangeMask | PropertyChangeMask | ExposureMask );
 	x11_extend_root_event_mask(tray_data.dpy, PropertyChangeMask);
-
-#ifdef XPM_SUPPORTED
-	if (settings.pixmap_bg) tray_init_pixmap_bg();
-#endif
 	scrollbars_create();
 }
 
@@ -628,8 +608,75 @@ int tray_set_wm_hints()
 
 	if (strcmp(settings.wnd_type, _NET_WM_WINDOW_TYPE_NORMAL) != 0)
 		ewmh_add_window_type(tray_data.dpy, tray_data.tray, settings.wnd_type);
+	/* Alwas add NORMAL window type for WM that do not support (some) special types */
 	ewmh_add_window_type(tray_data.dpy, tray_data.tray, _NET_WM_WINDOW_TYPE_NORMAL);
 
+	/* Set window strut */
+	if (settings.wm_strut_mode != WM_STRUT_NONE) {
+		int strut_mode;
+		if (settings.wm_strut_mode == WM_STRUT_AUTO) {
+			/* Do autodetection: if some edge of tray is adjacent to one
+			 * of screen edges, we could set window strut to that */
+			int h_strut_mode, v_strut_mode;
+			int p_strut_mode, s_strut_mode;
+			h_strut_mode = (tray_data.xsh.x == 0 ? WM_STRUT_LFT : 
+					(tray_data.xsh.x + tray_data.xsh.width == tray_data.root_wnd.width ? WM_STRUT_RHT : 
+					 	WM_STRUT_NONE));
+			v_strut_mode = (tray_data.xsh.y == 0 ? WM_STRUT_TOP :
+					(tray_data.xsh.x + tray_data.xsh.height == tray_data.root_wnd.height ? WM_STRUT_BOT :
+					 	WM_STRUT_NONE));
+			/* If tray is vertical, horizontal strut mode has higher priority,
+			 * else vertical strut mode has higher priority */
+			if (settings.vertical) {
+				p_strut_mode = h_strut_mode;
+				s_strut_mode = v_strut_mode;
+			} else {
+				p_strut_mode = v_strut_mode;
+				s_strut_mode = h_strut_mode;
+			}
+			if (p_strut_mode != WM_STRUT_NONE)
+				strut_mode = p_strut_mode;
+			else
+				strut_mode = s_strut_mode;
+		} else
+			strut_mode = settings.wm_strut_mode;
+		DBG(6, ("computed final strut mode: %d\n", strut_mode));
+		/* Update window hint */
+		if (strut_mode != WM_STRUT_NONE) {
+			wm_strut_t wm_strut;
+			int base_idx;
+			memset(wm_strut, 0, sizeof(wm_strut));
+			DBG(9, ("current tray geometry: %dx%d+%d+%d\n",
+						tray_data.xsh.width, tray_data.xsh.height,
+						tray_data.xsh.x, tray_data.xsh.y));
+			if (strut_mode == WM_STRUT_TOP || strut_mode == WM_STRUT_BOT) {
+				if (strut_mode == WM_STRUT_TOP) {
+					base_idx = WM_STRUT_IDX_TOP;
+					wm_strut[WM_STRUT_IDX_TOP] = tray_data.xsh.y + tray_data.xsh.height;
+				} else {
+					base_idx = WM_STRUT_IDX_BOT;
+					wm_strut[WM_STRUT_IDX_BOT] = tray_data.root_wnd.height - tray_data.xsh.y;
+				}
+				wm_strut[base_idx + WM_STRUT_IDX_START_OFFSET] = tray_data.xsh.x;
+				wm_strut[base_idx + WM_STRUT_IDX_END_OFFSET] = tray_data.xsh.x + tray_data.xsh.width;
+			} else {
+				if (strut_mode == WM_STRUT_LFT) {
+					base_idx = WM_STRUT_IDX_LFT;
+					wm_strut[WM_STRUT_IDX_LFT] = tray_data.xsh.x + tray_data.xsh.width;
+				} else {
+					base_idx = WM_STRUT_IDX_RHT;
+					wm_strut[WM_STRUT_IDX_RHT] = tray_data.root_wnd.width - tray_data.xsh.x;
+				}
+				wm_strut[base_idx + WM_STRUT_IDX_START_OFFSET] = tray_data.xsh.y;
+				wm_strut[base_idx + WM_STRUT_IDX_END_OFFSET] = tray_data.xsh.y + tray_data.xsh.height;
+			}
+			{	int i;
+				for (i = 0; i < _NET_WM_STRUT_PARTIAL_SZ; i++)
+					DBG(9, ("computed hints [%d] = %d\n", i, wm_strut[i]));
+			}
+			ewmh_set_window_strut(tray_data.dpy, tray_data.tray, wm_strut);
+		}
+	}
 	return SUCCESS;
 }
 
@@ -686,6 +733,8 @@ void tray_show_window()
 	tray_update_window_props();
 	XMapRaised(tray_data.dpy, tray_data.tray);
 	XMoveWindow(tray_data.dpy, tray_data.tray, tray_data.xsh.x, tray_data.xsh.y);
+	if (settings.dockapp_mode == DOCKAPP_WMAKER)
+		XMapWindow(tray_data.dpy, tray_data.hint_win);
 	tray_set_wm_hints();
 	tray_update_window_props();
 }

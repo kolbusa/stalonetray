@@ -116,7 +116,7 @@ case "$ac_cv_debug" in
 	yes)
 		AC_DEFINE(DEBUG, 1, [enable debugging code])
 		if test "x$GCC" = "xyes"; then
-			CFLAGS="$CFLAGS -g -ggdb -pedantic -Wall -fno-strict-aliasing"
+			CFLAGS="$CFLAGS -g -ggdb -pedantic -Wall"
 			LDFLAGS="$LDFLAGS -rdynamic"
 		else
 			echo "INFO: Since you use non-gcc compiler, please enable generation of debug info"
