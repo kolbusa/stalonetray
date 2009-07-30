@@ -278,9 +278,13 @@ void scrollbars_periodic_tasks()
 	if (tray_data.scrollbars_data.scrollbar_down != -1 &&
 			tray_data.scrollbars_data.scrollbar_repeat_active) 
 	{
+#if 0
 		if (--tray_data.scrollbars_data.scrollbar_repeat_counter == 0) {
 			scrollbars_click(tray_data.scrollbars_data.scrollbar_down);
 			tray_data.scrollbars_data.scrollbar_repeat_counter = SCROLLBAR_REPEAT_COUNTDOWN_MAX_SUCC;
 		}
+#else
+		scrollbars_click(tray_data.scrollbars_data.scrollbar_down);
+#endif
 	}
 }

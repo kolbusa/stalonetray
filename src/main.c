@@ -90,6 +90,7 @@ void cleanup()
 		 * process */
 		XSync(tray_data.dpy, False);
 		XCloseDisplay(tray_data.dpy);
+		tray_data.dpy = NULL;
 	}
 	cleanup_in_progress = 0;
 	clean = 1;
@@ -343,9 +344,8 @@ void perform_periodic_tasks()
 	/* 2. Print tray status if asked to */
 	if (tray_status_requested) dump_tray_status();
 
-#if 0
 	/* 3. KLUDGE to fix window size on (buggy?) WMs */
-	{
+	if (settings.kludge_flags & KLUDGE_FIX_WND_SIZE) {
 		/* KLUDGE TODO: resolve */
 		XWindowAttributes xwa;
 		XGetWindowAttributes(tray_data.dpy, tray_data.tray, &xwa);
@@ -359,6 +359,7 @@ void perform_periodic_tasks()
 		} 
 	}
 
+#if 0
 	/* 4. TEMPORARY: randomly change scroll position */
 	{
 		if (scroll_change_requested) {
@@ -371,6 +372,7 @@ void perform_periodic_tasks()
 		}
 	}
 #endif
+
 	/* 5. run scrollbars periodic tasks */
 	scrollbars_periodic_tasks();
 }
@@ -723,10 +725,10 @@ int main(int argc, char** argv)
 	signal(SIGUSR2, &change_scroll_params_on_signal);
 	
 	/* Open display */
-	if ((tray_data.dpy = XOpenDisplay(settings.display_str)) == NULL)
-	{
+	if ((tray_data.dpy = XOpenDisplay(settings.display_str)) == NULL) 
 		DIE(("could not open display\n"));
-	}
+	else 
+		DBG(9, ("Opened dpy %p\n", tray_data.dpy));
 
 	if (settings.xsync)
 		XSynchronize(tray_data.dpy, True);
@@ -754,7 +756,12 @@ int main(int argc, char** argv)
 
 	/* Main event loop */
 	while (!tray_data.terminated) {
-		while (XPending(tray_data.dpy)) {
+		/* This is ugly and extra dependency. But who cares?
+		 * Rationale: we want to block unless absolutely needed.
+		 * This way we ensure that stalonetray does not show up
+		 * in powertop (i.e. does not eat unnecessary power and
+		 * CPU cycles) */
+		while (XPending(tray_data.dpy) || tray_data.scrollbars_data.scrollbar_down == -1) {
 			XNextEvent(tray_data.dpy, &ev);
 			xembed_handle_event(ev);
 			scrollbars_handle_event(ev);
@@ -814,7 +821,7 @@ int main(int argc, char** argv)
 			perform_periodic_tasks();
 		}
 		perform_periodic_tasks();
-		my_usleep(100000L);
+		my_usleep(5000000L);
 	}
 	DBG(2, ("Clean exit\n"));
 	return 0;

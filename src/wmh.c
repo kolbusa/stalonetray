@@ -105,6 +105,23 @@ int ewmh_add_window_type(Display *dpy, Window wnd, char *type)
 	return SUCCESS;
 }
 
+/* Set data for _NET_WM_STRUT{,_PARTIAL} hints */
+int ewmh_set_window_strut(Display *dpy, Window wnd, wm_strut_t wm_strut)
+{
+	Atom prop_strut;
+	Atom prop_strut_partial;
+	
+	prop_strut = XInternAtom(dpy, _NET_WM_STRUT, False);
+	prop_strut_partial = XInternAtom(dpy, _NET_WM_STRUT_PARTIAL, False);
+
+	XChangeProperty(dpy, wnd, prop_strut, XA_CARDINAL, 32, PropModeReplace, 
+			(unsigned char *)wm_strut, _NET_WM_STRUT_SZ);
+	XChangeProperty(dpy, wnd, prop_strut_partial, XA_CARDINAL, 32, PropModeReplace, 
+			(unsigned char *)wm_strut, _NET_WM_STRUT_PARTIAL_SZ);
+
+	return x11_ok();
+}
+
 /* Set CARD32 value of EWMH atom for a given window */
 int ewmh_set_window_atom32(Display *dpy, Window wnd, char *prop_name, CARD32 value)
 {

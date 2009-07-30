@@ -31,9 +31,10 @@ struct Settings {
     int full_pmt_search;       /* Use non-first-match search algorithm */
     int vertical;              /* Use vertical icon layout */
     int shrink_back_mode;      /* Keep tray's window size minimal */
-    int start_withdrawn;       /* Start in withdrawn mode */
+	int dockapp_mode;          /* Activate dockapp mode */
     int respect_icon_hints;    /* Try to respect icon size hints */
     int ignore_icon_resize;    /* Ignore icons attempts to resize its window */
+	int kludge_flags;          /* What kludges to activate */
     
     int need_help;             /* Print usage and exit */
 
@@ -41,6 +42,7 @@ struct Settings {
     char *display_str;         /* Name of the display */
     char *bg_color_str;        /* Background color name */
     char *geometry_str;        /* Geometry spec */
+    char *max_geometry_str;    /* Geometry spec */
     char *config_fname;        /* Path to the configuration file */
     char *wnd_type;            /* Window type */
     char *wnd_layer;           /* Window layed */
@@ -61,6 +63,7 @@ struct Settings {
 	int scrollbar_mode;        /* SB_MODE_NONE | SB_MODE_VERT | SB_MODE_HORZ */
 	int scrollbar_size;        /* Size of scrollbar windows in pixels */
 	int scrollbar_inc;         /* Step of scrollbar */
+	int wm_strut_mode;          /* WM strut mode */  
 	struct Point max_tray_dims;/* Maximal tray dimensions */
 	struct Point max_layout_dims;/* Maximal layout dimensions */
 	struct Point orig_tray_dims;/* Original tray dimensions */

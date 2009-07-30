@@ -37,6 +37,8 @@
 #define _NET_ACTIVE_WINDOW				"_NET_ACTIVE_WINDOW"
 #define _NET_CLIENT_LIST				"_NET_CLIENT_LIST"
 #define _NET_WM_PING					"_NET_WM_PING"
+#define _NET_WM_STRUT_PARTIAL			"_NET_WM_STRUT_PARTIAL"
+#define _NET_WM_STRUT					"_NET_WM_STRUT"
 
 /* Defines for EWMH window types */
 #define _NET_WM_WINDOW_TYPE_DESKTOP	"_NET_WM_WINDOW_TYPE_DESKTOP"
@@ -67,12 +69,24 @@
 #define _NET_WM_STATE_ADD           1   /* add/set property */
 #define _NET_WM_STATE_TOGGLE        2   /* toggle property  */
 
+#define _NET_WM_STRUT_PARTIAL_SZ	12
+#define _NET_WM_STRUT_SZ			4
+typedef CARD32 wm_strut_t[_NET_WM_STRUT_PARTIAL_SZ];
+#define WM_STRUT_IDX_LFT 0
+#define WM_STRUT_IDX_RHT 1
+#define WM_STRUT_IDX_TOP 2
+#define WM_STRUT_IDX_BOT 3
+#define WM_STRUT_IDX_START_OFFSET 4
+#define WM_STRUT_IDX_END_OFFSET 8
+
 /* Check if WM that supports EWMH hints is present on given display */
 int ewmh_wm_present(Display *dpy);
 /* Add window type for the window wnd */
 int ewmh_add_window_state(Display *dpy, Window wnd, char *state);
 /* Add window type for the window wnd */
 int ewmh_add_window_type(Display *dpy, Window wnd, char *type);
+/* Set data for _NET_WM_STRUT_PARTIAL hint */
+int ewmh_set_window_strut(Display *dpy, Window wnd, wm_strut_t wm_strut);
 /* Set CARD32 value of EWMH atom for a given window */
 int ewmh_set_window_atom32(Display *dpy, Window wnd, char *prop_name, CARD32 value);
 /* Set Motif WM hints for window wnd; read MWM spec for more info */

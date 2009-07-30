@@ -70,6 +70,21 @@
   Options starting with hyphens are command-line parameters others are
   configuration file keywords.  Options that are new in @VERSION_STR@ version
   are marked with "NEW in @VERSION_STR@". </para>
+
+  <para>As of stalonetray @VERSION_STR@ following command line and configuration
+  parameters are depricated:
+  </para>
+
+  <variablelist>
+  <varlistentry>
+  <term>&ndash;w</term>
+  <term>&ndash;&ndash;withdrawn</term>
+  <term>withdrawn</term>
+  <listitem>
+  Please use &ndash;&ndash;docapp&ndash;mode instead.
+  </listitem>
+  </varlistentry>
+  </variablelist>
   
 </refsect1>
 <refsect1 id="opt">
@@ -118,19 +133,27 @@
   <listitem><para>Specify visiblie tray window decorations. Possible values for
   <replaceable>decspec</replaceable> are: <userinput>all</userinput>,
   <userinput>title</userinput>, <userinput>border</userinput>,
-  <userinput>none</userinput> (default). This
-  option is NEW in 0.7 and replaces now deprecated <option>no_deco</option>,
-  <option>no_title</option>, and <option>no_border</option> options.
+  <userinput>none</userinput> (default).
+  </para></listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term><option>&ndash;&ndash;docapp&ndash;mode</option>
+  <optional><replaceable>mode</replaceable></optional></term>
+  <term><option>docapp_mode</option>
+  <optional><replaceable>mode</replaceable></optional></term>
+  <listitem><para>Set dockapp mode, which can be one of
+  <userinput>simple</userinput> for e.g. OpenBox, <userinput>wmaker</userinput>
+  for WindowMaker, or <userinput>none</userinput> (default).
   </para></listitem>
   </varlistentry>
 
   <varlistentry>
   <term><option>&ndash;f</option> <optional><replaceable>level</replaceable></optional></term>
-  <term><option>&ndash;&ndash;fuzzy-edges</option> <optional><replaceable>level</replaceable></optional></term>
+  <term><option>&ndash;&ndash;fuzzy&ndash;edges</option> <optional><replaceable>level</replaceable></optional></term>
   <term><option>fuzzy_edges</option> <optional><replaceable>level</replaceable></optional></term>
-  <listitem><para>Enable fuzzy edges of tray window and sets fuzziness level.
-  (NEW in 0.7); <replaceable>level</replaceable> ranges from
-  <userinput>0</userinput> (disabled, default) to <userinput>3</userinput>.
+  <listitem><para>Enable fuzzy edges of tray window and sets fuzziness level
+  which can range from <userinput>0</userinput> (disabled, default) to <userinput>3</userinput>.
   When ommited, <replaceable>level</replaceable> defaults to 2.
   </para></listitem>
   </varlistentry>
@@ -197,18 +220,11 @@
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;&ndash;max&ndash;width</option> <replaceable>n</replaceable></term>
-  <term><option>max_width</option> <replaceable>n</replaceable></term>
-  <listitem><para>Set tray`s maximal width to <replaceable>n</replaceable> 
-  (0 means no limit). Default value: <userinput>0</userinput>.
-  </para></listitem>
-  </varlistentry>
-
-  <varlistentry>
-  <term><option>&ndash;&ndash;max&ndash;height</option> <replaceable>n</replaceable></term>
-  <term><option>max_height</option> <replaceable>n</replaceable></term>
-  <listitem><para>Set tray`s maximal height to <replaceable>n</replaceable> 
-  (0 means no limit). Default value: <userinput>0</userinput>.
+  <term><option>&ndash;&ndash;max&ndash;geometry</option>
+  <replaceable>geometry_spec</replaceable></term>
+  <term><option>max_geometry</option> <replaceable>geometry_spec</replaceable></term>
+  <listitem><para>Set tray`s maximal geometry to <replaceable>geometry_spec</replaceable> 
+  Default value: <userinput>0x0<userinput>, no limit. NEW in 0.8.
   </para></listitem>
   </varlistentry>
 
@@ -253,6 +269,24 @@
   </varlistentry>
 
   <varlistentry>
+  <term><option>&ndash;&ndash;scrollbars</option> <replaceable>mode</replaceable></term>
+  <term><option>scrollbars</option> <replaceable>mode</replaceable></term>
+  <listitem><para>Set scrollbar mode, one of <userinput>vertical</userinput>,
+  <userinput>horizontal</userinput>, <userinput>all</userinput>, or
+  <userinput>none</userinput> (default). Scrollbars appear as additional space
+  at tray borders that can be clicked to scroll icon area. Mouse wheel also
+  works. NEW in 0.8.
+  </para></listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term><option>&ndash;&ndash;scrollbars&ndash;step</option> <replaceable>n</replaceable></term>
+  <term><option>scrollbars_step</option> <replaceable>n</replaceable></term>
+  <listitem><para>Set scrollbar step to <userinput>n</userinput> pixels. NEW in 0.8.
+  </para></listitem>
+  </varlistentry>
+
+  <varlistentry>
   <term><option>&ndash;&ndash;skip&ndash;taskbar</option></term>
   <term><option>skip_taskbar</option> <optional><replaceable>bool</replaceable></optional></term>
   <listitem><para>Hide tray`s window from the taskbar. Default value:
@@ -266,6 +300,7 @@
   <term><option>slot_size</option> <replaceable>n</replaceable></term>
   <listitem><para>Set grid slot size to <replaceable>n</replaceable>. Cannot be
   less then <option>icon_size</option> which is default value unless specified.
+  NEW in 0.8.
   </para></listitem>
   </varlistentry>
 
@@ -310,7 +345,7 @@
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;&ndash;window-layer</option> <replaceable>layer</replaceable></term>
+  <term><option>&ndash;&ndash;window&ndash;layer</option> <replaceable>layer</replaceable></term>
   <term><option>window_layer</option> <replaceable>layer</replaceable></term>
   <listitem><para>Sets the <abbrev>EWMH</abbrev>&ndash;compliant layer of tray`s window. Possible values for <replaceable>layer</replaceable>: 
   <userinput>bottom</userinput>, <userinput>normal</userinput>, <userinput>top</userinput>. Default value: <userinput>normal</userinput>.
@@ -318,7 +353,7 @@
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;&ndash;window-type</option> <replaceable>type</replaceable></term>
+  <term><option>&ndash;&ndash;window&ndash;type</option> <replaceable>type</replaceable></term>
   <term><option>window_type</option> <replaceable>type</replaceable></term>
   <listitem><para>Sets the <abbrev>EWMH</abbrev>&ndash;compliant type of tray`s window. Possible values for <replaceable>type</replaceable>: 
   <userinput>desktop</userinput>, <userinput>dock</userinput>, <userinput>normal</userinput>, <userinput>toolbar</userinput>,
@@ -326,11 +361,14 @@
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;w</option></term>
-  <term><option>&ndash;&ndash;withdrawn</option></term>
-  <term><option>withdrawn</option> <optional><replaceable>bool</replaceable></optional></term>
-  <listitem><para>Start in withdrawn (dockapp) mode. NEW in 0.7, prior to that
-  was default mode.</para></listitem>
+  <term><option>&ndash;&ndash;window&ndash;strut</option> <replaceable>mode</replaceable></term>
+  <term><option>window_strut</option> <replaceable>mode</replaceable></term>
+  Enable window struts for tray window (to avoid covering of tray window by
+  maximized windows). Mode can be one of <userinput>top</userinput>,
+  <userinput>bottom</userinput>, <userinput>left</userinput>,
+  <userinput>right</userinput>, <userinput>none</userinput>, or
+  <userinput>auto</userinput> (default).
+  </para></listitem>
   </varlistentry>
 
   <varlistentry>

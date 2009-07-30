@@ -43,10 +43,28 @@
 #define DECO_NONE 0
 #define DECO_ALL (DECO_BORDER | DECO_TITLE)
 
+/* WM struts flags */
+#define WM_STRUT_NONE 0
+#define WM_STRUT_LFT  1
+#define WM_STRUT_RHT  2
+#define WM_STRUT_TOP  3
+#define WM_STRUT_BOT  4
+#define WM_STRUT_AUTO 5
+
+/* Dockapp modes */
+#define DOCKAPP_NONE 0
+#define DOCKAPP_SIMPLE 1
+#define DOCKAPP_WMAKER 2
+
+/* Kludge flags */
+#define KLUDGE_FIX_WND_SIZE (1L << 1)
+#define KLUDGE_FIX_WND_POS  (1L << 2)
+
 /* Structure to hold all tray data */
 struct TrayData {
 	/* General */
 	Window tray;							/* ID of tray window */
+	Window hint_win;						/* ID of icon window */
 	Display *dpy;							/* Display pointer */
 	XSizeHints xsh;							/* Size & position of the tray window */
 	XSizeHints root_wnd;					/* Size & position :) of the root window */
