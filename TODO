@@ -102,10 +102,10 @@ for 0.8/0.9
 	+ support for mouse wheel (scroll vertically if mousewheeling over vert sb and 
 	  horizontally if over horz sb; default to orientation otherwise)
 + strut WM hints (requires Xinerama?)
++ fix geometry code
++ fix wmaker docking mode (--widthrawn=off/simple/wmaker)
 + add --kludge command line param that turns kludges on/off
-	- move respect icon hints under this category
-- fix geometry code
-- fix wmaker docking mode (--widthrawn=off/simple/wmaker)
+	+ move respect icon hints under this category
 - valgrind
 - profile the code
 	+ powertop; fix event loop to block if there are no events and no scrolling

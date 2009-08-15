@@ -32,8 +32,6 @@ struct Settings {
     int vertical;              /* Use vertical icon layout */
     int shrink_back_mode;      /* Keep tray's window size minimal */
 	int dockapp_mode;          /* Activate dockapp mode */
-    int respect_icon_hints;    /* Try to respect icon size hints */
-    int ignore_icon_resize;    /* Ignore icons attempts to resize its window */
 	int kludge_flags;          /* What kludges to activate */
     
     int need_help;             /* Print usage and exit */

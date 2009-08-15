@@ -258,15 +258,15 @@
 <!--  <listitem><para>Reacquire tray selection after loss.</para></listitem> -->
 <!--  </varlistentry> -->
 
-  <varlistentry>
-  <term><option>&ndash;&ndash;respect&ndash;icon&ndash;hints</option></term>
-  <term><option>respect_icon_hints</option> <optional><replaceable>bool</replaceable></optional></term>
-  <listitem><para>Do respect icon window min_width/min_height size hints. This may help with unusually-sized icons, which fail
-  to resize themselves after being resized to <option>icon_size</option> x
-  <option>icon_size</option>. Note, that if stalonetray is configured to ignore icon resize events, this 
-  option has no effect. Default value: <userinput>false</userinput>.
-  </para></listitem>
-  </varlistentry>
+<!--  <varlistentry>-->
+<!--  <term><option>&ndash;&ndash;respect&ndash;icon&ndash;hints</option></term>-->
+<!--  <term><option>respect_icon_hints</option> <optional><replaceable>bool</replaceable></optional></term>-->
+<!--  <listitem><para>Do respect icon window min_width/min_height size hints. This may help with unusually-sized icons, which fail-->
+<!--  to resize themselves after being resized to <option>icon_size</option> x-->
+<!--  <option>icon_size</option>. Note, that if stalonetray is configured to ignore icon resize events, this -->
+<!--  option has no effect. Default value: <userinput>false</userinput>.-->
+<!--  </para></listitem>-->
+<!--  </varlistentry>-->
 
   <varlistentry>
   <term><option>&ndash;&ndash;scrollbars</option> <replaceable>mode</replaceable></term>
