@@ -71,8 +71,6 @@ void init_default_settings()
 	settings.fuzzy_edges        = 0;
 
 	settings.dockapp_mode		= DOCKAPP_NONE;
-	settings.ignore_icon_resize = 0;
-	settings.respect_icon_hints = 0;
 
 	settings.scrollbar_size     = 8;
 	settings.scrollbar_mode     = SB_MODE_VERT | SB_MODE_HORZ;
@@ -160,10 +158,14 @@ int parse_kludges(char *str, int **tgt, int silent)
 	char *curtok = str, *rest = str;
 	do {
 		if ((rest = strchr(rest, ',')) != NULL) *(rest++) = 0;
-		if (!strcasecmp(curtok, "wndpos"))
+		if (!strcasecmp(curtok, "fix_window_pos"))
 			**tgt = KLUDGE_FIX_WND_POS;
-		else if (!strcasecmp(curtok, "wndsize"))
-			**tgt = KLUDGE_FIX_WND_SIZE;
+/*        else if (!strcasecmp(curtok, "fix_window_size"))*/
+/*            **tgt = KLUDGE_FIX_WND_SIZE;*/
+		else if (!strcasecmp(curtok, "force_icons_size"))
+			**tgt = KLUDGE_FORCE_ICONS_SIZE;
+		else if (!strcasecmp(curtok, "use_icons_hints"))
+			**tgt = KLUDGE_USE_ICONS_HINTS;
 		else {
 			PARSING_ERROR("kludge flag expected", curtok);
 			return FAILURE;
@@ -344,7 +346,6 @@ struct Param params[] = {
 	{NULL, "--grow-gravity", "grow_gravity", {&settings.grow_gravity}, (param_parser_t) &parse_gravity, 1, 1, 0, NULL},
 	{NULL, "--icon-gravity", "icon_gravity", {&settings.icon_gravity}, (param_parser_t) &parse_gravity, 1, 1, 0, NULL},
 	{ "-i", "--icon-size", "icon_size", {&settings.icon_size}, (param_parser_t) &parse_int, 1, 1, 0, NULL}, 
-	{NULL, "--ignore-icon-resize", "ignore_icon_resize", {&settings.ignore_icon_resize}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
 	{"-h", "--help", NULL, {&settings.need_help}, (param_parser_t) &parse_bool, 0, 0, 0, "true" },
 	{NULL, "--kludges", "kludges", {&settings.kludge_flags}, (param_parser_t) &parse_kludges, 1, 1, 0, NULL},
 	{NULL, "--max-geometry", "max_geometry", {&settings.max_geometry_str}, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
@@ -353,7 +354,6 @@ struct Param params[] = {
 #ifdef XPM_SUPPORTED
 	{NULL, "--pixmap-bg", "pixmap_bg", {&settings.bg_pmap_path}, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
 #endif
-	{NULL, "--respect-icon-hints", "respect_icon_hints", {&settings.respect_icon_hints}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
 	{NULL, "--scrollbars", "scrollbars", {&settings.scrollbar_mode}, (param_parser_t) &parse_sb_mode, 1, 1, 0, "none"},
 	{NULL, "--scrollbars-step", "scrollbars_step", {&settings.scrollbar_inc}, (param_parser_t) &parse_int, 1, 1, 0, "8"},
 	{NULL, "--skip-taskbar", "skip_taskbar", {&settings.skip_taskbar}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
@@ -396,17 +396,20 @@ void usage(char *progname)
 			"    -f, --fuzzy-edges [<level>] set edges fuzziness, level is from\n"
 			"                                0 (disabled) to 3 (maximum); works with\n"
 			"                                tinting and/or pixmap background\n"
-			"    [-]-geometry <geometry>     set initial tray`s geometry (width and height are\n"
-			"                                in icon slots; offsets are in pixels)\n"
+			"    [-]-geometry <geometry>     set initial tray`s geometry (width and height\n"
+			"                                are defined in icon slots; offsets are defined\n"
+			"                                in pixels)\n"
 			"    --grow-gravity <gravity>    tray`s grow gravity,\n"
 			"                                one of N, S, W, E, NW, NE, SW, SE\n"
 			"    --icon-gravity <gravity>    icon positioning gravity (NW, NE, SW, SE)\n"
 			"    -i, --icon-size <n>         set basic icon size to <n>, default: 24\n"
-			"    --ignore-icon-resize        ignore icons attempts to resize their windows\n"
 			"    -h, --help                  show this message\n"
 			"    --kludges <list>            enable specific kludges for non-conforming WMs\n"
-			"                                and/or stalonetray bugs; list is a comma\n"
-			"                                separated list of: wndpos, wndsize\n"
+			"                                and/or stalonetray bugs; argument is a comma\n"
+			"                                separated list of:\n"
+			"                                 - fix_window_pos (fix window position),\n"
+			"                                 - force_icons_size (ignore icon resizes),\n"
+			"                                 - use_icons_hints (use icon size hints)\n"
 			"    --max-geometry <geometry>   set tray maximal width and height; 0 indicates\n"
 			"                                no limit in respective direction\n"
 			"    --no-shrink                 do not shrink window back after icon removal\n"

@@ -308,7 +308,7 @@ int embedder_reset_size(struct TrayIcon *ti)
 
 	/* Do not reset size for non-KDE icons with size set if icon_resizes
 	 * are handled */
-	if (ti->is_size_set && ti->cmode != CM_KDE && !settings.ignore_icon_resize)
+	if (ti->is_size_set && ti->cmode != CM_KDE && !settings.kludge_flags & KLUDGE_FORCE_ICONS_SIZE)
 		return SUCCESS;
 
 	/* Increase counter of size resets for given icon. If this number 
@@ -322,13 +322,13 @@ int embedder_reset_size(struct TrayIcon *ti)
 		icon_sz.y = icon_sz.x;
 	} else {
 		/* If icon hints are to be respected, retrive the data */
-		if (settings.respect_icon_hints)
+		if (settings.kludge_flags & KLUDGE_USE_ICONS_HINTS)
 			rc = x11_get_window_min_size(tray_data.dpy, ti->wid, &icon_sz.x, &icon_sz.y);
 		/* If this has failed, or icon hinst are not respected, or minimal size hints
 		 * are too small, fall back to default values */
 		if (!rc || 
-		    !settings.respect_icon_hints ||
-		     settings.ignore_icon_resize ||
+		    !settings.kludge_flags & KLUDGE_USE_ICONS_HINTS ||
+		     settings.kludge_flags & KLUDGE_FORCE_ICONS_SIZE ||
 		    (icon_sz.x < settings.icon_size && icon_sz.y < settings.icon_size))
 		{
 			icon_sz.x = settings.icon_size;

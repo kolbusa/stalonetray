@@ -250,12 +250,10 @@ void remove_icon(Window w)
 
 	DBG(0, ("0x%x: icon removed\n", w));
 
-#if 0
-	embedder_update_positions(False);
-#else
 	/* This will call embedde_update_positions() */
+	/* XXX: maybe we need a different name for this
+	 * routine instad of passing cryptinc constant? */
 	scrollbars_click(SB_WND_MAX);
-#endif
 	tray_update_window_props();
 	dump_tray_status();
 }
@@ -359,20 +357,6 @@ void perform_periodic_tasks()
 		} 
 	}
 
-#if 0
-	/* 4. TEMPORARY: randomly change scroll position */
-	{
-		if (scroll_change_requested) {
-			tray_data.scroll_pos.x += (rand() % 3 - 2);
-			tray_data.scroll_pos.y += (rand() % 3 - 2);
-			DBG(8, ("scrollers positions updated (%d,%d)\n", tray_data.scroll_pos.x, tray_data.scroll_pos.y));
-			icon_list_forall(&layout_translate_to_window);
-			embedder_update_positions(True);
-			scroll_change_requested = 0;
-		}
-	}
-#endif
-
 	/* 5. run scrollbars periodic tasks */
 	scrollbars_periodic_tasks();
 }
@@ -389,14 +373,6 @@ void expose(XExposeEvent ev)
 
 void visibility_notify(XVisibilityEvent ev)
 {
-#if 0 /* Too much flicker, no real benefit :( */
-	if (ev.state == VisibilityUnobscured && ev.window == tray_data.tray) {
-		static int local_state = True;
-		if (local_state) 
-			tray_refresh_window(False);
-		local_state = !local_state;
-	}
-#endif
 }
 
 void property_notify(XPropertyEvent ev)
@@ -599,12 +575,12 @@ void configure_notify(XConfigureEvent ev)
 	} else if ((ti = icon_list_find(ev.window)) != NULL) { /* Some icon has resized its window */
 
 		/* KDE icons are not allowed to change their size. Reset icon size. */
-		if (ti->cmode == CM_KDE || settings.ignore_icon_resize) {
+		if (ti->cmode == CM_KDE || settings.kludge_flags & KLUDGE_FORCE_ICONS_SIZE) {
 			embedder_reset_size(ti);
 			return;
 		}
 		
-		if (settings.ignore_icon_resize) return;
+		if (settings.kludge_flags & KLUDGE_FORCE_ICONS_SIZE) return;
 
 		/* Get new window size */
 		if (!x11_get_window_size(tray_data.dpy, ti->wid, &sz.x, &sz.y)) {

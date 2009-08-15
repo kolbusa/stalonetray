@@ -207,17 +207,8 @@ int tray_update_bg(int update_pixmap)
 			(settings.transparent || settings.fuzzy_edges)) 
 	{
 		if (!tray_update_root_bg_pmap(&root_pmap, NULL, NULL)) {
-#if 0
-			/* If we could not get root pmap, stop using it */
-			settings.transparent = False;
-			settings.fuzzy_edges = False;
-			ERR(("Could not get root pimap\n"
-						"Use Esetroot or any compatible program to set wallpaper\n"
-						"Root transparency/fuzzy edges disabled\n"));
-#else
 			/* More gracefull solution */
 			DBG(9, ("still waiting for root pixmap\n"));
-#endif
 			return SUCCESS;
 		} else
 			make_gc(root_pmap, root_gc);
@@ -318,7 +309,7 @@ int tray_update_bg(int update_pixmap)
 
 	XSetWindowBackgroundPixmap(tray_data.dpy, tray_data.tray, final_pmap);
 
-/*    XDestroyImage(bg_img);*/
+	XDestroyImage(bg_img);
 
 	old_width = tray_data.xsh.width;
 	old_height = tray_data.xsh.height;
@@ -361,14 +352,14 @@ int tray_update_window_props()
 	int new_width, new_height;
 	int layout_width, layout_height;
 
-	/* Algorithm summary:
-	 *
+	/* Phase 1: calculate new tray window dimensions.
+	 * Algorithm summary:
+	 * new_dims =
 	 *      if (layout_dims > max_dims) max_dims;
 	 * else if ((shrink_back && layout_dims > orig_dims) ||
 	 *          (layout_dims > current_dims)) layout_dims;
 	 * else if (shrink_back) orig_dims;
 	 * else                  current_dims;
-	 *
 	 */
 
 	layout_get_size(&layout_width, &layout_height);
@@ -396,25 +387,11 @@ int tray_update_window_props()
 	xsh.height_inc = settings.slot_size;
 	tray_calc_window_size(0, 0, &xsh.base_width, &xsh.base_height);
 	xsh.win_gravity = NorthWestGravity;
-	xsh.flags = PResizeInc|PBaseSize|PMinSize|PMaxSize|PWinGravity; 
+	xsh.flags = tray_data.xsh.flags;
 	XSetWMNormalHints(tray_data.dpy, tray_data.tray, &xsh);
 
-#ifdef DEBUG
-	{
-		/* TODO: test w/o DEBUG */
-		XSizeHints xsh_;
-		long flags;
-		XGetWMNormalHints(tray_data.dpy, tray_data.tray, &xsh_, &flags);
-		DBG(8, ("WMNormalHints: flags=0x%x, gravity=%d, max size=%dx%d\n", 
-					flags, 
-					xsh_.win_gravity,
-					xsh_.max_width,
-					xsh_.max_height
-					));
-	}
-#endif
-
-	/* This check helps to avod extra (erroneous) moves of the window when
+	/* Phase 2: set new window size 
+	 * This check helps to avod extra (erroneous) moves of the window when
 	 * geometry changes are not updated yet, but tray_update_window_props() was
 	 * called once again */
 	if (new_width != tray_data.xsh.width || new_height != tray_data.xsh.height) {
@@ -505,18 +482,6 @@ void tray_create_window(int argc, char **argv)
 	DBG(3, ("created tray window: 0x%x\n", tray_data.tray));
 	DBG(3, ("created hint_win window: 0x%x\n", tray_data.hint_win));
 
-	/* Set tray window background if necessary */	
-	if (settings.parent_bg)
-		XSetWindowBackgroundPixmap(tray_data.dpy, tray_data.tray, ParentRelative);
-	else if (settings.transparent) {
-		tray_data.xa_xrootpmap_id = XInternAtom(tray_data.dpy, "_XROOTPMAP_ID", False);
-		tray_data.xa_xsetroot_id = XInternAtom(tray_data.dpy, "_XSETROOT_ID", False);
-		tray_update_bg(True);
-	} 
-#ifdef XPM_SUPPORTED
-	else if (settings.pixmap_bg) tray_init_pixmap_bg();
-#endif
-
 	/* Set tray window properties */
 	xswa.bit_gravity = settings.bit_gravity;
 	xswa.win_gravity = settings.win_gravity;
@@ -534,28 +499,23 @@ void tray_create_window(int argc, char **argv)
 	xch.res_class = PROGNAME;
 	xch.res_name = PROGNAME;
 
-	xwmh.flags = InputHint | StateHint; 
-	xwmh.initial_state = settings.dockapp_mode != DOCKAPP_NONE ? WithdrawnState: NormalState;
-	xwmh.input = False;
 #if 0
-	if (settings.dockapp_mode == DOCKAPP_WMAKER) {
-		xwmh.flags |= IconWindowHint | IconPositionHint | WindowGroupHint;
-		xwmh.icon_x = tray_data.xsh.x;
-		xwmh.icon_y = tray_data.xsh.y;
-		xwmh.icon_window = tray_data.tray;
-		xwmh.window_group = tray_data.hint_win;
-	}
+	xwmh.flags = InputHint | StateHint; 
+	xwmh.input = False;
+#else
+	xwmh.flags = StateHint; 
 #endif
+	xwmh.initial_state = settings.dockapp_mode != DOCKAPP_NONE ? WithdrawnState: NormalState;
+
 	XSetWMHints(tray_data.dpy, tray_data.tray, &xwmh);
 	XSetClassHint(tray_data.dpy, tray_data.tray, &xch);
 	XSetWMNormalHints(tray_data.dpy, tray_data.tray, &tray_data.xsh);
 	XSetCommand(tray_data.dpy, tray_data.tray, argv, argc);
-#if 0
-	if (settings.dockapp_mode == DOCKAPP_WMAKER) 
-		XSetClassHint(tray_data.dpy, tray_data.hint_win, &xch);
-#else
+
+	/* Set properties of hint window if WindowMaker dockapp mode enabled */
 	if (settings.dockapp_mode == DOCKAPP_WMAKER) {
 		xwmh.flags |= IconWindowHint | IconPositionHint | WindowGroupHint;
+		xwmh.initial_state = WithdrawnState;
 		xwmh.icon_x = tray_data.xsh.x;
 		xwmh.icon_y = tray_data.xsh.y;
 		xwmh.icon_window = tray_data.tray;
@@ -563,7 +523,6 @@ void tray_create_window(int argc, char **argv)
 		XSetClassHint(tray_data.dpy, tray_data.hint_win, &xch);
 		XSetWMHints(tray_data.dpy, tray_data.hint_win, &xwmh);
 	}
-#endif
 
 	/* v0.2 tray protocol support */
 	orient = 
@@ -582,6 +541,18 @@ void tray_create_window(int argc, char **argv)
 			StructureNotifyMask | FocusChangeMask | PropertyChangeMask | ExposureMask );
 	x11_extend_root_event_mask(tray_data.dpy, PropertyChangeMask);
 	scrollbars_create();
+
+	/* Set tray window background if necessary */	
+	if (settings.parent_bg)
+		XSetWindowBackgroundPixmap(tray_data.dpy, tray_data.tray, ParentRelative);
+	else if (settings.transparent) {
+		tray_data.xa_xrootpmap_id = XInternAtom(tray_data.dpy, "_XROOTPMAP_ID", False);
+		tray_data.xa_xsetroot_id = XInternAtom(tray_data.dpy, "_XSETROOT_ID", False);
+		tray_update_bg(True);
+	} 
+#ifdef XPM_SUPPORTED
+	else if (settings.pixmap_bg) tray_init_pixmap_bg();
+#endif
 }
 
 int tray_set_wm_hints()
@@ -728,13 +699,19 @@ void tray_acquire_selection()
 
 void tray_show_window()
 {
-	/* XXX: UGLY */
 	tray_set_wm_hints();
 	tray_update_window_props();
+
 	XMapRaised(tray_data.dpy, tray_data.tray);
-	XMoveWindow(tray_data.dpy, tray_data.tray, tray_data.xsh.x, tray_data.xsh.y);
-	if (settings.dockapp_mode == DOCKAPP_WMAKER)
+	if (settings.dockapp_mode == DOCKAPP_NONE) 
+		XMoveWindow(tray_data.dpy, tray_data.tray, tray_data.xsh.x, tray_data.xsh.y);
+	if (settings.dockapp_mode == DOCKAPP_WMAKER) 
 		XMapWindow(tray_data.dpy, tray_data.hint_win);
+
+	/* XXX: I do not why, but for some WM it is 
+	 * required to set hints / window properties
+	 * after and before window creation */
+	/* TODO: check if this is really necessary */
 	tray_set_wm_hints();
 	tray_update_window_props();
 }

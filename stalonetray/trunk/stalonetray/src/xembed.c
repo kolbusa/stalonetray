@@ -337,11 +337,6 @@ void xembed_message(XClientMessageEvent ev)
 	if (ev.data.l[0] == CurrentTime) 
 		ev.data.l[0] = x11_get_server_timestamp(tray_data.dpy, tray_data.tray);
 
-#if 0
-	/* Do not process old messages ? */
-	if (ev.data.l[0] < tray_data.xembed_data.timestamp) return;
-#endif
-
 	tray_data.xembed_data.timestamp = ev.data.l[0];
 	msgid = ev.data.l[1];
 	DBG(9, ("_XEMBED msgid=%u\n", msgid));
