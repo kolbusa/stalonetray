@@ -815,6 +815,9 @@ void interpret_settings()
 	tray_data.xsh.min_height = tray_data.xsh.height;
 	tray_data.xsh.flags = PResizeInc | PBaseSize | PMinSize | PMaxSize | PWinGravity; 
 
+	settings.orig_tray_dims.x = tray_data.xsh.width;
+	settings.orig_tray_dims.y = tray_data.xsh.height;
+
 	if (settings.dockapp_mode == DOCKAPP_WMAKER) 
 		tray_data.xsh.flags |= USPosition; 
 	else {
