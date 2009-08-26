@@ -106,6 +106,7 @@ for 0.8/0.9
 + fix wmaker docking mode (--widthrawn=off/simple/wmaker)
 + add --kludge command line param that turns kludges on/off
 	+ move respect icon hints under this category
+- geometry bugs (wrong placement)
 - valgrind
 - profile the code
 	+ powertop; fix event loop to block if there are no events and no scrolling
