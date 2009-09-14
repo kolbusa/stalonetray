@@ -182,6 +182,42 @@ int x11_send_visibility(Display *dpy, Window dst, long state)
 	return x11_ok() && rc != 0;
 }
 
+int x11_send_button(Display *dpy, 
+		int press, Window dst, Window root, Time time,
+		unsigned int button, unsigned int state, 
+		int x, int y)
+{
+	XEvent ev;
+	int rx, ry, rc, idummy;
+	unsigned int udummy;
+	Window dst_root;
+
+	if (!x11_get_window_abs_coords(dpy, dst, &rx, &ry)) return FAILURE;
+	XGetGeometry(dpy, dst, &dst_root, 
+			&idummy, &idummy, 
+			&udummy, &udummy, &udummy, &udummy);
+	if (!x11_ok()) return FAILURE;
+
+	ev.type = press ? ButtonPress : ButtonRelease;
+	ev.xbutton.display = dpy;
+	ev.xbutton.window = dst;
+	ev.xbutton.subwindow = None;
+	ev.xbutton.root = root;
+	ev.xbutton.time = time;
+	ev.xbutton.x = x;
+	ev.xbutton.y = y;
+	ev.xbutton.x_root = rx + x; 
+	ev.xbutton.y_root = ry + y;
+	ev.xbutton.button = button;
+	ev.xbutton.state = state;
+	ev.xbutton.same_screen = (root == dst_root);
+
+	rc = XSendEvent(dpy, dst, True, 
+			SubstructureNotifyMask | (press ? ButtonPressMask : ButtonReleaseMask),
+			&ev);
+	return rc && x11_ok();
+}
+
 int x11_send_expose(Display *dpy, Window dst, int x, int y, int width, int height)
 {
 	XEvent xe;
@@ -262,10 +298,67 @@ int x11_get_window_abs_coords(Display *dpy, Window dst, int *x, int *y)
 {
 	XWindowAttributes xwa;
 	Window child;
-	x11_ok(); /* XXX: this should go away ? */
+#if 0
+	x11_ok(); /* XXX: this should go away, shouldn't it? */
+#endif
 	XGetWindowAttributes(dpy, dst, &xwa);
 	XTranslateCoordinates(dpy, dst, xwa.root, 0, 0, x, y, &child);
 	return x11_ok();
+}
+
+Window x11_find_subwindow_by_name(Display *dpy, Window tgt, char *name)
+{
+	char *tgt_name = NULL;
+	Window ret = None, *children, dummy;
+	int i;
+	unsigned int nchildren;
+	if (XFetchName(dpy, tgt, &tgt_name) && !strcmp(tgt_name, name)) ret = tgt;
+	if (!x11_ok()) return None;
+	if (tgt_name != NULL) XFree(tgt_name);
+	if (ret != None) return ret;
+	XQueryTree(dpy, tgt, &dummy, &dummy, &children, &nchildren);
+	if (!x11_ok()) return None;
+	for (i = 0; i < nchildren; i++) {
+		ret = x11_find_subwindow_by_name(dpy, children[i], name);
+		if (ret != None) break;
+	}
+	if (children != NULL) XFree(children);
+	return ret;
+}
+
+Window x11_find_subwindow_at(Display *dpy, Window top, int x, int y, int depth)
+{
+	int d, c, bx = 0, by = 0;
+	Window dummy, *children;
+	unsigned int nchildren;
+	Window cur = top;
+	for (d = 1; d < depth; d++) {
+		/* Query children of current window and traverse them starting
+		 * from the top in stacking order (i.e. from the end of the list
+		 * returned by XQueryTree */
+		XQueryTree(dpy, cur, &dummy, &dummy, &children, &nchildren);
+		if (!x11_ok()) goto fail;
+		/* Exit the loop if window has no children */
+		if (nchildren == 0) break;
+		for (c = nchildren-1; c >=0; c--) {
+			XWindowAttributes xwa;
+			XGetWindowAttributes(dpy, children[c], &xwa);
+			if (!x11_ok()) goto fail;
+			/* Check if this child contains the (x,y) point */
+			if (xwa.x + bx <= x && x < xwa.x + xwa.width + bx &&
+			    xwa.y + by <= y && y < xwa.y + xwa.height + by)
+			{
+				cur = children[c];
+				bx += xwa.x; by += xwa.y;
+				break;
+			}
+		}
+		if (children != NULL) XFree(children);
+	}
+	return cur;
+fail:
+	if (children != NULL) XFree(children);
+	return None;
 }
 
 void x11_extend_root_event_mask(Display *dpy, long mask)

@@ -48,22 +48,14 @@
 #include "tray.h"
 
 struct TrayData tray_data;
-
 static int tray_status_requested = 0;
-static int scroll_change_requested = 0;
 
 /****************************
  * Signal handlers, cleanup
  ***************************/
 void request_tray_status_on_signal(int sig)
 {
-	psignal(sig, NULL);
 	tray_status_requested = 1;
-}
-
-void change_scroll_params_on_signal(int sig)
-{
-	scroll_change_requested = 1;
 }
 
 void cleanup()
@@ -95,36 +87,6 @@ void cleanup()
 	cleanup_in_progress = 0;
 	clean = 1;
 	DBG(3, ("done\n"));
-}
-
-void dump_core_on_signal(int sig)
-{
-#ifdef DEBUG
-# ifdef HAVE_BACKTRACE
-#   define BACKTRACE_LEN	15
-	void *array[BACKTRACE_LEN];
-	size_t size;
-# endif
-#endif
-	psignal(sig, NULL);
-#ifdef DEBUG
-	DBG(0, ("-- backtrace --\n"));
-# if defined(HAVE_BACKTRACE)
-	size = backtrace(array, BACKTRACE_LEN);
-	DBG(0, ("%d stack frames obtained\n", size));
-	DBG(0, ("printing out backtrace\n"));
-	backtrace_symbols_fd(array, size, STDERR_FILENO);
-# elif defined(HAVE_PRINTSTACK)
-	printstack(STDERR_FILENO);
-# endif
-#endif
-	abort();
-}
-
-void exit_on_signal(int sig)
-{
-	psignal(sig, NULL);
-	tray_data.terminated = True;
 }
 
 /**************************************
@@ -330,8 +292,11 @@ void kde_icons_update()
 }
 #endif
 
+#define PT_MASK_SB	(1L << 0)
+#define PT_MASK_ALL	PT_MASK_SB
+
 /* Perform several periodic tasks */
-void perform_periodic_tasks()
+void perform_periodic_tasks(int mask)
 {
 	struct TrayIcon *ti;
 	/* 1. Remove all invalid icons */
@@ -356,9 +321,8 @@ void perform_periodic_tasks()
 			tray_update_window_props();
 		} 
 	}
-
-	/* 5. run scrollbars periodic tasks */
-	scrollbars_periodic_tasks();
+	/* 4. run scrollbars periodic tasks */
+	if (mask & PT_MASK_SB) scrollbars_periodic_tasks();
 }
 
 /**********************
@@ -426,6 +390,7 @@ void property_notify(XPropertyEvent ev)
 					break;
 				}
 		}
+		if (nwindows) XFree(windows);
 		DBG(6, ("tray is %sreparented\n", tray_data.is_reparented ? "" : "not "));
 	}
 }
@@ -499,8 +464,13 @@ void client_message(XClientMessageEvent ev)
 #endif
 				add_icon(ev.data.l[2], cmode);
 				break;
-			/* This is a special case added by this implementation.
-			 * STALONETRAY_TRAY_DOCK_CONFIRMED is sent by stalonetray 
+			/* We ignore these messages, since we do not show
+			 * any baloons anyways */
+			case SYSTEM_TRAY_BEGIN_MESSAGE:
+			case SYSTEM_TRAY_CANCEL_MESSAGE:
+				break;
+			/* Below are special cases added by this implementation */
+			/* STALONETRAY_TRAY_DOCK_CONFIRMED is sent by stalonetray 
 			 * to itself. (see embed.c) */
 			case STALONE_TRAY_DOCK_CONFIRMED:
 				ti = icon_list_find(ev.data.l[2]);
@@ -513,10 +483,16 @@ void client_message(XClientMessageEvent ev)
 				}
 				tray_update_window_props();
 				break;
-			/* We ignore these messages, since we do not show
-			 * any baloons anyways */
-			case SYSTEM_TRAY_BEGIN_MESSAGE:
-			case SYSTEM_TRAY_CANCEL_MESSAGE:
+			/* Dump tray status on request */
+			case STALONE_TRAY_STATUS_REQUESTED:
+				dump_tray_status();
+				break;
+			/* Find icon and scroll to it if necessary */
+			case STALONE_TRAY_REMOTE_CONTROL:
+				ti = icon_list_find(ev.window);
+				if (ti == NULL) break;
+				scrollbars_scroll_to(ti);
+				break;
 			default:
 				break;
 		}
@@ -679,39 +655,12 @@ void my_usleep(useconds_t usec)
 }
 
 /*********************************************************/
-int main(int argc, char** argv)
+/* main() for usual operation */
+int tray_main(int argc, char **argv)
 {
 	XEvent		ev;
 	
-	/* Read settings */
-	tray_init();
-	read_settings(argc, argv);
-
-	/* Register cleanup and signal handlers */
-	atexit(cleanup);
-
-	signal(SIGINT,  &exit_on_signal);
-	signal(SIGTERM, &exit_on_signal);
-	signal(SIGHUP,  &exit_on_signal);
-
-	signal(SIGSEGV, &dump_core_on_signal);
-	signal(SIGQUIT, &dump_core_on_signal);
-
-	signal(SIGUSR1, &request_tray_status_on_signal);
-	signal(SIGUSR2, &change_scroll_params_on_signal);
-	
-	/* Open display */
-	if ((tray_data.dpy = XOpenDisplay(settings.display_str)) == NULL) 
-		DIE(("could not open display\n"));
-	else 
-		DBG(9, ("Opened dpy %p\n", tray_data.dpy));
-
-	if (settings.xsync)
-		XSynchronize(tray_data.dpy, True);
-
-	x11_trap_errors();
-	
-	/* Interpret those settings that need a display */
+	/* Interpret those settings that need an open display */
 	interpret_settings();
 
 #ifdef DEBUG
@@ -731,14 +680,18 @@ int main(int argc, char** argv)
 #endif
 
 	/* Main event loop */
-	while (!tray_data.terminated) {
+	while ("my guitar gently wheeps") {
 		/* This is ugly and extra dependency. But who cares?
 		 * Rationale: we want to block unless absolutely needed.
 		 * This way we ensure that stalonetray does not show up
 		 * in powertop (i.e. does not eat unnecessary power and
-		 * CPU cycles) */
+		 * CPU cycles) 
+		 * Drawback: handling of signals is very limited. XNextEvent()
+		 * does not if signal occurs. This means that graceful
+		 * exit on e.g. Ctrl-C cannot be implemented without hacks. */
 		while (XPending(tray_data.dpy) || tray_data.scrollbars_data.scrollbar_down == -1) {
 			XNextEvent(tray_data.dpy, &ev);
+			if (tray_data.terminated) goto bailout;
 			xembed_handle_event(ev);
 			scrollbars_handle_event(ev);
 			switch (ev.type) {
@@ -794,11 +747,101 @@ int main(int argc, char** argv)
 #endif
 				break;
 			}
-			perform_periodic_tasks();
+			/* Perform all periodic tasks but for scrollbars */
+			perform_periodic_tasks(PT_MASK_ALL & (~PT_MASK_SB));
 		}
-		perform_periodic_tasks();
-		my_usleep(5000000L);
+		perform_periodic_tasks(PT_MASK_ALL);
+		my_usleep(500000L);
 	}
+bailout:
 	DBG(2, ("Clean exit\n"));
 	return 0;
+}
+
+/* main() for controlling stalonetray remotely */
+int remote_main(int argc, char **argv)
+{
+	Window tray, icon = None;
+	int rc;
+	int x, y, depth = 0, idummy, i;
+	Window win, root;
+	unsigned int udummy, w, h;
+	tray_init_selection_atoms();
+	tray_create_phony_window();
+	DBG(0, ("REMOTE: name=\"%s\" btn=%d x=%d y=%d\n", 
+				settings.remote_click_name,
+				settings.remote_click_btn,
+				settings.remote_click_pos.x,
+				settings.remote_click_pos.y));
+	tray = XGetSelectionOwner(tray_data.dpy, tray_data.xa_tray_selection);
+	if (tray == None) return 255;
+	/* 1. find window matching requested name */
+	icon = x11_find_subwindow_by_name(tray_data.dpy, tray, settings.remote_click_name);
+	if (icon == None) return 127;
+	/* 2. form a message to tray requesting it to show the icon */
+	rc = x11_send_client_msg32(tray_data.dpy, /* display */
+			tray, /* destination */
+			icon, /* window */ 
+			tray_data.xa_tray_opcode, /* atom */
+			0, /* data0 */
+			STALONE_TRAY_REMOTE_CONTROL, /* data1 */
+			0, /* data2 */
+			0, /* data3 */
+			0 /* data4 */
+			);
+	if (!rc) return 63;
+	/* 3. Execute the click */
+	/* 3.1. Sort out click position */
+	XGetGeometry(tray_data.dpy, icon, &root, 
+			&idummy, &idummy, 
+			&w, &h, &udummy, &udummy);
+	x = (settings.remote_click_pos.x == REMOTE_CLICK_POS_DEFAULT) ? w / 2 : settings.remote_click_pos.x;
+	y = (settings.remote_click_pos.y == REMOTE_CLICK_POS_DEFAULT) ? h / 2 : settings.remote_click_pos.y;
+	/* 3.2. Find subwindow to execute click on */
+	win = x11_find_subwindow_at(tray_data.dpy, icon, x, y, depth);
+	/* 3.3. Send mouse click(s) to target */
+#define SEND_BTN_EVENT(press, time) do { \
+	x11_send_button(tray_data.dpy, /* dispslay */ \
+			press, /* event type */ \
+			win, /* target window */ \
+			root, /* root window */ \
+			time, /* time */ \
+			settings.remote_click_btn, /* button */ \
+			Button1Mask << (settings.remote_click_btn - 1), /* state mask */ \
+			x, /* x coord (relative) */ \
+			y); /* y coord (relative) */ \
+} while (0)
+	for (i = 0; i < settings.remote_click_cnt; i++) {
+		SEND_BTN_EVENT(1, x11_get_server_timestamp(tray_data.dpy, tray_data.tray));
+		SEND_BTN_EVENT(0, x11_get_server_timestamp(tray_data.dpy, tray_data.tray));
+	}
+#undef SEND_BTN_EVENT
+	return 0;
+}
+
+/* main() */
+int main(int argc, char** argv)
+{
+	/* Read settings */
+	tray_init();
+	read_settings(argc, argv);
+
+	/* Register cleanup and signal handlers */
+	atexit(cleanup);
+	signal(SIGUSR1, &request_tray_status_on_signal);
+	
+	/* Open display */
+	if ((tray_data.dpy = XOpenDisplay(settings.display_str)) == NULL) 
+		DIE(("could not open display\n"));
+	else 
+		DBG(9, ("Opened dpy %p\n", tray_data.dpy));
+	if (settings.xsync)
+		XSynchronize(tray_data.dpy, True);
+	x11_trap_errors();
+
+	/* Execute proper main() function */
+	if (settings.remote_click_name != NULL) 
+		return remote_main(argc, argv);
+	else
+		return tray_main(argc, argv);
 }

@@ -21,7 +21,8 @@ stalonetray.spec: stalonetray.spec.in configure.in
 stalonetray.xml \
 stalonetrayrc.sample \
 stalonetray.spec:
-	cat $< | sed 's/@VERSION_STR@/@VERSION@/g' > $@
+	VERSION_STR=`echo @VERSION@ | sed 's/\([^\.]*\.[^\.]*\)\..*/\1/'`; \
+	cat $< | sed "s/@VERSION_STR@/$$VERSION_STR/g" > $@
 
 stalonetray.1: stalonetray.xml
 	xsltproc /usr/share/xml/docbook/stylesheet/nwalsh/manpages/docbook.xsl stalonetray.xml

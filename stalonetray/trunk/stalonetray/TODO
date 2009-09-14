@@ -93,7 +93,7 @@ for 0.7.6
 + startup issues (collect existing icons)
 - focus issue in Wmaker
 
-for 0.8/0.9
+for 0.8
 + slot size vs. icon size
 + review ignore_icon_resize usage
 + all dims must be given in slots not in pixels
@@ -104,12 +104,25 @@ for 0.8/0.9
 + strut WM hints (requires Xinerama?)
 + fix geometry code
 + fix wmaker docking mode (--widthrawn=off/simple/wmaker)
+	- proper dockapp behaviour in WM
 + add --kludge command line param that turns kludges on/off
 	+ move respect icon hints under this category
-- geometry bugs (wrong placement)
++ geometry bugs (wrong placement) (CANTREPRODUCE?)
 - valgrind
+	+ color background
+	- xpm background
+	- xpm background + transparency
+- remote interface (via send event to tray selection manager)
 - profile the code
 	+ powertop; fix event loop to block if there are no events and no scrolling
+		+ proper handling of signals required!!!
+			+ SIGUSR1 handing is OK (its for debug only anyway)
+			+ termination signals wont be handled to avoid hacks...
+- rework command line interface (?)
+
+for 0.8.x/0.9
+- proper dockapp behaviour in WM
+- profile the code
 	- gprofile; use array in icons.c instead of list (LATER)
 - RENDER implementation of tinting/compositing, take implementation from rxvt (LATER)
 - sanitize x11 calls: check return values instead of relying on x11_ok() whenever possible (LATER)

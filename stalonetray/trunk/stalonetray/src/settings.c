@@ -58,6 +58,7 @@ void init_default_settings()
 	settings.icon_gravity		= GRAV_N | GRAV_W;
 	settings.wnd_type			= _NET_WM_WINDOW_TYPE_DOCK;
 	settings.wnd_layer			= NULL;
+	settings.wnd_name			= PROGNAME;
 	settings.xsync				= 0;
 	settings.need_help			= 0;
 	settings.config_fname		= NULL;
@@ -72,13 +73,19 @@ void init_default_settings()
 
 	settings.dockapp_mode		= DOCKAPP_NONE;
 
-	settings.scrollbar_size     = 8;
-	settings.scrollbar_mode     = SB_MODE_VERT | SB_MODE_HORZ;
-	settings.scrollbar_inc		= -1;
+	settings.scrollbars_size    = -1;
+	settings.scrollbars_mode    = SB_MODE_NONE;
+	settings.scrollbars_inc		= -1;
 
 	settings.wm_strut_mode		= WM_STRUT_AUTO;
 
 	settings.kludge_flags		= 0;
+
+	settings.remote_click_name  = NULL;
+	settings.remote_click_btn   = REMOTE_CLICK_BTN_DEFAULT;
+	settings.remote_click_cnt   = REMOTE_CLICK_CNT_DEFAULT;
+	settings.remote_click_pos.x = REMOTE_CLICK_POS_DEFAULT;
+	settings.remote_click_pos.y = REMOTE_CLICK_POS_DEFAULT;
 
 #ifdef DELAY_EMBEDDING_CONFIRMATION
 	settings.confirmation_delay = 3;
@@ -260,6 +267,8 @@ int parse_wnd_type(char *str, char ***tgt, int silent)
 /* Just copy string from arg to *tgt */
 int parse_copystr(char *str, char ***tgt, int silent)
 {
+	/* Valgrind note: this memory will never
+	 * be freed before stalonetray's exit. */
 	**tgt = strdup(str);
 	if (**tgt == NULL) DIE(("Out of memory"));
 	return SUCCESS;
@@ -298,6 +307,78 @@ int parse_sb_mode(char *str, int **tgt, int silent)
 		PARSING_ERROR("scrollbars specification expected", str);
 		return FAILURE;
 	}
+	return SUCCESS;
+}
+
+#if 0
+/* Parses remote op specification */
+int parse_remote(char *str, void **tgt, int silent)
+{
+
+#define NEXT_TOK(str, rest) do { \
+	(str) = (rest); \
+	if ((str) != NULL) { \
+		(rest) = strchr((str), ','); \
+		if ((rest) != NULL) *((rest)++)=0; \
+	} \
+} while(0)
+
+#define PARSE_INT(tgt, str, tail, def, msg) do { \
+	if (str == NULL || *(str) == '\0') { \
+		(tgt) = def; \
+	} else { \
+		(tgt) = strtol((str), &(tail), 0); \
+		if (*(tail) != '\0') { \
+			PARSING_ERROR(msg, (str)); \
+			return FAILURE; \
+		} \
+	} \
+} while(0)
+
+	/* Handy names for parameters */
+	int *flag = (int *) tgt[0];
+	char **name = (char **) tgt[1];
+	int *btn = (int *) tgt[2];
+	struct Point *pos = (struct Point *) tgt[3];
+	/* Local variables */
+	char *rest = str, *tail;
+
+	if (str == NULL || strlen(str) == 0) return FAILURE;
+
+	*flag = 1;
+	NEXT_TOK(str, rest);
+	*name = strdup(str);
+	NEXT_TOK(str, rest);
+	PARSE_INT(*btn, str, tail, INT_MIN, "remote click: button number expected");
+	NEXT_TOK(str, rest);
+	PARSE_INT(pos->x, str, tail, INT_MIN, "remote click: x coordinate expected");
+	NEXT_TOK(str, rest);
+	PARSE_INT(pos->y, str, tail, INT_MIN, "remote click: y coordinate expected");
+	return SUCCESS;
+
+#undef NEXT_TOK
+#undef PARSE_INT
+}
+#endif
+
+int parse_remote_click_type(char *str, int **tgt, int silent)
+{
+	if (!strcasecmp(str, "single"))
+		**tgt = 1;
+	else if (!strcasecmp(str, "double"))
+		**tgt = 2;
+	else {
+		PARSING_ERROR("click type can be single or double", str);
+		return FAILURE;
+	}
+	return SUCCESS;
+}
+
+int parse_pos(char *str, void **tgt, int silent)
+{
+	struct Point *pos = (struct Point *) tgt[0];
+	unsigned int dummy;
+	XParseGeometry(str, &pos->x, &pos->y, &dummy, &dummy);
 	return SUCCESS;
 }
 
@@ -354,8 +435,13 @@ struct Param params[] = {
 #ifdef XPM_SUPPORTED
 	{NULL, "--pixmap-bg", "pixmap_bg", {&settings.bg_pmap_path}, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
 #endif
-	{NULL, "--scrollbars", "scrollbars", {&settings.scrollbar_mode}, (param_parser_t) &parse_sb_mode, 1, 1, 0, "none"},
-	{NULL, "--scrollbars-step", "scrollbars_step", {&settings.scrollbar_inc}, (param_parser_t) &parse_int, 1, 1, 0, "8"},
+	{"-r", "--remote-click-icon", NULL, {&settings.remote_click_name}, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
+	{NULL, "--remote-click-button", NULL, {&settings.remote_click_btn}, (param_parser_t) &parse_int, 1, 1, 0, NULL},
+	{NULL, "--remote-click-position", NULL, {&settings.remote_click_pos}, (param_parser_t) &parse_pos, 1, 1, 0, NULL},
+	{NULL, "--remote-click-type", NULL, {&settings.remote_click_cnt}, (param_parser_t) &parse_remote_click_type, 1, 1, 0, NULL},
+	{NULL, "--scrollbars", "scrollbars", {&settings.scrollbars_mode}, (param_parser_t) &parse_sb_mode, 1, 1, 0, NULL},
+	{NULL, "--scrollbars-step", "scrollbars_step", {&settings.scrollbars_inc}, (param_parser_t) &parse_int, 1, 1, 0, NULL},
+	{NULL, "--scrollbars-size", "scrollbars_size", {&settings.scrollbars_size}, (param_parser_t) &parse_int, 1, 1, 0, NULL},
 	{NULL, "--skip-taskbar", "skip_taskbar", {&settings.skip_taskbar}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
 	{"-s", "--slot-size", "slot_size", {&settings.slot_size}, (param_parser_t) &parse_int, 1, 1, 0, NULL},
 	{NULL, "--sticky", "sticky", {&settings.sticky}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
@@ -364,6 +450,7 @@ struct Param params[] = {
 	{"-t", "--transparent", "transparent", {&settings.transparent}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
 	{"-v", "--vertical", "vertical", {&settings.vertical}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
 	{NULL, "--window-layer", "window_layer", {&settings.wnd_layer}, (param_parser_t) &parse_wnd_layer, 1, 1, 1, NULL},
+	{NULL, "--window-name", "window_name", {&settings.wnd_name}, (param_parser_t) &parse_copystr, 1, 1, 1, NULL},
 	{NULL, "--window-strut", "window_strut", {&settings.wm_strut_mode}, (param_parser_t) &parse_strut_mode, 1, 1, 1, NULL},
 	{NULL, "--window-type", "window_type", {&settings.wnd_type}, (param_parser_t) &parse_wnd_type, 1, 1, 1, NULL},
 	{NULL, "--xsync", "xsync", {&settings.xsync}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
@@ -393,19 +480,19 @@ void usage(char *progname)
 			"                                title, border, all\n"
 			"    --dockapp-mode [<mode>]     enable dockapp mode; mode can be none (default),\n"
 			"                                simple (default if no mode specified), or wmaker\n"
-			"    -f, --fuzzy-edges [<level>] set edges fuzziness, level is from\n"
+			"    -f, --fuzzy-edges [<level>] set edges fuzziness level from\n"
 			"                                0 (disabled) to 3 (maximum); works with\n"
 			"                                tinting and/or pixmap background\n"
 			"    [-]-geometry <geometry>     set initial tray`s geometry (width and height\n"
 			"                                are defined in icon slots; offsets are defined\n"
 			"                                in pixels)\n"
-			"    --grow-gravity <gravity>    tray`s grow gravity,\n"
-			"                                one of N, S, W, E, NW, NE, SW, SE\n"
+			"    --grow-gravity <gravity>    set tray`s grow gravity,\n"
+			"                                either to N, S, W, E, NW, NE, SW, or SE\n"
 			"    --icon-gravity <gravity>    icon positioning gravity (NW, NE, SW, SE)\n"
 			"    -i, --icon-size <n>         set basic icon size to <n>, default: 24\n"
 			"    -h, --help                  show this message\n"
 			"    --kludges <list>            enable specific kludges for non-conforming WMs\n"
-			"                                and/or stalonetray bugs; argument is a comma\n"
+			"                                and/or stalonetray bugs; argument is a comma-\n"
 			"                                separated list of:\n"
 			"                                 - fix_window_pos (fix window position),\n"
 			"                                 - force_icons_size (ignore icon resizes),\n"
@@ -415,10 +502,18 @@ void usage(char *progname)
 			"    --no-shrink                 do not shrink window back after icon removal\n"
 			"    -p, --parent-bg             use parent for background\n"
 			"    --pixmap-bg <pixmap>        use pixmap for tray`s window background\n"
-			"    --respect-icon-hints        try to respect icon size hints\n"
-			"    --scrollbars <mode>         set scrollbar mode, one of: all, horizontal,\n"
-			"                                vertical, none\n"
+			"    -r, --remote-click-icon <name> remote control (assumes an instance of\n"
+			"                                stalonetray is already an active tray on this\n"
+			"                                screen); sends click to icon which window's \n"
+			"                                name is <name>\n"
+			"    --remote-click-button <n>   defines mouse button for --remote-click-icon\n"
+			"    --remote-click-position <x>x<y> defines position for --remote-click-icon\n"
+			"    --remote-click-type <type>  defines click type for --remote-click-icon;\n"
+			"                                type can be either single, or double\n"
+			"    --scrollbars <mode>         set scrollbar mode either to all, horizontal,\n"
+			"                                vertical, or none\n"
 			"    --scrollbars-step <n>       set scrollbar step to n pixels\n"
+			"    --scrollbars-size <n>       set scrollbar size to n pixels\n"
 			"    --slot-size <n>             set icon slot size to n\n"
 			"    --skip-taskbar              hide tray`s window from the taskbar\n"
 			"    --sticky                    make tray`s window sticky across multiple\n"
@@ -429,11 +524,11 @@ void usage(char *progname)
 			"    -t, --transparent           enable root transparency\n"
 			"    -v, --vertical              use vertical layout of icons (horizontal\n"
 			"                                layout is used by default)\n"
-			"    --window-layer <layer>      set tray`s window EWMH layer, one of:\n"
-			"                                bottom, normal, top\n"
-			"    --window-strut <mode>       set window strut mode, one of: auto,\n"
-			"                                left, right, top, bottom\n"
-			"    --window-type <type>        set tray`s window EWMH type, one of:\n"
+			"    --window-layer <layer>      set tray`s window EWMH layer\n"
+			"                                either to bottom, normal, or top\n"
+			"    --window-strut <mode>       set window strut mode to either auto,\n"
+			"                                left, right, top, or bottom\n"
+			"    --window-type <type>        set tray`s window EWMH type to either\n"
 			"                                normal, dock, toolbar, utility, desktop\n"
 			"    --xsync                     operate on X server synchronously (SLOW)\n"
 			"\n"
@@ -569,10 +664,9 @@ int get_args(char *line, int *argc, char ***argv)
 	/* 4. Extract arguments */
 	do {
 		(*argc)++;
-		if (NULL == (*argv = realloc(*argv, *argc * sizeof(char *)))) {
-			free(*argv);
+		/* Add space to store one more argument */
+		if (NULL == (*argv = realloc(*argv, *argc * sizeof(char *)))) 
 			DIE(("Out of memory\n"));
-		}
 		
 		if (*arg_start == '"') { /* 4.1. argument is quoted: find matching quote */
 			arg_start++;
@@ -671,11 +765,11 @@ void parse_rc()
 		if (!match->parser(arg, match->target, False)) {
 			DIE(("Rc file parse error at %s:%d: could not parse argument for \"%s\".\n", settings.config_fname, lnum, argv[0]));
 		}
-
+		free(argv);
 	}
 }
 
-/* Interpret all settings that need an open display */
+/* Interpret all settings that need an open display or other settings */
 void interpret_settings()
 {
 	static int gravity_matrix[11] = {
@@ -699,7 +793,13 @@ void interpret_settings()
 	/* Sanitize icon size */
 	val_range(settings.icon_size, MIN_ICON_SIZE, INT_MAX);
 	if (settings.slot_size < settings.icon_size) settings.slot_size = settings.icon_size;
-	if (settings.scrollbar_inc < settings.slot_size / 2) settings.scrollbar_inc = settings.slot_size / 2;
+
+	/* Sanitize scrollbar settings */
+	if (settings.scrollbars_mode != SB_MODE_NONE) {
+		val_range(settings.scrollbars_inc, settings.slot_size / 2, INT_MAX);
+		if (settings.scrollbars_size < 0) settings.scrollbars_size = settings.slot_size / 4;
+		DBG(9, ("final scrollbars params: size=%d, inc=%d\n", settings.scrollbars_size, settings.scrollbars_inc));
+	}
 
 	/* Sanitize all gravity strings */
 	settings.icon_gravity |= ((settings.icon_gravity & GRAV_V) ? 0 : GRAV_N);
@@ -867,6 +967,7 @@ int read_settings(int argc, char **argv)
 	DBG(3, ("xsync = %d\n", settings.xsync));
 	DBG(3, ("vertical = %d\n", settings.vertical));
 	DBG(3, ("dockapp_mode = %d\n", settings.dockapp_mode));
+	DBG(3, ("scrollbars_mode = %d\n", settings.scrollbars_mode));
 	DBG(3, ("--strings--\n"));
 	DBG(3, ("display_str = \"%s\"\n", settings.display_str));
 	DBG(3, ("bg_color_str = \"%s\"\n", settings.bg_color_str));
@@ -879,6 +980,8 @@ int read_settings(int argc, char **argv)
 	DBG(3, ("icon_gravity = 0x%x\n", settings.icon_gravity));
 	DBG(3, ("max_tray_dims.x = %d\n", settings.max_tray_dims.x));
 	DBG(3, ("max_tray_dims.y = %d\n", settings.max_tray_dims.y));
+	DBG(3, ("scrollbars_inc = %d\n", settings.scrollbars_inc));
+	DBG(3, ("scrollbars_size = %d\n", settings.scrollbars_size));
 	DBG(3, ("dbg_level = %d\n", settings.dbg_level));
 #endif
 	return SUCCESS;

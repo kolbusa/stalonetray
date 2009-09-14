@@ -43,10 +43,12 @@ struct Settings {
     char *max_geometry_str;    /* Geometry spec */
     char *config_fname;        /* Path to the configuration file */
     char *wnd_type;            /* Window type */
-    char *wnd_layer;           /* Window layed */
-    char *window_role;         /* Window role */
+    char *wnd_layer;           /* Window layer */
+    char *wnd_name;            /* Window name (WM_NAME) */
+    char *window_role;         /* Window role (XXX: UNUSED!) */
     char *bg_pmap_path;        /* Background pixmap path */
     char *tint_color_str;      /* Color used for tinting */
+	char *remote_click_name;   /* Icon name to execute remote click on */
 
     /* Values */
     int icon_size;             /* Icon size */
@@ -58,13 +60,16 @@ struct Settings {
     int geom_gravity;          /* Tray window gravity when mapping the window (computed using geometry_str) */
     int fuzzy_edges;           /* Level of edges fuzziness (0 = disabled) */
     int tint_level;            /* Tinting level (0 = disabled) */
-	int scrollbar_mode;        /* SB_MODE_NONE | SB_MODE_VERT | SB_MODE_HORZ */
-	int scrollbar_size;        /* Size of scrollbar windows in pixels */
-	int scrollbar_inc;         /* Step of scrollbar */
-	int wm_strut_mode;          /* WM strut mode */  
+	int scrollbars_mode;       /* SB_MODE_NONE | SB_MODE_VERT | SB_MODE_HORZ */
+	int scrollbars_size;       /* Size of scrollbar windows in pixels */
+	int scrollbars_inc;        /* Step of scrollbar */
+	int wm_strut_mode;         /* WM strut mode */  
 	struct Point max_tray_dims;/* Maximal tray dimensions */
-	struct Point max_layout_dims;/* Maximal layout dimensions */
-	struct Point orig_tray_dims;/* Original tray dimensions */
+	struct Point max_layout_dims; /* Maximal layout dimensions */
+	struct Point orig_tray_dims; /* Original tray dimensions */
+	struct Point remote_click_pos; /* Remote click position */
+	int remote_click_btn;      /* Remote click button */
+	int remote_click_cnt;      /* Remote click count */
 
     XColor tint_color;         /* Color used for tinting */
 

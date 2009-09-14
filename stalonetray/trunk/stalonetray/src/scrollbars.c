@@ -23,8 +23,7 @@ void scrollbars_init()
 	tray_data.scrollbars_data.scroll_pos.y = 0;
 	tray_data.scrollbars_data.scroll_base.x = 0;
 	tray_data.scrollbars_data.scroll_base.y = 0;
-	tray_data.scrollbars_data.scroll_max.x = 0;
-	tray_data.scrollbars_data.scroll_max.y = 0;
+	tray_data.scrollbars_data.scrollbar_down = -1;
 }
 
 void scrollbars_create()
@@ -32,7 +31,7 @@ void scrollbars_create()
 	int i;
 /*#define DEBUG_SCROLLBAR_POSITIONS*/
 
-	if (settings.scrollbar_mode & SB_MODE_VERT) {
+	if (settings.scrollbars_mode & SB_MODE_VERT) {
 		tray_data.scrollbars_data.scrollbar[SB_WND_TOP] = XCreateSimpleWindow(
 						tray_data.dpy, 
 						tray_data.tray,
@@ -61,7 +60,7 @@ void scrollbars_create()
 		tray_data.scrollbars_data.scrollbar[SB_WND_TOP] = None;
 		tray_data.scrollbars_data.scrollbar[SB_WND_BOT] = None;
 	}
-	if (settings.scrollbar_mode & SB_MODE_HORZ) {
+	if (settings.scrollbars_mode & SB_MODE_HORZ) {
 		tray_data.scrollbars_data.scrollbar[SB_WND_LFT] = XCreateSimpleWindow(
 						tray_data.dpy, 
 						tray_data.tray,
@@ -123,27 +122,27 @@ int scrollbars_update()
 
 	XSizeHints scrollbar_xsh_local[SB_WND_MAX];
 
-	if (settings.scrollbar_mode & SB_MODE_HORZ) {
-		offset = (settings.vertical && (settings.scrollbar_mode & SB_MODE_VERT)) ? settings.scrollbar_size : 0;
+	if (settings.scrollbars_mode & SB_MODE_HORZ) {
+		offset = (settings.vertical && (settings.scrollbars_mode & SB_MODE_VERT)) ? settings.scrollbars_size : 0;
 
 		scrollbar_xsh_local[SB_WND_LFT].x  = 0;
 		scrollbar_xsh_local[SB_WND_LFT].y  = offset;
-		scrollbar_xsh_local[SB_WND_LFT].width  = settings.scrollbar_size;
+		scrollbar_xsh_local[SB_WND_LFT].width  = settings.scrollbars_size;
 		scrollbar_xsh_local[SB_WND_LFT].height = tray_data.xsh.height - offset * 2;
 
 		scrollbar_xsh_local[SB_WND_RHT] = scrollbar_xsh_local[SB_WND_LFT];
-		scrollbar_xsh_local[SB_WND_RHT].x  = tray_data.xsh.width - settings.scrollbar_size;
+		scrollbar_xsh_local[SB_WND_RHT].x  = tray_data.xsh.width - settings.scrollbars_size;
 	}
-	if (settings.scrollbar_mode & SB_MODE_VERT) {
-		offset = (settings.vertical && (settings.scrollbar_mode & SB_MODE_HORZ)) ? settings.scrollbar_size : 0;
+	if (settings.scrollbars_mode & SB_MODE_VERT) {
+		offset = (settings.vertical && (settings.scrollbars_mode & SB_MODE_HORZ)) ? settings.scrollbars_size : 0;
 
 		scrollbar_xsh_local[SB_WND_TOP].x = offset;
 		scrollbar_xsh_local[SB_WND_TOP].y = 0;
 		scrollbar_xsh_local[SB_WND_TOP].width = tray_data.xsh.width - offset * 2;
-		scrollbar_xsh_local[SB_WND_TOP].height = settings.scrollbar_size;
+		scrollbar_xsh_local[SB_WND_TOP].height = settings.scrollbars_size;
 
 		scrollbar_xsh_local[SB_WND_BOT] = scrollbar_xsh_local[SB_WND_TOP];
-		scrollbar_xsh_local[SB_WND_BOT].y = tray_data.xsh.height - settings.scrollbar_size;
+		scrollbar_xsh_local[SB_WND_BOT].y = tray_data.xsh.height - settings.scrollbars_size;
 	}
 
 	for (i = 0; i < SB_WND_MAX; i++)
@@ -179,41 +178,49 @@ int scrollbars_get_id(Window wid, int x, int y)
 	return -1;
 }
 
+void scrollbars_validate_scroll_pos()
+{
+	int layout_width, layout_height;
+	int base_width, base_height;
+	struct Point max_scroll_pos;
+
+	layout_get_size(&layout_width, &layout_height);
+	tray_calc_tray_area_size(tray_data.xsh.width, tray_data.xsh.height, &base_width, &base_height);
+
+	max_scroll_pos.x = layout_width - base_width;
+	max_scroll_pos.y = layout_height - base_height;
+
+	val_range(max_scroll_pos.x, 0, INT_MAX);
+	val_range(max_scroll_pos.y, 0, INT_MAX);
+	DBG(8, ("max scroll position: %dx%d\n", max_scroll_pos.x, max_scroll_pos.y));
+
+	val_range(tray_data.scrollbars_data.scroll_pos.x, 0, max_scroll_pos.x);
+	val_range(tray_data.scrollbars_data.scroll_pos.y, 0, max_scroll_pos.y);
+}
+
+
 int scrollbars_click(int id)
 {
 	/* TODO: implement scroll gravity (i.e. scroll weel must scroll in direction that agrees with
 	 * current tray orientation) */
-	/* TODO: scrollbar_inc must be settable via cmdline */
+	/* TODO: scrollbars_inc must be settable via cmdline */
 
 	/* last entry is for action that just sanitizes current scroll
 	 * position after icon removal */
 	static struct Point scrollbars_deltas[SB_WND_MAX + 1] = {
 		{0, -1}, {0, 1}, {-1, 0}, {1, 0}, {0, 0}
 	};
-	static struct Point max_scroll_pos;
-	int layout_width, layout_height;
-	struct Point old_max_scroll_pos;
 
-	tray_data.scrollbars_data.scroll_pos.x = tray_data.scrollbars_data.scroll_pos.x + scrollbars_deltas[id].x * settings.scrollbar_inc;
-	tray_data.scrollbars_data.scroll_pos.y = tray_data.scrollbars_data.scroll_pos.y + scrollbars_deltas[id].y * settings.scrollbar_inc;
+	tray_data.scrollbars_data.scroll_pos.x += (settings.icon_gravity & GRAV_W ? 1 : -1) * 
+		scrollbars_deltas[id].x * settings.scrollbars_inc;
+	tray_data.scrollbars_data.scroll_pos.y += (settings.icon_gravity & GRAV_N ? 1 : -1) * 
+		scrollbars_deltas[id].y * settings.scrollbars_inc;
 
-	layout_get_size(&layout_width, &layout_height);
-	old_max_scroll_pos = max_scroll_pos;
-	max_scroll_pos.x = layout_width - settings.slot_size;
-	max_scroll_pos.y = layout_height - settings.slot_size;
-
-	val_range(max_scroll_pos.x, 0, INT_MAX);
-	val_range(max_scroll_pos.y, 0, INT_MAX);
-
-	val_range(tray_data.scrollbars_data.scroll_pos.x, 0, max_scroll_pos.x);
-	val_range(tray_data.scrollbars_data.scroll_pos.y, 0, max_scroll_pos.y);
-
+	scrollbars_validate_scroll_pos();
 	DBG(8, ("new scroll position: %dx%d\n", tray_data.scrollbars_data.scroll_pos.x, tray_data.scrollbars_data.scroll_pos.y));
 
 	icon_list_forall(&layout_translate_to_window);
-	embedder_update_positions(!(id == SB_WND_MAX &&
-				old_max_scroll_pos.x == max_scroll_pos.x &&
-				old_max_scroll_pos.y == max_scroll_pos.y));
+	embedder_update_positions(id != SB_WND_MAX);
 	return SUCCESS;
 }
 
@@ -244,26 +251,28 @@ void scrollbars_handle_event(XEvent ev)
 		switch (ev.xbutton.button) {
 		case Button1:
 			if (tray_data.scrollbars_data.scrollbar_down != -1) {
+#if 0
 				/* If no repeats were done, advance scroll position */
 				if ((scrollbars_get_id(ev.xbutton.window, ev.xbutton.x, ev.xbutton.y) != -1) &&
 					(tray_data.scrollbars_data.scrollbar_repeats_done == 0)) 
 				{
 					scrollbars_click(tray_data.scrollbars_data.scrollbar_down);
 				}
+#endif
 				tray_data.scrollbars_data.scrollbar_down = -1;
 				tray_data.scrollbars_data.scrollbar_repeat_active = 0;
 			}
 			break;
 		case Button4:
-			if (settings.vertical && settings.scrollbar_mode & SB_MODE_VERT) 
+			if (settings.vertical && settings.scrollbars_mode & SB_MODE_VERT) 
 				scrollbars_click(SB_WND_TOP); 
-			else if (settings.scrollbar_mode & SB_MODE_HORZ) 
+			else if (settings.scrollbars_mode & SB_MODE_HORZ) 
 				scrollbars_click(SB_WND_LFT);
 			break;
 		case Button5:
-			if (settings.vertical && settings.scrollbar_mode & SB_MODE_VERT) 
+			if (settings.vertical && settings.scrollbars_mode & SB_MODE_VERT) 
 				scrollbars_click(SB_WND_BOT); 
-			else if (settings.scrollbar_mode & SB_MODE_HORZ) 
+			else if (settings.scrollbars_mode & SB_MODE_HORZ) 
 				scrollbars_click(SB_WND_RHT);
 			break;
 		default:
@@ -280,4 +289,24 @@ void scrollbars_periodic_tasks()
 	{
 		scrollbars_click(tray_data.scrollbars_data.scrollbar_down);
 	}
+}
+
+int scrollbars_scroll_to(struct TrayIcon *ti)
+{
+	struct Rect tray_viewport_rect;
+	tray_viewport_rect.x = tray_data.scrollbars_data.scroll_base.x,
+	tray_viewport_rect.y = tray_data.scrollbars_data.scroll_base.y,
+	tray_calc_tray_area_size(tray_data.xsh.width, tray_data.xsh.height, 
+			&tray_viewport_rect.w, &tray_viewport_rect.h);
+	/* Check if icon is already visible. If so, nothing needs to be done */
+	if (RECTS_ISECT(tray_viewport_rect, ti->l.icn_rect)) return SUCCESS;
+	/* Update scroll pos so that the icon is visible */
+	/* TODO: must be in separate function, with a reverse */
+	tray_data.scrollbars_data.scroll_pos.x = (settings.icon_gravity & GRAV_W ? 1 : -1) * (ti->l.icn_rect.x - tray_data.scrollbars_data.scroll_base.x);
+	tray_data.scrollbars_data.scroll_pos.y = (settings.icon_gravity & GRAV_W ? 1 : -1) * (ti->l.icn_rect.y - tray_data.scrollbars_data.scroll_base.y);
+	scrollbars_validate_scroll_pos();
+	DBG(8, ("new scroll position: %dx%d\n", tray_data.scrollbars_data.scroll_pos.x, tray_data.scrollbars_data.scroll_pos.y));
+	icon_list_forall(&layout_translate_to_window);
+	embedder_update_positions(True);
+	return SUCCESS;
 }

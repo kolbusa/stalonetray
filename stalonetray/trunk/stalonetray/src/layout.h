@@ -25,6 +25,20 @@
 /* Shortcut for vertical gravity */
 #define GRAV_V	(GRAV_S | GRAV_N)
 
+/* Macros to test rect intersection */
+/* Helpers */
+#define RX1(r) (r.x)
+#define RY1(r) (r.y)
+#define RX2(r) (r.x + r.w - 1)
+#define RY2(r) (r.y + r.h - 1)
+#define RECTS_ISECT_(r1, r2) \
+	(((RX1(r1) <= RX1(r2) && RX1(r2) <= RX2(r1)) || \
+	  (RX1(r1) <= RX2(r2) && RX2(r2) <= RX2(r1))) && \
+	 ((RY1(r1) <= RY1(r2) && RY1(r2) <= RY2(r1)) || \
+	  (RY1(r1) <= RY2(r2) && RY2(r2) <= RY2(r1))))
+/* Macro itself */
+#define RECTS_ISECT(r1, r2) (RECTS_ISECT_(r1,r2) || RECTS_ISECT_(r2,r1))
+
 /* Add icon to layout */
 int layout_add(struct TrayIcon *ti);
 
