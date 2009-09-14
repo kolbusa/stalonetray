@@ -32,6 +32,12 @@ int x11_send_visibility(Display *dpy, Window dst, long state);
 /* Same for expose event */
 int x11_send_expose(Display *dpy, Window dst, int x, int y, int width, int height);
 
+/* Same for button event */
+int x11_send_button(Display *dpy, 
+		int press, Window dst, Window root, Time time,
+		unsigned int button, unsigned int state, 
+		int x, int y);
+
 /* Refresh window */
 int x11_refresh_window(Display *dpy, Window dst, int width, int height, int exposures);
 
@@ -55,6 +61,12 @@ int x11_get_win_prop32(Display *dpy, Window dst, Atom atom, Atom type, unsigned 
 
 /* Returns window absolute position (relative to the root window) */
 int x11_get_window_abs_coords(Display *dpy, Window dst, int *x, int *y);
+
+/* Find subwindow by name */
+Window x11_find_subwindow_by_name(Display *dpy, Window tgt, char *name);
+
+/* Find subwindow by at coords */
+Window x11_find_subwindow_at(Display *dpy, Window top, int x, int y, int depth);
 
 /* Extends event mask of the root window */
 void x11_extend_root_event_mask(Display *dpy, long mask);

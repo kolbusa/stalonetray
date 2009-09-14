@@ -33,25 +33,26 @@ typedef struct {
 int ewmh_wm_present(Display *dpy)
 {
 	Window *check_win, *check_win_self_ref;
-	unsigned long len;
-	int rc;
+	unsigned long cw_len, cwsr_len;
+	int rc = False;
 
 	/* see _NET_SUPPORTING_WM_CHECK in the WM spec. */
 	rc = x11_get_root_winlist_prop(dpy, 
 			XInternAtom(dpy, _NET_SUPPORTING_WM_CHECK, False), 
 			(unsigned char **) &check_win, 
-			&len);
-	if (x11_ok() && rc && len == 1) {
+			&cw_len);
+	if (x11_ok() && rc && cw_len == 1) {
 		x11_get_win_prop32(dpy, 
 				check_win[0], 
 				XInternAtom(dpy, _NET_SUPPORTING_WM_CHECK, False), 
 				XA_WINDOW, 
 				(unsigned char **) &check_win_self_ref, 
-				&len);
-		if (x11_ok() && rc && len == 1 && check_win[0] == check_win_self_ref[0])
-			return True;
+				&cwsr_len);
+		rc = (x11_ok() && rc && cwsr_len == 1 && check_win[0] == check_win_self_ref[0]);
 	}
-	return False;
+	if (cw_len != 0) XFree(check_win);
+	if (cwsr_len != 0) XFree(check_win_self_ref);
+	return rc;
 }
 
 /* Add EWMH window state for the given window */
@@ -61,7 +62,6 @@ int ewmh_add_window_state(Display *dpy, Window wnd, char *state)
 	Atom atom;
 	XWindowAttributes xwa;
 	int rc;
-
 
 	prop = XInternAtom(dpy, "_NET_WM_STATE", False);
 	atom = XInternAtom(dpy, state, False);
@@ -209,7 +209,7 @@ int ewmh_list_supported_atoms(Display *dpy)
 					XA_ATOM,
 					(unsigned char **) &atom_list,
 					&atom_list_len))
-		{
+		if (atom_list_len) {
 			for (i = 0; i < atom_list_len; i++) {
 				atom_name = XGetAtomName(dpy, atom_list[i]);
 				if (atom_name != NULL) {
@@ -219,6 +219,7 @@ int ewmh_list_supported_atoms(Display *dpy)
 				XFree(atom_name);
 				x11_ok();
 			}
+			free(atom_list);
 			return SUCCESS;
 		}
 	}

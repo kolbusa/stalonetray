@@ -97,9 +97,11 @@ int print_icon_data(struct TrayIcon *ti)
 	DBG(6, ("  wnd_sz = %dx%d\n", ti->l.wnd_sz.x, ti->l.wnd_sz.y));
 	DBG(6, ("  cmode = %d\n", ti->cmode));
 	DBG(6, ("  xembed_supported = %d\n", ti->is_xembed_supported));
-	DBG(6, ("  xembed_accepts_focus = %d\n", ti->is_xembed_accepts_focus));
-	DBG(6, ("  xembed_last_timestamp = %d\n", ti->xembed_last_timestamp));
-	DBG(6, ("  xembed_last_msgid = %d\n", ti->xembed_last_msgid));
+	if (ti->is_xembed_supported) {
+		DBG(6, ("  xembed_accepts_focus = %d\n", ti->is_xembed_accepts_focus));
+		DBG(6, ("  xembed_last_timestamp = %d\n", ti->xembed_last_timestamp));
+		DBG(6, ("  xembed_last_msgid = %d\n", ti->xembed_last_msgid));
+	}
 
 	rc = XQueryTree(tray_data.dpy, ti->wid, &root, &real_parent, &children, &nchildren);
 	if (rc && children != NULL && nchildren > 0) XFree(children);

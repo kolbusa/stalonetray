@@ -13,6 +13,8 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
+#include <limits.h>
+
 #include "config.h"
 #include "common.h"
 #include "icons.h"
@@ -25,6 +27,8 @@
 /* These two are unused */
 #define SYSTEM_TRAY_BEGIN_MESSAGE   1
 #define SYSTEM_TRAY_CANCEL_MESSAGE  2
+/* Custom message: remote control */
+#define STALONE_TRAY_REMOTE_CONTROL 0xFFFD
 /* Custom message: request for status */
 #define STALONE_TRAY_STATUS_REQUESTED 0xFFFE
 /* Custom message: confirmation of embedding */
@@ -33,6 +37,8 @@
 #define	TRAY_SEL_ATOM "_NET_SYSTEM_TRAY_S"
 /* Name of tray orientation atom*/
 #define TRAY_ORIENTATION_ATOM "_NET_SYSTEM_TRAY_ORIENTATION" 
+/* Name of tray orientation atom*/
+#define STALONETRAY_REMOTE_ATOM "STALONETRAY_REMOTE"
 /* Values of tray orientation property */
 #define _NET_SYSTEM_TRAY_ORIENTATION_HORZ 0
 #define _NET_SYSTEM_TRAY_ORIENTATION_VERT 1
@@ -61,6 +67,11 @@
 #define KLUDGE_FIX_WND_POS  (1L << 2)
 #define KLUDGE_USE_ICONS_HINTS (1L << 3)
 #define KLUDGE_FORCE_ICONS_SIZE (1L << 3)
+
+/* Remote click constants */
+#define REMOTE_CLICK_BTN_DEFAULT Button1
+#define REMOTE_CLICK_POS_DEFAULT INT_MAX
+#define REMOTE_CLICK_CNT_DEFAULT 1
 
 /* Structure to hold all tray data */
 struct TrayData {
@@ -104,6 +115,10 @@ extern struct TrayData tray_data;
 void tray_init();
 /* Create tray window */
 void tray_create_window(int argc, char **argv);
+/* Create phony tray window so that certain x11_ calls work */
+void tray_create_phony_window();
+/* Initialize tray selection atoms */
+void tray_init_selection_atoms();
 /* Acquire tray selection */
 void tray_acquire_selection();
 /* Show tray window */

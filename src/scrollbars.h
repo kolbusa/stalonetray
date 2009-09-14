@@ -30,7 +30,6 @@
 struct ScrollbarsData {
 	struct Point scroll_base;				/* Base scroll position */
 	struct Point scroll_pos;                /* Current scroll position */
-	struct Point scroll_max;				/* Maximum scroll position */
 	Window scrollbar[SB_WND_MAX];           /* Window IDs of scrollbars */
 	XSizeHints scrollbar_xsh[SB_WND_MAX];	/* Cached window sizes for scrollbars */
 	int scrollbar_down;						/* Click states */
@@ -59,4 +58,6 @@ int scrollbars_click(int id);
 void scrollbars_handle_event(XEvent ev);
 /* Perform periodic tasks for scrollbars */
 void scrollbars_periodic_tasks();
+/* Scroll to icon */
+int scrollbars_scroll_to(struct TrayIcon *ti);
 #endif 

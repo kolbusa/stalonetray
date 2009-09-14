@@ -48,12 +48,12 @@
   file.</para>
 
   <para>Names of command line parameter may have two variants: short
-  (<option>&ndash;o</option>) and long (<option>&ndash;&ndash;option</option>).
-  Write <option>&ndash;o</option><replaceable>value</replaceable> or
-  <option>&ndash;o</option> <replaceable>value</replaceable> to pass a value
+  (<option>-o</option>) and long (<option>--option</option>).
+  Write <option>-o</option><replaceable>value</replaceable> or
+  <option>-o</option> <replaceable>value</replaceable> to pass a value
   using the short name of a parameter; to pass a value using a long name, write
-  <option>&ndash;&ndash;option</option> <replaceable>value</replaceable> or
-  <option>&ndash;&ndash;option</option>=<replaceable>value</replaceable>. All
+  <option>--option</option> <replaceable>value</replaceable> or
+  <option>--option</option>=<replaceable>value</replaceable>. All
   flag-like parameters have optional boolean value that when ommited is assumed
   to be "true". Write "true", "yes", "1", for positive boolean values, and
   "false", "no", "0" for negative ones. <emphasis>Please note, that a value
@@ -63,54 +63,39 @@
   <para>Default configuration file is <filename>$HOME/.stalonetrayrc</filename>.
   A configuration file contains case-insensetive keyword-argument pairs, one per
   line. Lines starting with '#' and empty lines are ignored.  Alternatively,
-  confiuration file can specified via <option>&ndash;c</option> or
-  <option>&ndash;&ndash;config</option> command-line options.</para>
+  confiuration file can specified via <option>-c</option> or
+  <option>--config</option> command-line options.</para>
  
   <para>Below is the list of possible command line/configuration file options.
   Options starting with hyphens are command-line parameters others are
   configuration file keywords.  Options that are new in @VERSION_STR@ version
   are marked with "NEW in @VERSION_STR@". </para>
-
-  <para>As of stalonetray @VERSION_STR@ following command line and configuration
-  parameters are depricated:
-  </para>
-
-  <variablelist>
-  <varlistentry>
-  <term>&ndash;w</term>
-  <term>&ndash;&ndash;withdrawn</term>
-  <term>withdrawn</term>
-  <listitem>
-  Please use &ndash;&ndash;docapp&ndash;mode instead.
-  </listitem>
-  </varlistentry>
-  </variablelist>
-  
 </refsect1>
+
 <refsect1 id="opt">
   <title>OPTIONS</title>
 
   <variablelist>
   
   <varlistentry>
-  <term><option>&ndash;display</option> <replaceable>display</replaceable></term>
+  <term><option>-display</option> <replaceable>display</replaceable></term>
   <term><option>display</option> <replaceable>display</replaceable>
   </term>
   <listitem><para>Use X display <replaceable>display</replaceable>.</para></listitem> 
   </varlistentry>
   
   <varlistentry>
-  <term><option>&ndash;&ndash;dbg&ndash;level</option> <replaceable>n</replaceable></term>
+  <term><option>--dbg-level</option> <replaceable>n</replaceable></term>
   <term><option>dbg_level</option> <replaceable>n</replaceable></term>
   <listitem><para>Set the level of debug output to
   <replaceable>n</replaceable> (stalonetray must be compiled with
-  <option>&ndash;&ndash;enable&ndash;debug</option> for this option to have
+  <option>--enable-debug</option> for this option to have
   effect.) Default value: <userinput>4</userinput>.</para></listitem> 
   </varlistentry>
   
   <varlistentry>
-  <term><option>&ndash;bg</option> <replaceable>color</replaceable></term>
-  <term><option>&ndash;&ndash;background</option> <replaceable>color</replaceable></term>
+  <term><option>-bg</option> <replaceable>color</replaceable></term>
+  <term><option>--background</option> <replaceable>color</replaceable></term>
   <term><option>background</option> <replaceable>color</replaceable></term>
   <listitem><para>Use <replaceable>color</replaceable> for tray`s background.
   <replaceable>color</replaceable> can be specified as an <abbrev>HTML</abbrev> hex triplet or
@@ -119,16 +104,16 @@
   </varlistentry>
   
   <varlistentry>
-  <term><option>&ndash;c</option> <replaceable>filename</replaceable></term>
-  <term><option>&ndash;&ndash;config</option> <replaceable>filename</replaceable></term>
+  <term><option>-c</option> <replaceable>filename</replaceable></term>
+  <term><option>--config</option> <replaceable>filename</replaceable></term>
   <listitem><para>Read configuration from
   <replaceable>filename</replaceable> instead of default
   <filename>$HOME/.stalonetrayrc</filename>.</para></listitem>
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;d</option> <replaceable>decspec</replaceable></term>
-  <term><option>&ndash;&ndash;decorations</option> <replaceable>decspec</replaceable></term>
+  <term><option>-d</option> <replaceable>decspec</replaceable></term>
+  <term><option>--decorations</option> <replaceable>decspec</replaceable></term>
   <term><option>decorations</option> <replaceable>decspec</replaceable></term>
   <listitem><para>Specify visiblie tray window decorations. Possible values for
   <replaceable>decspec</replaceable> are: <userinput>all</userinput>,
@@ -138,7 +123,7 @@
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;&ndash;docapp&ndash;mode</option>
+  <term><option>--docapp-mode</option>
   <optional><replaceable>mode</replaceable></optional></term>
   <term><option>docapp_mode</option>
   <optional><replaceable>mode</replaceable></optional></term>
@@ -149,8 +134,8 @@
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;f</option> <optional><replaceable>level</replaceable></optional></term>
-  <term><option>&ndash;&ndash;fuzzy&ndash;edges</option> <optional><replaceable>level</replaceable></optional></term>
+  <term><option>-f</option> <optional><replaceable>level</replaceable></optional></term>
+  <term><option>--fuzzy-edges</option> <optional><replaceable>level</replaceable></optional></term>
   <term><option>fuzzy_edges</option> <optional><replaceable>level</replaceable></optional></term>
   <listitem><para>Enable fuzzy edges of tray window and sets fuzziness level
   which can range from <userinput>0</userinput> (disabled, default) to <userinput>3</userinput>.
@@ -159,7 +144,7 @@
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;&ndash;geometry</option> <replaceable>geometry_spec</replaceable></term>
+  <term><option>--geometry</option> <replaceable>geometry_spec</replaceable></term>
   <term><option>geometry</option> <replaceable>geometry_spec</replaceable></term>
   <listitem><para>Set tray`s initial geometry to <replaceable>geometry_spec</replaceable>,
   specified in standard X notation: 
@@ -169,7 +154,7 @@
   </varlistentry>
 
   <varlistentry> 
-  <term><option>&ndash;&ndash;grow&ndash;gravity</option>
+  <term><option>--grow-gravity</option>
   <replaceable>gravity</replaceable></term> <term><option>grow_gravity</option>
   <replaceable>gravity</replaceable></term> <listitem><para>Specify icon
   positioning gravity (one of <userinput>N</userinput>,
@@ -186,7 +171,7 @@
   </para></listitem> </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;&ndash;icon&ndash;gravity</option> <replaceable>gravity</replaceable></term>
+  <term><option>--icon-gravity</option> <replaceable>gravity</replaceable></term>
   <term><option>icon_gravity</option> <replaceable>gravity</replaceable></term>
   <listitem><para>Specify icon positioning gravity (one of <userinput>NW</userinput>,
   <userinput>NE</userinput>, <userinput>SW</userinput>, <userinput>SE</userinput>). If you specify,
@@ -196,8 +181,8 @@
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;i</option> <replaceable>n</replaceable></term>
-  <term><option>&ndash;&ndash;icon&ndash;size</option> <replaceable>n</replaceable></term>
+  <term><option>-i</option> <replaceable>n</replaceable></term>
+  <term><option>--icon-size</option> <replaceable>n</replaceable></term>
   <term><option>icon_size</option> <replaceable>n</replaceable></term>
   <listitem><para>Set basic icon size to <replaceable>n</replaceable>.
   Default value: <userinput>24</userinput>. Minimal value:
@@ -206,7 +191,7 @@
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;&ndash;ignore&ndash;icon&ndash;resize</option></term>
+  <term><option>--ignore-icon-resize</option></term>
   <term><option>ignore_icon_resize <optional><replaceable>bool</replaceable></optional></option></term>
   <listitem><para>Ignore icon resizing events, effectively forcing all icons dimensions
   to be <option>icon_size</option> x <option>icon_size</option>. Default value: <userinput>false</userinput>.
@@ -214,22 +199,22 @@
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;h</option></term>
-  <term><option>&ndash;&ndash;help</option></term>
+  <term><option>-h</option></term>
+  <term><option>--help</option></term>
   <listitem><para>Show help message.</para></listitem>
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;&ndash;max&ndash;geometry</option>
+  <term><option>--max-geometry</option>
   <replaceable>geometry_spec</replaceable></term>
   <term><option>max_geometry</option> <replaceable>geometry_spec</replaceable></term>
   <listitem><para>Set tray`s maximal geometry to <replaceable>geometry_spec</replaceable> 
-  Default value: <userinput>0x0<userinput>, no limit. NEW in 0.8.
+  Default value: <userinput>0x0</userinput>, no limit. NEW in @VERSION_STR@.
   </para></listitem>
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;&ndash;no&ndash;shrink</option></term>
+  <term><option>--no-shrink</option></term>
   <term><option>no_shrink</option> <optional><replaceable>bool</replaceable></optional></term>
   <listitem><para>Do not shrink tray window back after icon removal. Useful when
   tray is swallowed by another window like FvwmButtons. Default value: <userinput>false</userinput>.
@@ -237,57 +222,76 @@
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;p</option></term>
-  <term><option>&ndash;&ndash;parent&ndash;bg</option></term>
+  <term><option>-p</option></term>
+  <term><option>--parent-bg</option></term>
   <term><option>parent_bg</option> <optional><replaceable>bool</replaceable></optional></term>
   <listitem><para>Use parent for background. Default value: <userinput>false</userinput>.
   </para></listitem>
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;&ndash;pixmap&ndash;bg <replaceable>path_to_xpm</replaceable></option></term>
+  <term><option>--pixmap-bg <replaceable>path_to_xpm</replaceable></option></term>
   <term><option>pixmap_bg</option> <replaceable>path_to_xpm</replaceable></term>
   <listitem><para>Use pixmap from an XPM file specified by <replaceable>path_to_xpm</replaceable> for 
   tray`s background (pixmap will be tiled to fill the whole window).
   </para></listitem>
   </varlistentry>
 
-<!--  <varlistentry> -->
-<!--  <term><option> &ndash;&ndash;permanent</option></term> -->
-<!--  <term><option>permanent</option> <arg><replaceable>bool</replaceable></arg></term> -->
-<!--  <listitem><para>Reacquire tray selection after loss.</para></listitem> -->
-<!--  </varlistentry> -->
-
-<!--  <varlistentry>-->
-<!--  <term><option>&ndash;&ndash;respect&ndash;icon&ndash;hints</option></term>-->
-<!--  <term><option>respect_icon_hints</option> <optional><replaceable>bool</replaceable></optional></term>-->
-<!--  <listitem><para>Do respect icon window min_width/min_height size hints. This may help with unusually-sized icons, which fail-->
-<!--  to resize themselves after being resized to <option>icon_size</option> x-->
-<!--  <option>icon_size</option>. Note, that if stalonetray is configured to ignore icon resize events, this -->
-<!--  option has no effect. Default value: <userinput>false</userinput>.-->
-<!--  </para></listitem>-->
-<!--  </varlistentry>-->
+  <varlistentry>
+  <term><option>-r</option> <replaceable>name</replaceable></term>
+  <term><option>--remote-click-icon</option> <replaceable>name</replaceable></term>
+  <listitem><para>
+  Remote control/click. When this option is specified, stalonetray sends fake
+  click to icon with window named <replaceable>name</replaceable> and exits.
+  Icon is searched for in currently active tray for given screen. By defauld,
+  single click with 1st mousr button is made to the center of the icon. See
+  options below for information on how to alter defaults. NEW in @VERSION_STR@.
+  </para></listitem>
+  </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;&ndash;scrollbars</option> <replaceable>mode</replaceable></term>
+  <term><option>--remote-click-button</option> <replaceable>n</replaceable></term>
+  <listitem><para>
+  Sets remote click button number to <replaceable>n</replaceable> (in X11 numbering order). NEW in @VERSION_STR@.
+  </para></listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term><option>--remote-click-position</option> <replaceable>x</replaceable>x<replaceable>y</replaceable></term>
+  <listitem><para>
+  Sets remote click position. NEW in @VERSION_STR@.
+  </para></listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term><option>--remote-click-type</option> <replaceable>type</replaceable></term>
+  <listitem><para>
+  Sets remote click type which can be either <userinput>single</userinput> or
+  <userinput>double</userinput>. NEW in @VERSION_STR@.
+  </para></listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term><option>--scrollbars</option> <replaceable>mode</replaceable></term>
   <term><option>scrollbars</option> <replaceable>mode</replaceable></term>
   <listitem><para>Set scrollbar mode, one of <userinput>vertical</userinput>,
   <userinput>horizontal</userinput>, <userinput>all</userinput>, or
   <userinput>none</userinput> (default). Scrollbars appear as additional space
   at tray borders that can be clicked to scroll icon area. Mouse wheel also
-  works. NEW in 0.8.
+  works. NEW in @VERSION_STR@.
   </para></listitem>
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;&ndash;scrollbars&ndash;step</option> <replaceable>n</replaceable></term>
+  <term><option>--scrollbars-step</option> <replaceable>n</replaceable></term>
   <term><option>scrollbars_step</option> <replaceable>n</replaceable></term>
-  <listitem><para>Set scrollbar step to <userinput>n</userinput> pixels. NEW in 0.8.
+  <listitem><para>Set scrollbar step to <userinput>n</userinput> pixels. NEW in
+  @VERSION_STR@.
   </para></listitem>
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;&ndash;skip&ndash;taskbar</option></term>
+  <term><option>--skip-taskbar</option></term>
   <term><option>skip_taskbar</option> <optional><replaceable>bool</replaceable></optional></term>
   <listitem><para>Hide tray`s window from the taskbar. Default value:
   <userinput>false</userinput>.
@@ -295,8 +299,8 @@
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;s</option> <replaceable>n</replaceable></term>
-  <term><option>&ndash;&ndash;slot&ndash;size</option> <replaceable>n</replaceable></term>
+  <term><option>-s</option> <replaceable>n</replaceable></term>
+  <term><option>--slot-size</option> <replaceable>n</replaceable></term>
   <term><option>slot_size</option> <replaceable>n</replaceable></term>
   <listitem><para>Set grid slot size to <replaceable>n</replaceable>. Cannot be
   less then <option>icon_size</option> which is default value unless specified.
@@ -305,7 +309,7 @@
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;&ndash;sticky</option></term>
+  <term><option>--sticky</option></term>
   <term><option>sticky</option> <optional><replaceable>bool</replaceable></optional></term>
   <listitem><para>Make tray`s window sticky across multiple desktops/pages.
   Default value: <userinput>false</userinput>.
@@ -313,7 +317,7 @@
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;&ndash;tint&ndash;color</option></term>
+  <term><option>--tint-color</option></term>
   <term><option>tint_color</option> <optional><replaceable>bool</replaceable></optional></term>
   <listitem><para>Set tinting color. Default value:
   <userinput>white</userinput>.
@@ -321,7 +325,7 @@
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;&ndash;tint&ndash;value</option></term>
+  <term><option>--tint-value</option></term>
   <term><option>tint_color</option> <optional><replaceable>bool</replaceable></optional></term>
   <listitem><para>Set tinting level. Default value: <userinput>0</userinput>
   (tinting disabled).
@@ -329,8 +333,8 @@
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;t</option></term>
-  <term><option>&ndash;&ndash;transparent</option></term>
+  <term><option>-t</option></term>
+  <term><option>--transparent</option></term>
   <term><option>transparent</option> <optional><replaceable>bool</replaceable></optional></term>
   <listitem><para>Enable root transparency. Default value:
   <userinput>false</userinput>.
@@ -338,32 +342,32 @@
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;v</option></term>
-  <term><option>&ndash;&ndash;vertical</option></term>
+  <term><option>-v</option></term>
+  <term><option>--vertical</option></term>
   <term><option>vertical</option> <optional><replaceable>bool</replaceable></optional></term>
   <listitem><para>Use vertical layout of icons (horizontal is used by default).</para></listitem>
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;&ndash;window&ndash;layer</option> <replaceable>layer</replaceable></term>
+  <term><option>--window-layer</option> <replaceable>layer</replaceable></term>
   <term><option>window_layer</option> <replaceable>layer</replaceable></term>
-  <listitem><para>Sets the <abbrev>EWMH</abbrev>&ndash;compliant layer of tray`s window. Possible values for <replaceable>layer</replaceable>: 
+  <listitem><para>Sets the <abbrev>EWMH</abbrev>-compliant layer of tray`s window. Possible values for <replaceable>layer</replaceable>: 
   <userinput>bottom</userinput>, <userinput>normal</userinput>, <userinput>top</userinput>. Default value: <userinput>normal</userinput>.
   </para></listitem>
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;&ndash;window&ndash;type</option> <replaceable>type</replaceable></term>
+  <term><option>--window-type</option> <replaceable>type</replaceable></term>
   <term><option>window_type</option> <replaceable>type</replaceable></term>
-  <listitem><para>Sets the <abbrev>EWMH</abbrev>&ndash;compliant type of tray`s window. Possible values for <replaceable>type</replaceable>: 
+  <listitem><para>Sets the <abbrev>EWMH</abbrev>-compliant type of tray`s window. Possible values for <replaceable>type</replaceable>: 
   <userinput>desktop</userinput>, <userinput>dock</userinput>, <userinput>normal</userinput>, <userinput>toolbar</userinput>,
   <userinput>utility</userinput>. Default value: <userinput>dock</userinput>.</para></listitem>
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;&ndash;window&ndash;strut</option> <replaceable>mode</replaceable></term>
+  <term><option>--window-strut</option> <replaceable>mode</replaceable></term>
   <term><option>window_strut</option> <replaceable>mode</replaceable></term>
-  Enable window struts for tray window (to avoid covering of tray window by
+  <listitem><para>Enable window struts for tray window (to avoid covering of tray window by
   maximized windows). Mode can be one of <userinput>top</userinput>,
   <userinput>bottom</userinput>, <userinput>left</userinput>,
   <userinput>right</userinput>, <userinput>none</userinput>, or
@@ -372,7 +376,7 @@
   </varlistentry>
 
   <varlistentry>
-  <term><option>&ndash;&ndash;xsync</option></term>
+  <term><option>--xsync</option></term>
   <term><option>xsync</option> <optional><replaceable>bool</replaceable></optional></term>
   <listitem><para>Operate on X server synchronously (<emphasis>SLOW</emphasis>, turned off by default).
   </para></listitem>
@@ -386,6 +390,22 @@
 -->
   </variablelist>
 </refsect1>
+
+<refsect1> 
+  <title>DEPRICATIONS</title>
+  <para>As of stalonetray @VERSION_STR@ following command line and configuration
+  parameters are depricated:
+  </para>
+  <variablelist>
+  <varlistentry>
+  <term>-w</term>
+  <term>--withdrawn</term>
+  <term>withdrawn</term>
+  <listitem> <para>Please use --docapp-mode instead.</para> </listitem>
+  </varlistentry>
+  </variablelist>
+</refsect1>
+
 <refsect1>
 <title>FILES</title>
 <para><filename>$HOME/.stalonetrayrc</filename> &mdash; default configuration file.</para>
@@ -397,7 +417,7 @@
 
 <para>If you have found a bug, please try to reproduce it with debug level set to 8
 and send the log file to me: <email>busa_ru@users.sourceforge.net</email>. If
-you need support, the best way to get it is also to e&ndash;mail me directly. If
+you need support, the best way to get it is also to e-mail me directly. If
 you have installed stalonetray from distribution repository, you can also file a
 bug there.</para>
 </refsect1>

@@ -53,7 +53,7 @@ int tray_init_pixmap_bg()
 	XpmAttributes xpma;
 	Pixmap mask = None;
 	int rc;
-	xpma.valuemask = XpmReturnAllocPixels;
+	xpma.valuemask = 0;
 	rc = XpmReadFileToPixmap(
 			tray_data.dpy, 
 			tray_data.tray, 
@@ -69,7 +69,7 @@ int tray_init_pixmap_bg()
 	if (mask != None) XFreePixmap(tray_data.dpy, mask);
 	tray_data.bg_pmap_dims.x = xpma.height;
 	tray_data.bg_pmap_dims.y = xpma.width;
-	DBG(8, ("created background pixmap\n"));
+	DBG(8, ("created background pixmap (%dx%d)\n", xpma.width, xpma.height));
 	return SUCCESS;
 }
 #endif
@@ -236,7 +236,11 @@ int tray_update_bg(int update_pixmap)
 						i * tray_data.bg_pmap_dims.x, j * tray_data.bg_pmap_dims.y);
 			}
 		bg_pmap_updated = True;
-	} else if (settings.transparent) {
+	} else 
+	/* If root transparency is enabled, it is neccessary to copy portion of
+	 * root pixmap under the window (root_pmap) to bg_pmap */
+	/* XXX: must correctly work around situations when bg pixmap is smaller than root window (but how?) */
+	if (settings.transparent) {
 		recreate_pixmap(bg_pmap, bg_gc);
 		XCopyArea(tray_data.dpy, root_pmap, bg_pmap, bg_gc, 
 				tray_data.xsh.x, tray_data.xsh.y, 
@@ -244,11 +248,10 @@ int tray_update_bg(int update_pixmap)
 				0, 0);
 	}
 
-	/* XXX: must correctly work around situations when bg pixmap is smaller than root window (but how?) */
+	/* Create an XImage from bg_pmap */
 	bg_img = XGetImage(tray_data.dpy, bg_pmap,
 			0, 0, tray_data.xsh.width, tray_data.xsh.height,
 			XAllPlanes(), ZPixmap);
-
 	if (bg_img == NULL) return FAILURE;
 
 	/* Tint the image if necessary. If bg_pmap was not updated, tinting
@@ -272,7 +275,7 @@ int tray_update_bg(int update_pixmap)
 				XAllPlanes(), ZPixmap);
 
 		/* Proxy structure to work on */
-		static XImage *tmp_img = NULL;
+		XImage *tmp_img = NULL;
 		static Pixmap tmp_pmap = None;
 		static GC tmp_gc = None;	
 
@@ -331,8 +334,8 @@ int tray_calc_window_size(int base_width, int base_height, int *wnd_width, int *
 {
 	*wnd_width = base_width;
 	*wnd_height = base_height;
-	if (settings.scrollbar_mode & SB_MODE_HORZ) *wnd_width += settings.scrollbar_size * 2;
-	if (settings.scrollbar_mode & SB_MODE_VERT) *wnd_height += settings.scrollbar_size * 2;
+	if (settings.scrollbars_mode & SB_MODE_HORZ) *wnd_width += settings.scrollbars_size * 2;
+	if (settings.scrollbars_mode & SB_MODE_VERT) *wnd_height += settings.scrollbars_size * 2;
 	return SUCCESS;
 }
 
@@ -340,8 +343,8 @@ int tray_calc_tray_area_size(int wnd_width, int wnd_height, int *base_width, int
 {
 	*base_width = wnd_width;
 	*base_height = wnd_height;
-	if (settings.scrollbar_mode & SB_MODE_HORZ) *base_width -= settings.scrollbar_size * 2;
-	if (settings.scrollbar_mode & SB_MODE_VERT) *base_height -= settings.scrollbar_size * 2;
+	if (settings.scrollbars_mode & SB_MODE_HORZ) *base_width -= settings.scrollbars_size * 2;
+	if (settings.scrollbars_mode & SB_MODE_VERT) *base_height -= settings.scrollbars_size * 2;
 	return SUCCESS;
 }
 
@@ -379,6 +382,13 @@ int tray_update_window_props()
 
 	tray_calc_window_size(new_width, new_height, &new_width, &new_height);
 
+#if 1
+	/* Not sure if this is really necessary */
+	xsh.x = tray_data.xsh.x;
+	xsh.y = tray_data.xsh.y;
+	xsh.width = new_width;
+	xsh.height = new_height;
+#endif
 	xsh.min_width = new_width;
 	xsh.min_height = new_height;
 	xsh.max_width = new_width;
@@ -440,7 +450,6 @@ int tray_update_window_props()
 
 void tray_create_window(int argc, char **argv)
 {
-	char *wnd_name = PROGNAME;
 	XTextProperty wm_name;
 	XSetWindowAttributes xswa;
 	XClassHint xch;
@@ -470,7 +479,8 @@ void tray_create_window(int argc, char **argv)
 						0, 
 						settings.bg_color.pixel, 
 						settings.bg_color.pixel);
-	if (settings.dockapp_mode == DOCKAPP_WMAKER)
+	DBG(3, ("created tray window: 0x%x\n", tray_data.tray));
+	if (settings.dockapp_mode == DOCKAPP_WMAKER) {
 		tray_data.hint_win = XCreateSimpleWindow(
 							tray_data.dpy,
 							DefaultRootWindow(tray_data.dpy),
@@ -479,8 +489,8 @@ void tray_create_window(int argc, char **argv)
 							0,
 							settings.bg_color.pixel, 
 							settings.bg_color.pixel);
-	DBG(3, ("created tray window: 0x%x\n", tray_data.tray));
-	DBG(3, ("created hint_win window: 0x%x\n", tray_data.hint_win));
+		DBG(3, ("created hint_win window: 0x%x\n", tray_data.hint_win));
+	}
 
 	/* Set tray window properties */
 	xswa.bit_gravity = settings.bit_gravity;
@@ -491,8 +501,19 @@ void tray_create_window(int argc, char **argv)
 			CWBitGravity | CWWinGravity | CWBackingStore, 
 			&xswa);
 
-	if (XmbTextListToTextProperty(tray_data.dpy, &wnd_name, 1, XTextStyle, &wm_name) != Success)
-		DIE(("Invalid window name (THIS IS A BUG)\n"));
+	{
+		/* XXX: use XStoreName ?*/
+		int numtries = 0;
+		/* First, try user-supplied value */
+		while (1) {
+			if (XmbTextListToTextProperty(tray_data.dpy, &settings.wnd_name, 1, XTextStyle, &wm_name) != Success)
+				/* Retry with default value */
+				settings.wnd_name = PROGNAME;
+			else
+				break;
+			if (numtries++ > 1) DIE(("Invalid window name \"%s\"\n", settings.wnd_name));
+		} 
+	}
 	XSetWMName(tray_data.dpy, tray_data.tray, &wm_name);
 	XFree(wm_name.value);
 
@@ -543,16 +564,29 @@ void tray_create_window(int argc, char **argv)
 	scrollbars_create();
 
 	/* Set tray window background if necessary */	
+#ifdef XPM_SUPPORTED
+	if (settings.pixmap_bg) tray_init_pixmap_bg();
+#endif
 	if (settings.parent_bg)
 		XSetWindowBackgroundPixmap(tray_data.dpy, tray_data.tray, ParentRelative);
-	else if (settings.transparent) {
+	else if (settings.transparent || settings.fuzzy_edges) {
 		tray_data.xa_xrootpmap_id = XInternAtom(tray_data.dpy, "_XROOTPMAP_ID", False);
 		tray_data.xa_xsetroot_id = XInternAtom(tray_data.dpy, "_XSETROOT_ID", False);
-		tray_update_bg(True);
 	} 
-#ifdef XPM_SUPPORTED
-	else if (settings.pixmap_bg) tray_init_pixmap_bg();
-#endif
+	tray_update_bg(True);
+}
+
+void tray_create_phony_window()
+{
+	/* Create tray window */
+	tray_data.tray = XCreateSimpleWindow(
+						tray_data.dpy, 
+						DefaultRootWindow(tray_data.dpy),
+						0, 0, 1, 1,
+						0, 
+						0, 0);
+	/* Select for PropertyNotify so that x11_get_server_timestamp() works */
+	XSelectInput(tray_data.dpy, tray_data.tray, PropertyChangeMask);
 }
 
 int tray_set_wm_hints()
@@ -651,10 +685,9 @@ int tray_set_wm_hints()
 	return SUCCESS;
 }
 
-void tray_acquire_selection()
+void tray_init_selection_atoms()
 {
 	static char *tray_sel_atom_name = NULL;
-	Time timestamp;
 
 	/* Obtain selection atom name basing on current screen number */	
 	if (tray_sel_atom_name == NULL) {
@@ -672,8 +705,14 @@ void tray_acquire_selection()
 	tray_data.xa_tray_selection = XInternAtom(tray_data.dpy, tray_sel_atom_name, False);
 	tray_data.xa_tray_opcode = XInternAtom(tray_data.dpy, "_NET_SYSTEM_TRAY_OPCODE", False);
 	tray_data.xa_tray_data = XInternAtom(tray_data.dpy, "_NET_SYSTEM_TRAY_MESSAGE_DATA", False);
+}
 
-	timestamp = x11_get_server_timestamp(tray_data.dpy, tray_data.tray);
+void tray_acquire_selection()
+{
+	Time timestamp = x11_get_server_timestamp(tray_data.dpy, tray_data.tray);
+
+	tray_init_selection_atoms();
+
 	/* Save old selection owner */
 	tray_data.old_selection_owner = XGetSelectionOwner(tray_data.dpy, tray_data.xa_tray_selection);
 

@@ -194,7 +194,7 @@ int main(int argc, char** argv)
 		xclient_msg32(dpy, tray, xa_tray_opcode, CurrentTime, SYSTEM_TRAY_REQUEST_DOCK, wnd, 0, 0);
 	}
 
-	XSelectInput(dpy, wnd, SubstructureNotifyMask | StructureNotifyMask | PropertyChangeMask );
+	XSelectInput(dpy, wnd, SubstructureNotifyMask | StructureNotifyMask | PropertyChangeMask | ButtonPressMask | ButtonReleaseMask );
 	
 	XMapRaised(dpy, wnd);	
 
@@ -222,6 +222,17 @@ int main(int argc, char** argv)
 					printf("0x%x: maintaining size\n", wnd);
 					XResizeWindow(dpy, wnd, xsh.width, xsh.height);
 				}
+				break;
+			case ButtonPress:
+			case ButtonRelease:
+				printf("%s: btn=%d, state=0x%x, x=%d, y=%d, send_event=%d\n",
+						ev.type == ButtonPress ? "ButtonPress" : "ButtonRelease",
+						ev.xbutton.button,
+						ev.xbutton.state,
+						ev.xbutton.x,
+						ev.xbutton.y,
+						ev.xbutton.send_event);
+				break;
 			default:
 				break;
 			}

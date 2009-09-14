@@ -69,7 +69,7 @@ int layout_handle_icon_resize(struct TrayIcon *ti)
 
 	icon_list_backup();
 	old_grid_sz = grid_sz;
-	
+
 	if (ti->is_layed_out) {
 		/* if the icon is already layed up and
 		 * its grid rect did not change we do nothing,
@@ -182,12 +182,12 @@ int layout_translate_to_window(struct TrayIcon *ti)
 		swap(ti->l.grd_rect.w, ti->l.grd_rect.h);
 		swap(ti->l.grd_rect.x, ti->l.grd_rect.y);
 	}
-	
+
 	if (settings.icon_gravity & GRAV_W)
 		ti->l.icn_rect.x = ti->l.grd_rect.x * settings.slot_size;
 	else
 		ti->l.icn_rect.x = tray_data.xsh.width - (ti->l.grd_rect.x + ti->l.grd_rect.w) * settings.slot_size;
-	
+
 	if (settings.icon_gravity & GRAV_N)
 		ti->l.icn_rect.y =	ti->l.grd_rect.y * settings.slot_size;
 	else 
@@ -201,8 +201,13 @@ int layout_translate_to_window(struct TrayIcon *ti)
 		swap(ti->l.grd_rect.x, ti->l.grd_rect.y);
 	}
 
-	ti->l.icn_rect.x += tray_data.scrollbars_data.scroll_base.x - tray_data.scrollbars_data.scroll_pos.x;
-	ti->l.icn_rect.y += tray_data.scrollbars_data.scroll_base.y - tray_data.scrollbars_data.scroll_pos.y;
+	/* TODO: must be in separate function, with a reverse */
+	ti->l.icn_rect.x += ((settings.icon_gravity & GRAV_W ? 1 : -1) * 
+							(tray_data.scrollbars_data.scroll_base.x - 
+						tray_data.scrollbars_data.scroll_pos.x));
+	ti->l.icn_rect.y += ((settings.icon_gravity & GRAV_N ? 1 : -1) * 
+							(tray_data.scrollbars_data.scroll_base.y -
+						tray_data.scrollbars_data.scroll_pos.y));
 
 	DBG(6, ("grid %dx%d+%d+%d -> window  %dx%d+%d+%d\n",
 				ti->l.grd_rect.w, ti->l.grd_rect.h, ti->l.grd_rect.x, ti->l.grd_rect.y,
@@ -212,7 +217,7 @@ int layout_translate_to_window(struct TrayIcon *ti)
 	                   ti->l.icn_rect.y == old_icn_rect.y &&
 	                   ti->l.icn_rect.w == old_icn_rect.w &&
 	                   ti->l.icn_rect.h == old_icn_rect.h);
-	
+
 	return NO_MATCH;
 }
 
@@ -220,6 +225,16 @@ int layout_translate_to_window(struct TrayIcon *ti)
 int grid_add(struct TrayIcon *ti)
 {
 	struct IconPlacement *pmt;
+
+	ti->l.grd_rect.x = -1;
+	ti->l.grd_rect.y = -1;
+	ti->l.grd_rect.w = -1;
+	ti->l.grd_rect.h = -1;
+
+	ti->l.icn_rect.x = -1;
+	ti->l.icn_rect.y = -1;
+	ti->l.icn_rect.w = -1;
+	ti->l.icn_rect.h = -1;
 
 	grid_translate_from_window(ti);
 
@@ -240,7 +255,7 @@ int grid_remove(struct TrayIcon *ti)
 	/* implementation is similar to that of layout_handle_icon_resize(),
 	 * see detailed description there */
 	icon_list_forall_from(ti, &layout_unset_flag);
-	if (settings.shrink_back_mode || settings.scrollbar_mode != SB_MODE_NONE) grid_update(ti, False);
+	if (settings.shrink_back_mode || settings.scrollbars_mode != SB_MODE_NONE) grid_update(ti, False);
 	/* Since NULL is a special case for icon_list_froall_from,
 	 * avoid calling it for the last icon */
 	if (ti->next != NULL)
@@ -269,7 +284,7 @@ int grid_place_icon(struct TrayIcon *ti, struct IconPlacement *ip)
 	struct Point *p = &ip->pos;
 	/* Set the flag if icon position was really updated */
 	ti->is_updated = (p->x != l->grd_rect.x || p->y != l->grd_rect.y);
-	if (ti->is_updated) {
+	if (ti->is_updated || !ti->is_layed_out) {
 		DBG(6, ("updating pos for (%d,%d) to (%d,%d)\n", 
 				ti->l.grd_rect.x, ti->l.grd_rect.y,
 				p->x, p->y));
@@ -282,26 +297,16 @@ int grid_place_icon(struct TrayIcon *ti, struct IconPlacement *ip)
 	/* Update icon position */	
 	layout_translate_to_window(ti);
 	DBG(6, ("grid size: %dx%d\n", grid_sz.x, grid_sz.y));
-#ifdef DEBUG
+#if defined(DEBUG) && 0
+	/* Valgrind note: some fields may be not initialized yet at the time of
+	 * this call; memcheck will complain, feel free to ignore */
 	print_icon_data(ti);
 #endif
 	return ti->is_updated;
 }
 
+/* Oh, the wonders of languages without closures... */
 static struct Rect chk_rect;
-
-#define RX1(r) (r.x)
-#define RY1(r) (r.y)
-#define RX2(r) (r.x + r.w - 1)
-#define RY2(r) (r.y + r.h - 1)
-
-#define RECTS_ISECT_(r1, r2) \
-	(((RX1(r1) <= RX1(r2) && RX1(r2) <= RX2(r1)) || \
-	  (RX1(r1) <= RX2(r2) && RX2(r2) <= RX2(r1))) && \
-	 ((RY1(r1) <= RY1(r2) && RY1(r2) <= RY2(r1)) || \
-	  (RY1(r1) <= RY2(r2) && RY2(r2) <= RY2(r1))))
-
-#define RECTS_ISECT(r1, r2) (RECTS_ISECT_(r1,r2) || RECTS_ISECT_(r2,r1))
 
 /* Check if grid rect of ti intersects with chk_rect */
 int find_obstacle(struct TrayIcon *ti)
@@ -320,7 +325,7 @@ int grid_check_rect_free(int x, int y, int w, int h)
 	chk_rect.y = y;
 	chk_rect.w = w;
 	chk_rect.h = h;
-	
+
 	obst = icon_list_advanced_find(&find_obstacle);
 
 	if (obst == NULL) {
@@ -343,10 +348,10 @@ int icon_placement_create(struct IconPlacement *ip, int x, int y, struct Rect *r
 
 	/* scrollbar & tray orientation-aware shortcuts for maximal layout dimensions.
 	 * if scrollbar is enabled in some direction, layout size in this dimension is not limited */
-	#define max_layout_width (settings.scrollbar_mode & SB_MODE_HORZ ? \
+	#define max_layout_width (settings.scrollbars_mode & SB_MODE_HORZ ? \
 			INT_MAX : \
 			((settings.vertical ? settings.max_tray_dims.y : settings.max_tray_dims.x) / settings.slot_size))
-	#define max_layout_height (settings.scrollbar_mode & SB_MODE_VERT ? \
+	#define max_layout_height (settings.scrollbars_mode & SB_MODE_VERT ? \
 			INT_MAX : \
 			((settings.vertical ? settings.max_tray_dims.x : settings.max_tray_dims.y) / settings.slot_size))
 
@@ -363,7 +368,7 @@ int icon_placement_create(struct IconPlacement *ip, int x, int y, struct Rect *r
 
 	ip->valid = (ip->pos.x + rect->w <= max_layout_width) &&
 				(ip->pos.y + rect->h <= max_layout_height);
-	
+
 #ifdef DEBUG
 	DBG(8, ("placement (%d, %d, %d, %d) is %s\n", 
 	        x, y, ip->sz_delta.x, ip->sz_delta.y,
@@ -391,7 +396,7 @@ void icon_placement_choose_best(struct IconPlacement *old, struct IconPlacement 
 	struct Point new_wnd_sz_delta, old_wnd_sz_delta;
 	int old_wnd_delta_norm = 0, new_wnd_delta_norm = 0;
 	int wnd_norm_cmp = 0;
-	
+
 	/* I whish there were nested functions in C standard */
 	#define calc_wnd_sz_delta(delta,pmt) do { \
 		delta.x = cutoff((grid_sz.x + pmt->sz_delta.x) * settings.slot_size - tray_data.xsh.width, 0, pmt->sz_delta.x * settings.slot_size); \
@@ -408,8 +413,8 @@ void icon_placement_choose_best(struct IconPlacement *old, struct IconPlacement 
 	calc_wnd_sz_delta(old_wnd_sz_delta, old);
 	calc_wnd_sz_delta(new_wnd_sz_delta, new);
 
-	/* Some black magic. This is probably buggy and you are not
-	 * supposed to understand this. The basic idea is that sometimes
+	/* Some black magic. This is probably buggy and you are not supposed to
+	 * understand this (I definetly don't). The basic idea is that sometimes
 	 * layout resize means window resize. Sometimes it does not. */
 	if (settings.shrink_back_mode) {
 		if (grid_sz.x >= settings.orig_tray_dims.x / settings.slot_size) {
