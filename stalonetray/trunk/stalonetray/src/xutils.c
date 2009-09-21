@@ -46,14 +46,14 @@ int x11_error_handler(Display *dpy, XErrorEvent *err)
 	XGetErrorText(dpy, trapped_x11_error_code, msg, sizeof(msg)-1);
 	snprintf(req_num_str, 32, "%d", err->request_code);
 	XGetErrorDatabaseText(dpy, "XRequest", req_num_str, "Unknown", req_str, PATH_MAX);
-	DBG(6, ("X11 error: %s (request: %s, resource 0x%x)\n", msg, req_str, err->request_code, err->minor_code, err->resourceid));
+	LOG_ERROR(("X11 error: %s (request: %s, resource 0x%x)\n", msg, req_str, err->request_code, err->minor_code, err->resourceid));
 	return 0;
 }
 
 int x11_ok_helper(const char *file, const int line, const char *func)
 {
 	if (trapped_x11_error_code) {
-		DBG(6, ("X11 error %d detected at %s:%d:%s\n", 
+		LOG_ERROR(("X11 error %d detected at %s:%d:%s\n", 
 					trapped_x11_error_code,
 					file,
 					line,
@@ -87,7 +87,6 @@ static Atom timestamp_atom = None;
 
 Bool x11_wait_for_timestamp(Display *dpy, XEvent *xevent, XPointer data)
 {
-	DBG(10, ("event: type=%d, window=0x%x\n", xevent->type, xevent->xany.window));
 	return ((xevent->type == PropertyNotify &&
 	    xevent->xproperty.window == *((Window *)data) &&
 		xevent->xproperty.atom == timestamp_atom) ||
@@ -116,7 +115,7 @@ Time x11_get_server_timestamp(Display *dpy, Window wnd)
 	return x11_ok() ? xevent.xproperty.time : CurrentTime;
 }
 
-int x11_get_win_prop32(Display *dpy, Window dst, Atom atom, Atom type, unsigned char **data, unsigned long *len)
+int x11_get_window_prop32(Display *dpy, Window dst, Atom atom, Atom type, unsigned char **data, unsigned long *len)
 {
 	Atom act_type;
 	int act_fmt, rc;
@@ -244,33 +243,20 @@ int x11_refresh_window(Display *dpy, Window dst, int width, int height, int expo
 int x11_set_window_size(Display *dpy, Window w, int x, int y)
 {
 	XSizeHints xsh;
-	
 	xsh.flags = PSize;
 	xsh.width = x;
 	xsh.height = y;
-
 	XSetWMNormalHints(dpy, w, &xsh);
 	XResizeWindow(dpy, w, x, y);
-
-	if (!x11_ok()) {
-		DBG(3, ("failed to set 0x%x size to %dx%d\n", w, x, y));
-		return FAILURE;
-	}
-
+	if (!x11_ok()) return FAILURE;
 	return SUCCESS;
 }
 
 int x11_get_window_size(Display *dpy, Window w, int *x, int *y)
 {
 	XWindowAttributes xwa;
-
 	XGetWindowAttributes(dpy, w, &xwa);
-	
-	if (!x11_ok()) {
-		DBG(3, ("failed to get 0x%x attributes\n", w));
-		return FAILURE;
-	}
-
+	if (!x11_ok()) return FAILURE;
 	*x = xwa.width;
 	*y = xwa.height;
 	return SUCCESS;
@@ -283,9 +269,7 @@ int x11_get_window_min_size(Display *dpy, Window w, int *x, int *y)
 	int rc = FAILURE;
 	if (XGetWMNormalHints(dpy, w, &xsh, &flags)) {
 		flags = xsh.flags & flags;
-		DBG(8, ("flags = 0x%x\n", flags));
 		if (flags & PMinSize) {
-			DBG(8, ("min_width = %d, min_height = %d\n", xsh.min_width, xsh.min_height));
 			*x = xsh.min_width;
 			*y = xsh.min_height;
 			rc = SUCCESS;
@@ -304,6 +288,14 @@ int x11_get_window_abs_coords(Display *dpy, Window dst, int *x, int *y)
 	XGetWindowAttributes(dpy, dst, &xwa);
 	XTranslateCoordinates(dpy, dst, xwa.root, 0, 0, x, y, &child);
 	return x11_ok();
+}
+
+char *x11_get_window_name(Display *dpy, Window dst, char *def)
+{
+	static char *name;
+	if (name != NULL) XFree(name);
+	if (!XFetchName(dpy, dst, &name)) name = NULL;
+	return (name != NULL ? name : def);
 }
 
 Window x11_find_subwindow_by_name(Display *dpy, Window tgt, char *name)
@@ -410,10 +402,9 @@ const char *x11_event_names[LASTEvent] = {
 void x11_dump_win_info(Display *dpy, Window wid)
 {	
 #if defined(DEBUG) && defined(ENABLE_DUMP_WIN_INFO)
-	if (settings.dbg_level >= 8) {
+	if (settings.log_level >= LOG_LEVEL_TRACE) {
 		char cmd[PATH_MAX];
-		DBG(8, ("Dumping info for 0x%x\n", wid));
-		snprintf(cmd, PATH_MAX, "xwininfo -size -bits -stats -id 0x%x 1>&2\n", (unsigned int) wid);
+		snprintf(cmd, PATH_MAX, "xwininfo -tree -size -bits -stats -id 0x%x 1>&2\n", (unsigned int) wid);
 		system(cmd);
 		snprintf(cmd, PATH_MAX, "xprop -id 0x%x 1>&2\n", (unsigned int) wid);
 		system(cmd);

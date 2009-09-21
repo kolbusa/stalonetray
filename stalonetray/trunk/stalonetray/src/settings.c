@@ -39,7 +39,7 @@ void init_default_settings()
 	settings.bg_color_str		= "#777777";
 	settings.display_str		= NULL;
 #ifdef DEBUG
-	settings.dbg_level			= 0;
+	settings.log_level			= LOG_LEVEL_ERR;
 #endif
 	settings.geometry_str		= NULL;
 	settings.max_geometry_str	= "0x0";
@@ -66,27 +66,20 @@ void init_default_settings()
 	settings.min_space_policy	= 0;
 	settings.pixmap_bg          = 0;
 	settings.bg_pmap_path       = NULL;
-
 	settings.tint_level         = 0;
 	settings.tint_color.pixel   = 0xffffff;
 	settings.fuzzy_edges        = 0;
-
 	settings.dockapp_mode		= DOCKAPP_NONE;
-
 	settings.scrollbars_size    = -1;
 	settings.scrollbars_mode    = SB_MODE_NONE;
 	settings.scrollbars_inc		= -1;
-
 	settings.wm_strut_mode		= WM_STRUT_AUTO;
-
 	settings.kludge_flags		= 0;
-
 	settings.remote_click_name  = NULL;
 	settings.remote_click_btn   = REMOTE_CLICK_BTN_DEFAULT;
 	settings.remote_click_cnt   = REMOTE_CLICK_CNT_DEFAULT;
 	settings.remote_click_pos.x = REMOTE_CLICK_POS_DEFAULT;
 	settings.remote_click_pos.y = REMOTE_CLICK_POS_DEFAULT;
-
 #ifdef DELAY_EMBEDDING_CONFIRMATION
 	settings.confirmation_delay = 3;
 #endif
@@ -94,7 +87,25 @@ void init_default_settings()
 
 /* ******* general parsing utils ********* */
 
-#define PARSING_ERROR(msg,str) if (!silent) ERR(("Parsing error: " msg ", \"%s\" found\n", str));
+#define PARSING_ERROR(msg,str) if (!silent) LOG_ERROR(("Parsing error: " msg ", \"%s\" found\n", str));
+
+/* Parse log level */
+int parse_log_level(char *str, int **tgt, int silent)
+{
+	if (!strcmp(str, "err"))
+		**tgt = LOG_LEVEL_ERR;
+	else if (!strcmp(str, "info"))
+		**tgt = LOG_LEVEL_INFO;
+#ifdef DEBUG
+	else if (!strcmp(str, "trace"))
+		**tgt = LOG_LEVEL_TRACE;
+#endif
+	else {
+		PARSING_ERROR("err, info, or trace expected", str);
+		return FAILURE;
+	}
+	return SUCCESS;
+}
 
 /* Parse dockapp mode */
 int parse_dockapp_mode(char *str, int **tgt, int silent)
@@ -117,13 +128,9 @@ int parse_dockapp_mode(char *str, int **tgt, int silent)
 int parse_gravity(char *str, int **tgt, int silent)
 {
 	int i, r = 0, s;
-
 	if (str == NULL) goto fail;
-
 	s = strlen(str);
-
 	if (s > 2) goto fail;
-	
 	for (i = 0; i < s; i++)
 		switch (tolower(str[i])) {
 			case 'n': r |= GRAV_N; break;
@@ -132,12 +139,9 @@ int parse_gravity(char *str, int **tgt, int silent)
 			case 'e': r |= GRAV_E; break;
 			default: goto fail;
 		}
-
 	if ((r & GRAV_N && r & GRAV_S) || (r & GRAV_E && r & GRAV_W)) 
 		goto fail;
-
 	**tgt = r;
-
 	return SUCCESS;
 fail:
 	PARSING_ERROR("gravity expected", str);
@@ -270,7 +274,7 @@ int parse_copystr(char *str, char ***tgt, int silent)
 	/* Valgrind note: this memory will never
 	 * be freed before stalonetray's exit. */
 	**tgt = strdup(str);
-	if (**tgt == NULL) DIE(("Out of memory"));
+	if (**tgt == NULL) DIE_OOM(("Could not copy value from parameter\n"));
 	return SUCCESS;
 }
 
@@ -314,7 +318,6 @@ int parse_sb_mode(char *str, int **tgt, int silent)
 /* Parses remote op specification */
 int parse_remote(char *str, void **tgt, int silent)
 {
-
 #define NEXT_TOK(str, rest) do { \
 	(str) = (rest); \
 	if ((str) != NULL) { \
@@ -322,7 +325,6 @@ int parse_remote(char *str, void **tgt, int silent)
 		if ((rest) != NULL) *((rest)++)=0; \
 	} \
 } while(0)
-
 #define PARSE_INT(tgt, str, tail, def, msg) do { \
 	if (str == NULL || *(str) == '\0') { \
 		(tgt) = def; \
@@ -334,7 +336,6 @@ int parse_remote(char *str, void **tgt, int silent)
 		} \
 	} \
 } while(0)
-
 	/* Handy names for parameters */
 	int *flag = (int *) tgt[0];
 	char **name = (char **) tgt[1];
@@ -342,9 +343,7 @@ int parse_remote(char *str, void **tgt, int silent)
 	struct Point *pos = (struct Point *) tgt[3];
 	/* Local variables */
 	char *rest = str, *tail;
-
 	if (str == NULL || strlen(str) == 0) return FAILURE;
-
 	*flag = 1;
 	NEXT_TOK(str, rest);
 	*name = strdup(str);
@@ -355,7 +354,6 @@ int parse_remote(char *str, void **tgt, int silent)
 	NEXT_TOK(str, rest);
 	PARSE_INT(pos->y, str, tail, INT_MIN, "remote click: y coordinate expected");
 	return SUCCESS;
-
 #undef NEXT_TOK
 #undef PARSE_INT
 }
@@ -393,28 +391,19 @@ struct Param {
 	char *short_name;		/* Short command line parameter name */
 	char *long_name;		/* Long command line parameter name */
 	char *rc_name;			/* Parameter name for rc file */
-
 	void *target[MAX_TARGETS];/* Pointers to the values that are set by this parameter */
-
 	param_parser_t parser;	/* Pointer to parsing function */
-
 	int pass;				/* 0th pass parameters are parsed before rc file,
 							   1st pass parameters are parsed after it */
-
 	int takes_arg;			/* Wheather this parameter takes an argument */
-
 	int optional_arg; 		/* Wheather the argument is optional */
-
 	char *default_arg_val;	/* Default value of the argument if none is given */
-
 	/* char *desc; */		/* TODO: Description */
 };
 
 struct Param params[] = {
 	{"-display", NULL, "display", {&settings.display_str}, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
-#ifdef DEBUG
-	{NULL, "--dbg-level", "dbg_level", {&settings.dbg_level}, (param_parser_t) &parse_int, 1, 1, 0, NULL},
-#endif
+	{NULL, "--log-level", "log_level", {&settings.log_level}, (param_parser_t) &parse_log_level, 1, 1, 0, NULL},
 	{"-bg", "--background", "background", {&settings.bg_color_str}, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
 	{"-c", "--config", NULL, {&settings.config_fname}, (param_parser_t) &parse_copystr, 0, 1, 0, NULL},
 #ifdef DELAY_EMBEDDING_CONFIRMATION
@@ -459,6 +448,7 @@ struct Param params[] = {
 
 void usage(char *progname) 
 {
+	printf(	"\nstalonetray "VERSION" [ " FEATURE_LIST " ]\n");
 	printf( "\nUsage: %s [options...]\n", progname);
 	printf( "\n"
 			"For short options argument can be specified as -o value or -ovalue.\n"
@@ -468,21 +458,18 @@ void usage(char *progname)
 			"\n"
 			"Possible options are:\n"
 			"    -display <display>          use X display <display>\n"
-#ifdef DEBUG
-			"    --dbg-level <n>             set the level of debug output to <n>\n"
-			"                                (defalt: 0)\n"
-#endif
 			"    -bg, --background <color>   select background color (default: #777777)\n"
 			"    -c, --config <filename>     read configuration from <file>\n"
 			"                                (instead of default $HOME/.stalonetrayrc)\n"
-			"    -d, --decorations [<deco>]  set what part of window decorations are\n"
+			"    -d, --decorations <deco>    set what part of window decorations are\n"
 			"                                visible; deco can be: none (default),\n"
 			"                                title, border, all\n"
 			"    --dockapp-mode [<mode>]     enable dockapp mode; mode can be none (default),\n"
 			"                                simple (default if no mode specified), or wmaker\n"
 			"    -f, --fuzzy-edges [<level>] set edges fuzziness level from\n"
 			"                                0 (disabled) to 3 (maximum); works with\n"
-			"                                tinting and/or pixmap background\n"
+			"                                tinting and/or pixmap background;\n"
+			"                                if not specified, level defaults to 2\n"
 			"    [-]-geometry <geometry>     set initial tray`s geometry (width and height\n"
 			"                                are defined in icon slots; offsets are defined\n"
 			"                                in pixels)\n"
@@ -491,9 +478,16 @@ void usage(char *progname)
 			"    --icon-gravity <gravity>    icon positioning gravity (NW, NE, SW, SE)\n"
 			"    -i, --icon-size <n>         set basic icon size to <n>, default: 24\n"
 			"    -h, --help                  show this message\n"
-			"    --kludges <list>            enable specific kludges for non-conforming WMs\n"
-			"                                and/or stalonetray bugs; argument is a comma-\n"
-			"                                separated list of:\n"
+#ifdef DEBUG
+			"    --log-level <level>         set the level of output to either err\n"
+			"                                (default), info, or trace\n"
+#else
+			"    --log-level <level>         set the level of output to either err\n"
+			"                                (default), or info\n"
+#endif
+			"    --kludges <list>            enable specific kludges to work around\n"
+			"                                non-conforming WMs and/or stalonetray bugs;\n"
+			"                                argument is a comma-separated list of:\n"
 			"                                 - fix_window_pos (fix window position),\n"
 			"                                 - force_icons_size (ignore icon resizes),\n"
 			"                                 - use_icons_hints (use icon size hints)\n"
@@ -550,11 +544,10 @@ int parse_cmdline(int argc, char **argv, int pass)
 						arg = *argv + strlen(p->short_name);
 					else if (argc > 1 && argv[1][0] != '-') { /* accept arguments in the form -a 5,
 																 do not accept values starting with '-' */
-																 
 						arg = *(++argv);
 						argc--;
 					} else if(!p->optional_arg) { /* argument is missing */
-						ERR(("%s expects an argument\n", p->short_name));
+						LOG_ERROR(("%s expects an argument\n", p->short_name));
 						break;
 					} else /* argument is optional, use default value */
 							arg = p->default_arg_val;
@@ -566,7 +559,7 @@ int parse_cmdline(int argc, char **argv, int pass)
 							arg = *(++argv); 
 							argc--;
 						} else if (!p->optional_arg) { /*argument is missing */
-							ERR(("%s expects an argument\n", p->long_name));
+							LOG_ERROR(("%s expects an argument\n", p->long_name));
 							break;
 						} else /* argument is optional, use default value */
 							arg = p->default_arg_val;
@@ -580,17 +573,11 @@ int parse_cmdline(int argc, char **argv, int pass)
 				break;
 			}
 		}
-		
 #define USAGE_AND_DIE() do { usage(progname); DIE(("Could not parse command line\n")); } while (0)
-
 		if (match == NULL) USAGE_AND_DIE();
-		
 		if (match->pass != pass) continue;
-		
-		assert(arg != NULL);
-
-		DBG(4, ("cmdline: pass %d, param \"%s\", arg \"%s\"\n", pass, match->long_name != NULL ? match->long_name : match->short_name, arg));
-
+		if (arg == NULL) DIE_IE(("Argument cannot be NULL!\n"));
+		LOG_TRACE(("cmdline: pass %d, param \"%s\", arg \"%s\"\n", pass, match->long_name != NULL ? match->long_name : match->short_name, arg));
 		if (!match->parser(arg, match->target, match->optional_arg)) {
 			if (match->optional_arg) {
 				argc++; argv--;
@@ -599,14 +586,11 @@ int parse_cmdline(int argc, char **argv, int pass)
 			} else
 				USAGE_AND_DIE();
 		}
-
 	}
-
 	if (settings.need_help) {
 		usage(progname);
 		exit(0);
 	}
-
 	return SUCCESS;
 }
 
@@ -625,17 +609,14 @@ int get_args(char *line, int *argc, char ***argv)
 {
 	int q_flag = 0;
 	char *arg_start, *q_pos;
-	
 	*argc = 0;
 	*argv = NULL;
-	
 	/* 1. Strip leading spaces */
 	SKIP_SPACES(line);
 	if (0 == *line) { /* meaningless line */
 		return SUCCESS;
 	}
 	arg_start = line;
-
 	/* 2. Strip comments */
 	for (; 0 != *line; line++) {
 		q_flag = ('"' == *line) ? !q_flag : q_flag;
@@ -645,14 +626,13 @@ int get_args(char *line, int *argc, char ***argv)
 		}
 	}
 	if (q_flag) { /* disbalance of quotes */
-		ERR(("Disbalance of quotes\n"));
+		LOG_ERROR(("Disbalance of quotes\n"));
 		return FAILURE;
 	}
 	if (arg_start == line) { /* meaningless line */
 		return SUCCESS;
 	}
 	line--;
-	
 	/* 3. Strip trailing spaces */	
 	for (; line != arg_start && isspace((int) *line); line--);
 	if (arg_start == line) { /* meaningless line */
@@ -660,20 +640,18 @@ int get_args(char *line, int *argc, char ***argv)
 	}
 	*(line + 1) = 0; /* this _is_ really ok since isspace(0) != 0 */
 	line = arg_start;
-	
 	/* 4. Extract arguments */
 	do {
 		(*argc)++;
 		/* Add space to store one more argument */
 		if (NULL == (*argv = realloc(*argv, *argc * sizeof(char *)))) 
-			DIE(("Out of memory\n"));
-		
+			DIE_OOM(("Could not allocate memory to parse parameters\n"));
 		if (*arg_start == '"') { /* 4.1. argument is quoted: find matching quote */
 			arg_start++;
 			(*argv)[*argc - 1] = arg_start;
 			if (NULL == (q_pos = strchr(arg_start, '"'))) {
 				free(*argv);
-				DIE(("Internal error: quotes balance calculation failed"));
+				DIE_IE(("Quotes balance calculation failed\n"));
 				return FAILURE;
 			}
 			arg_start = q_pos;
@@ -681,14 +659,12 @@ int get_args(char *line, int *argc, char ***argv)
 			(*argv)[*argc - 1] = arg_start;
 			for (; 0 != *arg_start && !isspace((int) *arg_start); arg_start++);
 		}
-
 		if (*arg_start != 0) {
 			*arg_start = 0;
 			arg_start++;
 			SKIP_SPACES(arg_start);
 		}
 	} while(*arg_start != 0);
-	
 	return SUCCESS;
 }
 
@@ -712,19 +688,19 @@ void parse_rc()
 	/* 1. Setup file name */
 	if (settings.config_fname == NULL) {
 		if ((home_dir = getenv("HOME")) == NULL) {
-			ERR(("You have no $HOME. I'm sorry for you.\n"));
+			LOG_ERROR(("You have no $HOME. I'm sorry for you.\n"));
 			return;
 		}
 		snprintf(config_fname, PATH_MAX-1, "%s/%s", home_dir, STALONETRAY_RC);
 		settings.config_fname = config_fname;
 	}
 
-	DBG(3, ("using config file \"%s\"\n", settings.config_fname));
+	LOG_INFO(("using config file \"%s\"\n", settings.config_fname));
 
 	/* 2. Open file */
 	cfg = fopen(settings.config_fname, "r");
 	if (cfg == NULL) {
-		ERR(("could not open %s (%s)\n", settings.config_fname, strerror(errno)));
+		LOG_ERROR(("could not open %s (%s)\n", settings.config_fname, strerror(errno)));
 		return;
 	}
 
@@ -733,12 +709,12 @@ void parse_rc()
 	while (!feof(cfg)) {
 		lnum++;
 		if (fgets(buf, READ_BUF_SZ, cfg) == NULL) {
-			if (ferror(cfg)) ERR(("read error (%s)\n", strerror(errno)));
+			if (ferror(cfg)) LOG_ERROR(("read error (%s)\n", strerror(errno)));
 			break;
 		}
 
 		if (!get_args(buf, &argc, &argv)) {
-			DIE(("rc file parse error at %s:%d: could not parse line\n", settings.config_fname, lnum));
+			DIE(("Configuration file parse error at %s:%d: could not parse line\n", settings.config_fname, lnum));
 		}
 		if (!argc) continue; /* This is empty/comment-only line */
 
@@ -746,7 +722,7 @@ void parse_rc()
 		for (p = params; p->parser != NULL; p++) {
 			if (p->rc_name != NULL && strcmp(argv[0], p->rc_name) == 0) {
 				if (argc - 1 > (p->takes_arg ? 1 : 0) || (!p->optional_arg && argc - 1 < 1)) 
-					DIE(("rc file parse error at %s:%d:" 
+					DIE(("Configuration file parse error at %s:%d:" 
 								"invalid number of args for \"%s\" (%s required)\n", 
 								settings.config_fname, 
 								lnum, 
@@ -758,12 +734,12 @@ void parse_rc()
 			}
 		}
 		if (!match) {
-			DIE(("rc file parse error at %s:%d: unrecognized rc file keyword \"%s\".\n", settings.config_fname, lnum, argv[0]));
+			DIE(("Configuration file parse error at %s:%d: unrecognized rc file keyword \"%s\".\n", settings.config_fname, lnum, argv[0]));
 		}
 		assert(arg != NULL);
-		DBG(4, ("rc: param \"%s\", arg \"%s\"\n", match->rc_name, arg));
+		LOG_TRACE(("rc: param \"%s\", arg \"%s\"\n", match->rc_name, arg));
 		if (!match->parser(arg, match->target, False)) {
-			DIE(("Rc file parse error at %s:%d: could not parse argument for \"%s\".\n", settings.config_fname, lnum, argv[0]));
+			DIE(("Configuration file parse error at %s:%d: could not parse argument for \"%s\".\n", settings.config_fname, lnum, argv[0]));
 		}
 		free(argv);
 	}
@@ -789,51 +765,39 @@ void interpret_settings()
 	int rc;
 	int dummy;
 	XWindowAttributes root_wa;
-
 	/* Sanitize icon size */
 	val_range(settings.icon_size, MIN_ICON_SIZE, INT_MAX);
 	if (settings.slot_size < settings.icon_size) settings.slot_size = settings.icon_size;
-
 	/* Sanitize scrollbar settings */
 	if (settings.scrollbars_mode != SB_MODE_NONE) {
 		val_range(settings.scrollbars_inc, settings.slot_size / 2, INT_MAX);
 		if (settings.scrollbars_size < 0) settings.scrollbars_size = settings.slot_size / 4;
-		DBG(9, ("final scrollbars params: size=%d, inc=%d\n", settings.scrollbars_size, settings.scrollbars_inc));
 	}
-
 	/* Sanitize all gravity strings */
 	settings.icon_gravity |= ((settings.icon_gravity & GRAV_V) ? 0 : GRAV_N);
 	settings.icon_gravity |= ((settings.icon_gravity & GRAV_H) ? 0 : GRAV_W);
-
 	settings.win_gravity = gravity_matrix[settings.grow_gravity];
 	settings.bit_gravity = gravity_matrix[settings.icon_gravity];
-
 	/* Parse all background-related settings */
 #ifdef XPM_SUPPORTED
 	settings.pixmap_bg = (settings.bg_pmap_path != NULL);
 #endif
-
 	if (settings.pixmap_bg) {
 		settings.parent_bg = False;
 		settings.transparent = False;
 	}
-
 	if (settings.transparent)
 		settings.parent_bg = False;
-
 	/* Parse background color */
 	rc = XParseColor(tray_data.dpy, XDefaultColormap(tray_data.dpy, DefaultScreen(tray_data.dpy)),
 			settings.bg_color_str, &settings.bg_color);
 	if (rc) 
 		XAllocColor(tray_data.dpy, XDefaultColormap(tray_data.dpy, DefaultScreen(tray_data.dpy)), 
 				&settings.bg_color);
-	
 	if (!x11_ok() || !rc)
-		DIE(("could not parse background color \"%s\"\n", settings.bg_color_str));
-
+		DIE(("Could not parse background color \"%s\"\n", settings.bg_color_str));
 	/* Sanitize tint level value */
 	val_range(settings.tint_level, 0, 255);
-
 	if (settings.tint_level) {
 		/* Parse tint color */
 		rc = XParseColor(tray_data.dpy, XDefaultColormap(tray_data.dpy, DefaultScreen(tray_data.dpy)),
@@ -841,60 +805,19 @@ void interpret_settings()
 		if (rc) 
 			XAllocColor(tray_data.dpy, XDefaultColormap(tray_data.dpy, DefaultScreen(tray_data.dpy)), 
 					&settings.tint_color);
-
 		if (!x11_ok() || !rc) 
-			DIE(("could not parse tint color \"%s\"\n", settings.bg_color_str));
+			DIE(("Could not parse tint color \"%s\"\n", settings.bg_color_str));
 	}
-
 	/* Sanitize edges fuzziness */
 	val_range(settings.fuzzy_edges, 0, 3);
-
 	/* Get dimensions of root window */
-	if (XGetWindowAttributes(tray_data.dpy, DefaultRootWindow(tray_data.dpy), &root_wa))
-		DBG(6, ("root window geometry %dx%d\n", root_wa.width, root_wa.height));
-	else
-		DIE(("could not get root window dimensions. WEIRD...\n"));
-
+	if (!XGetWindowAttributes(tray_data.dpy, DefaultRootWindow(tray_data.dpy), &root_wa))
+		DIE(("Could not get root window dimensions.\n"));
 	tray_data.root_wnd.x = 0;
 	tray_data.root_wnd.y = 0;
 	tray_data.root_wnd.width = root_wa.width;
 	tray_data.root_wnd.height = root_wa.height;
-
-	/* Set tray maximal width/height */
-#if 1
-	geom_flags = XParseGeometry(settings.max_geometry_str,
-					&dummy, &dummy,
-					(unsigned int *) &settings.max_tray_dims.x,
-					(unsigned int *) &settings.max_tray_dims.y);
-	DBG(9, ("max geometry from max_geometry_str: %dx%d\n",
-					settings.max_tray_dims.x,
-					settings.max_tray_dims.y));
-	settings.max_tray_dims.x *= settings.slot_size;
-	settings.max_tray_dims.y *= settings.slot_size;
-	if (!settings.max_tray_dims.x)
-		settings.max_tray_dims.x = root_wa.width;
-	else
-		val_range(settings.max_tray_dims.x, settings.slot_size, INT_MAX);
-	
-	if (!settings.max_tray_dims.y)
-		settings.max_tray_dims.y = root_wa.height;
-	else
-		val_range(settings.max_tray_dims.y, settings.slot_size, INT_MAX);
-#else
-	if (!settings.max_tray_width)
-		settings.max_tray_width = root_wa.width / settings.slot_size;
-	else 
-		val_range(settings.max_tray_width, 1, INT_MAX);
-	
-	if (!settings.max_tray_height)
-		settings.max_tray_height = root_wa.height / settings.slot_size;
-	else
-		val_range(settings.max_tray_height, 1, INT_MAX);
-#endif
-	DBG(9, ("max geometry after normalization: %dx%d\n",
-					settings.max_tray_dims.x,
-					settings.max_tray_dims.y));
-
+	/* Parse geometry */
 #	define DEFAULT_GEOMETRY "1x1+0+0"
 	tray_data.xsh.flags = PResizeInc | PBaseSize;
 	tray_data.xsh.x = 0;
@@ -914,20 +837,18 @@ void interpret_settings()
 	tray_data.xsh.max_width = tray_data.xsh.width;
 	tray_data.xsh.min_height = tray_data.xsh.height;
 	tray_data.xsh.flags = PResizeInc | PBaseSize | PMinSize | PMaxSize | PWinGravity; 
-
 	settings.orig_tray_dims.x = tray_data.xsh.width;
 	settings.orig_tray_dims.y = tray_data.xsh.height;
-
+	/* Dockapp mode */
 	if (settings.dockapp_mode == DOCKAPP_WMAKER) 
 		tray_data.xsh.flags |= USPosition; 
 	else {
 		if (geom_flags & (XValue | YValue)) tray_data.xsh.flags |= USPosition; else tray_data.xsh.flags |= PPosition;
 		if (geom_flags & (WidthValue | HeightValue)) tray_data.xsh.flags |= USSize; else tray_data.xsh.flags |= PSize;
 	}
-	DBG(3, ("final geometry: %dx%d at (%d,%d)\n", 
+	LOG_TRACE(("final geometry: %dx%d at (%d,%d)\n", 
 			tray_data.xsh.width, tray_data.xsh.height,
 			tray_data.xsh.x, tray_data.xsh.y));
-
 	if ((geom_flags & XNegative) && (geom_flags & YNegative)) 
 		settings.geom_gravity = SouthEastGravity;
 	else if (geom_flags & YNegative) 
@@ -936,7 +857,25 @@ void interpret_settings()
 		settings.geom_gravity = NorthEastGravity;
 	else
 		settings.geom_gravity = NorthWestGravity;
-
+	/* Set tray maximal width/height */
+	geom_flags = XParseGeometry(settings.max_geometry_str,
+					&dummy, &dummy,
+					(unsigned int *) &settings.max_tray_dims.x,
+					(unsigned int *) &settings.max_tray_dims.y);
+	LOG_TRACE(("max geometry from max_geometry_str: %dx%d\n",
+					settings.max_tray_dims.x,
+					settings.max_tray_dims.y));
+	if (!settings.max_tray_dims.x)
+		settings.max_tray_dims.x = root_wa.width / settings.slot_size;
+	else
+		val_range(settings.max_tray_dims.x, settings.orig_tray_dims.x, INT_MAX);
+	if (!settings.max_tray_dims.y)
+		settings.max_tray_dims.y = root_wa.height / settings.slot_size;
+	else
+		val_range(settings.max_tray_dims.y, settings.orig_tray_dims.y, INT_MAX);
+	LOG_TRACE(("max geometry after normalization: %dx%d\n",
+					settings.max_tray_dims.x,
+					settings.max_tray_dims.y));
 	/* XXX: this assumes certain degree of symmetry and in some point 
 	 * in the future this may not be the case... */
 	tray_calc_window_size(0, 0, &tray_data.scrollbars_data.scroll_base.x, &tray_data.scrollbars_data.scroll_base.y);
@@ -945,10 +884,8 @@ void interpret_settings()
 }
 
 /************** "main" ***********/
-#define DUMP_SETTINGS
 int read_settings(int argc, char **argv) 
 {
-	ERR(("stalonetray "VERSION" [ " FEATURE_LIST " ] starting\n"));
 	init_default_settings();
 	/* Parse 0th pass command line args */
 	parse_cmdline(argc, argv, 0);
@@ -956,33 +893,30 @@ int read_settings(int argc, char **argv)
 	parse_rc();
 	/* Parse 1st pass command line args */
 	parse_cmdline(argc, argv, 1);
-#ifdef DUMP_SETTINGS
-	DBG(3, ("--flags--\n"));
-	DBG(3, ("parent_bg = %d\n", settings.parent_bg));
-	DBG(3, ("deco_flags = 0x%x\n", settings.deco_flags));
-	DBG(3, ("min_space_policy = %d\n", settings.min_space_policy));
-	DBG(3, ("full_pmt_search = %d\n", settings.full_pmt_search));
-	DBG(3, ("shrink_back_mode = %d\n", settings.shrink_back_mode));
-	DBG(3, ("need_help = %d\n", settings.need_help));
-	DBG(3, ("xsync = %d\n", settings.xsync));
-	DBG(3, ("vertical = %d\n", settings.vertical));
-	DBG(3, ("dockapp_mode = %d\n", settings.dockapp_mode));
-	DBG(3, ("scrollbars_mode = %d\n", settings.scrollbars_mode));
-	DBG(3, ("--strings--\n"));
-	DBG(3, ("display_str = \"%s\"\n", settings.display_str));
-	DBG(3, ("bg_color_str = \"%s\"\n", settings.bg_color_str));
-	DBG(3, ("geometry_str = \"%s\"\n", settings.geometry_str));
-	DBG(3, ("config_fname = \"%s\"\n", settings.config_fname));
-	DBG(3, ("--values--\n"));
-	DBG(3, ("icon_size = %d\n", settings.icon_size));
-	DBG(3, ("slot_size = %d\n", settings.slot_size));
-	DBG(3, ("grow_gravity = 0x%x\n", settings.grow_gravity));
-	DBG(3, ("icon_gravity = 0x%x\n", settings.icon_gravity));
-	DBG(3, ("max_tray_dims.x = %d\n", settings.max_tray_dims.x));
-	DBG(3, ("max_tray_dims.y = %d\n", settings.max_tray_dims.y));
-	DBG(3, ("scrollbars_inc = %d\n", settings.scrollbars_inc));
-	DBG(3, ("scrollbars_size = %d\n", settings.scrollbars_size));
-	DBG(3, ("dbg_level = %d\n", settings.dbg_level));
-#endif
+	/* Display some settings */
+	LOG_TRACE(("bg_color_str = \"%s\"\n", settings.bg_color_str));
+	LOG_TRACE(("config_fname = \"%s\"\n", settings.config_fname));
+	LOG_TRACE(("deco_flags = 0x%x\n", settings.deco_flags));
+	LOG_TRACE(("display_str = \"%s\"\n", settings.display_str));
+	LOG_TRACE(("dockapp_mode = %d\n", settings.dockapp_mode));
+	LOG_TRACE(("full_pmt_search = %d\n", settings.full_pmt_search));
+	LOG_TRACE(("geometry_str = \"%s\"\n", settings.geometry_str));
+	LOG_TRACE(("grow_gravity = 0x%x\n", settings.grow_gravity));
+	LOG_TRACE(("icon_gravity = 0x%x\n", settings.icon_gravity));
+	LOG_TRACE(("icon_size = %d\n", settings.icon_size));
+	LOG_TRACE(("log_level = %d\n", settings.log_level));
+	LOG_TRACE(("max_tray_dims.x = %d\n", settings.max_tray_dims.x));
+	LOG_TRACE(("max_tray_dims.y = %d\n", settings.max_tray_dims.y));
+	LOG_TRACE(("min_space_policy = %d\n", settings.min_space_policy));
+	LOG_TRACE(("need_help = %d\n", settings.need_help));
+	LOG_TRACE(("parent_bg = %d\n", settings.parent_bg));
+	LOG_TRACE(("scrollbars_inc = %d\n", settings.scrollbars_inc));
+	LOG_TRACE(("scrollbars_mode = %d\n", settings.scrollbars_mode));
+	LOG_TRACE(("scrollbars_size = %d\n", settings.scrollbars_size));
+	LOG_TRACE(("shrink_back_mode = %d\n", settings.shrink_back_mode));
+	LOG_TRACE(("slot_size = %d\n", settings.slot_size));
+	LOG_TRACE(("vertical = %d\n", settings.vertical));
+	LOG_TRACE(("xsync = %d\n", settings.xsync));
 	return SUCCESS;
 }
+

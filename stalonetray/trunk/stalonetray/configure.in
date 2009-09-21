@@ -116,8 +116,7 @@ case "$ac_cv_debug" in
 	yes)
 		AC_DEFINE(DEBUG, 1, [enable debugging code])
 		if test "x$GCC" = "xyes"; then
-			CFLAGS="$CFLAGS -g -ggdb -pedantic -Wall"
-			LDFLAGS="$LDFLAGS -rdynamic"
+			CFLAGS="$CFLAGS -g"
 		else
 			echo "INFO: Since you use non-gcc compiler, please enable generation of debug info"
 			echo "      for your compiler manually (via CFLAGS shell variable)"
@@ -169,8 +168,8 @@ src/Makefile
 echo "*"
 echo "* Debug                  : $ac_cv_debug"
 if test "x$ac_cv_debug" = "xyes" -a "x$GCC" != "xyes"; then
-	echo "*                          Since you use non-gcc compiler, please"
-	echo "*                          set debug CFLAGS manually(if you want to)"
+	echo "*                          Since you are not using gcc compatible compiler, please"
+	echo "*                          set debug CFLAGS manually (if you want to)"
 fi
 echo "* Native KDE support     : $ac_cv_no_native_kde"
 echo "* XPM background support : $ac_cv_xpm_supported"

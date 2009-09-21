@@ -59,13 +59,13 @@
   "false", "no", "0" for negative ones. <emphasis>Please note, that a value
   cannot start with "-". This limitation is to be fixed in future
   releases.</emphasis> </para>
-  
+
   <para>Default configuration file is <filename>$HOME/.stalonetrayrc</filename>.
   A configuration file contains case-insensetive keyword-argument pairs, one per
   line. Lines starting with '#' and empty lines are ignored.  Alternatively,
   confiuration file can specified via <option>-c</option> or
   <option>--config</option> command-line options.</para>
- 
+
   <para>Below is the list of possible command line/configuration file options.
   Options starting with hyphens are command-line parameters others are
   configuration file keywords.  Options that are new in @VERSION_STR@ version
@@ -76,23 +76,7 @@
   <title>OPTIONS</title>
 
   <variablelist>
-  
-  <varlistentry>
-  <term><option>-display</option> <replaceable>display</replaceable></term>
-  <term><option>display</option> <replaceable>display</replaceable>
-  </term>
-  <listitem><para>Use X display <replaceable>display</replaceable>.</para></listitem> 
-  </varlistentry>
-  
-  <varlistentry>
-  <term><option>--dbg-level</option> <replaceable>n</replaceable></term>
-  <term><option>dbg_level</option> <replaceable>n</replaceable></term>
-  <listitem><para>Set the level of debug output to
-  <replaceable>n</replaceable> (stalonetray must be compiled with
-  <option>--enable-debug</option> for this option to have
-  effect.) Default value: <userinput>4</userinput>.</para></listitem> 
-  </varlistentry>
-  
+
   <varlistentry>
   <term><option>-bg</option> <replaceable>color</replaceable></term>
   <term><option>--background</option> <replaceable>color</replaceable></term>
@@ -102,7 +86,7 @@
   as a name from rgb.txt (note that '#' must be quoted). Default value: <userinput>#777777</userinput>.
   </para></listitem>
   </varlistentry>
-  
+
   <varlistentry>
   <term><option>-c</option> <replaceable>filename</replaceable></term>
   <term><option>--config</option> <replaceable>filename</replaceable></term>
@@ -123,11 +107,18 @@
   </varlistentry>
 
   <varlistentry>
-  <term><option>--docapp-mode</option>
+  <term><option>-display</option> <replaceable>display</replaceable></term>
+  <term><option>display</option> <replaceable>display</replaceable>
+  </term>
+  <listitem><para>Use X display <replaceable>display</replaceable>.</para></listitem> 
+  </varlistentry>
+
+  <varlistentry>
+  <term><option>--dockapp-mode</option>
   <optional><replaceable>mode</replaceable></optional></term>
   <term><option>docapp_mode</option>
   <optional><replaceable>mode</replaceable></optional></term>
-  <listitem><para>Set dockapp mode, which can be one of
+  <listitem><para>Set dockapp mode, which can be either
   <userinput>simple</userinput> for e.g. OpenBox, <userinput>wmaker</userinput>
   for WindowMaker, or <userinput>none</userinput> (default).
   </para></listitem>
@@ -157,7 +148,7 @@
   <term><option>--grow-gravity</option>
   <replaceable>gravity</replaceable></term> <term><option>grow_gravity</option>
   <replaceable>gravity</replaceable></term> <listitem><para>Specify icon
-  positioning gravity (one of <userinput>N</userinput>,
+  positioning gravity (eigher <userinput>N</userinput>,
   <userinput>S</userinput>, <userinput>W</userinput>, <userinput>E</userinput>,
   <userinput>NW</userinput>, <userinput>NE</userinput>,
   <userinput>SW</userinput>, <userinput>SE</userinput>). Grow gravity specifies
@@ -173,7 +164,7 @@
   <varlistentry>
   <term><option>--icon-gravity</option> <replaceable>gravity</replaceable></term>
   <term><option>icon_gravity</option> <replaceable>gravity</replaceable></term>
-  <listitem><para>Specify icon positioning gravity (one of <userinput>NW</userinput>,
+  <listitem><para>Specify icon positioning gravity (either <userinput>NW</userinput>,
   <userinput>NE</userinput>, <userinput>SW</userinput>, <userinput>SE</userinput>). If you specify,
   for instance, <userinput>SW</userinput>, icons will appear starting from the lower-left corner
   of stalonetray window. Default value: <userinput>NW</userinput>.
@@ -191,17 +182,38 @@
   </varlistentry>
 
   <varlistentry>
-  <term><option>--ignore-icon-resize</option></term>
-  <term><option>ignore_icon_resize <optional><replaceable>bool</replaceable></optional></option></term>
-  <listitem><para>Ignore icon resizing events, effectively forcing all icons dimensions
-  to be <option>icon_size</option> x <option>icon_size</option>. Default value: <userinput>false</userinput>.
+  <term><option>-h</option></term>
+  <term><option>--help</option></term>
+  <listitem><para>Show help message.</para></listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term><option>--log-level</option> <replaceable>level</replaceable></term>
+  <term><option>log_level</option> <replaceable>level</replaceable></term>
+  <listitem><para>Set the amount of info output by stalonetray. Possible 
+  values for <replaceable>level</replaceable>: <userinput>err</userinput>
+  (default), <userinput>info</userinput>, and <userinput>trace</userinput>.
+  For <userinput>trace</userinput> to be available, stalonetray must be
+  configured with <option>--enable-debug</option> at build-time. NEW in @VERSION_STR@.
   </para></listitem>
   </varlistentry>
 
   <varlistentry>
-  <term><option>-h</option></term>
-  <term><option>--help</option></term>
-  <listitem><para>Show help message.</para></listitem>
+  <term><option>--kludges</option>
+  <replaceable>kludge</replaceable><arg rep="repeat">,<replaceable>kludge</replaceable></arg></term>
+  <listitem><para>
+  Enable specific kludges to work around non-conforming WMs and/or stalonetray
+  bugs. NEW in @VERSION_STR@. Argument is a comma-separated list of:</para>
+  <itemizedlist>
+  <listitem><para><userinput>fix_window_pos</userinput> &mdash; fix tray window
+  position on erroneous moves by WM</para></listitem>
+  <listitem><para><userinput>force_icon_size</userinput> &mdash; ignore resize
+  events on all icons; force their size to be equal to
+  <option>icon_size</option></para></listitem>
+  <listitem><para><userinput>use_icon_hints</userinput> &mdash; use icon window
+  hints to determine icon size</para></listitem>
+  </itemizedlist>
+  </listitem>
   </varlistentry>
 
   <varlistentry>
@@ -272,9 +284,19 @@
   </varlistentry>
 
   <varlistentry>
+  <term><option>-s</option> <replaceable>n</replaceable></term>
+  <term><option>--slot-size</option> <replaceable>n</replaceable></term>
+  <term><option>slot_size</option> <replaceable>n</replaceable></term>
+  <listitem><para>Set grid slot size to <replaceable>n</replaceable>. Cannot be
+  less then <option>icon_size</option> which is default value unless specified.
+  NEW in @VERSION_STR@.
+  </para></listitem>
+  </varlistentry>
+
+  <varlistentry>
   <term><option>--scrollbars</option> <replaceable>mode</replaceable></term>
   <term><option>scrollbars</option> <replaceable>mode</replaceable></term>
-  <listitem><para>Set scrollbar mode, one of <userinput>vertical</userinput>,
+  <listitem><para>Set scrollbar mode, either <userinput>vertical</userinput>,
   <userinput>horizontal</userinput>, <userinput>all</userinput>, or
   <userinput>none</userinput> (default). Scrollbars appear as additional space
   at tray borders that can be clicked to scroll icon area. Mouse wheel also
@@ -283,10 +305,18 @@
   </varlistentry>
 
   <varlistentry>
+  <term><option>--scrollbars-size</option> <replaceable>n</replaceable></term>
+  <term><option>scrollbars_size</option> <replaceable>n</replaceable></term>
+  <listitem><para>Set scrollbar size to <userinput>n</userinput> pixels. 
+  Default is quarter of <option>slot_size</option>. NEW in @VERSION_STR@.
+  </para></listitem>
+  </varlistentry>
+
+  <varlistentry>
   <term><option>--scrollbars-step</option> <replaceable>n</replaceable></term>
   <term><option>scrollbars_step</option> <replaceable>n</replaceable></term>
-  <listitem><para>Set scrollbar step to <userinput>n</userinput> pixels. NEW in
-  @VERSION_STR@.
+  <listitem><para>Set scrollbar step to <userinput>n</userinput> pixels. 
+  Default is half of <option>slot_size</option>. NEW in @VERSION_STR@.
   </para></listitem>
   </varlistentry>
 
@@ -295,16 +325,6 @@
   <term><option>skip_taskbar</option> <optional><replaceable>bool</replaceable></optional></term>
   <listitem><para>Hide tray`s window from the taskbar. Default value:
   <userinput>false</userinput>.
-  </para></listitem>
-  </varlistentry>
-
-  <varlistentry>
-  <term><option>-s</option> <replaceable>n</replaceable></term>
-  <term><option>--slot-size</option> <replaceable>n</replaceable></term>
-  <term><option>slot_size</option> <replaceable>n</replaceable></term>
-  <listitem><para>Set grid slot size to <replaceable>n</replaceable>. Cannot be
-  less then <option>icon_size</option> which is default value unless specified.
-  NEW in 0.8.
   </para></listitem>
   </varlistentry>
 
@@ -325,8 +345,8 @@
   </varlistentry>
 
   <varlistentry>
-  <term><option>--tint-value</option></term>
-  <term><option>tint_color</option> <optional><replaceable>bool</replaceable></optional></term>
+  <term><option>--tint-level</option></term>
+  <term><option>tint_level</option> <optional><replaceable>level</replaceable></optional></term>
   <listitem><para>Set tinting level. Default value: <userinput>0</userinput>
   (tinting disabled).
   </para></listitem>
@@ -357,22 +377,23 @@
   </varlistentry>
 
   <varlistentry>
+  <term><option>--window-strut</option> <replaceable>mode</replaceable></term>
+  <term><option>window_strut</option> <replaceable>mode</replaceable></term>
+  <listitem><para>Enable window struts for tray window (to avoid covering of tray window by
+  maximized windows). Mode defines to which screen border tray window will be
+  attached. It can be either <userinput>top</userinput>,
+  <userinput>bottom</userinput>, <userinput>left</userinput>,
+  <userinput>right</userinput>, <userinput>none</userinput>, or
+  <userinput>auto</userinput> (default).
+  </para></listitem>
+  </varlistentry>
+
+  <varlistentry>
   <term><option>--window-type</option> <replaceable>type</replaceable></term>
   <term><option>window_type</option> <replaceable>type</replaceable></term>
   <listitem><para>Sets the <abbrev>EWMH</abbrev>-compliant type of tray`s window. Possible values for <replaceable>type</replaceable>: 
   <userinput>desktop</userinput>, <userinput>dock</userinput>, <userinput>normal</userinput>, <userinput>toolbar</userinput>,
   <userinput>utility</userinput>. Default value: <userinput>dock</userinput>.</para></listitem>
-  </varlistentry>
-
-  <varlistentry>
-  <term><option>--window-strut</option> <replaceable>mode</replaceable></term>
-  <term><option>window_strut</option> <replaceable>mode</replaceable></term>
-  <listitem><para>Enable window struts for tray window (to avoid covering of tray window by
-  maximized windows). Mode can be one of <userinput>top</userinput>,
-  <userinput>bottom</userinput>, <userinput>left</userinput>,
-  <userinput>right</userinput>, <userinput>none</userinput>, or
-  <userinput>auto</userinput> (default).
-  </para></listitem>
   </varlistentry>
 
   <varlistentry>
@@ -396,14 +417,40 @@
   <para>As of stalonetray @VERSION_STR@ following command line and configuration
   parameters are depricated:
   </para>
+
   <variablelist>
+
   <varlistentry>
-  <term>-w</term>
-  <term>--withdrawn</term>
-  <term>withdrawn</term>
-  <listitem> <para>Please use --docapp-mode instead.</para> </listitem>
+  <term><option>--dbg-levels</option></term>
+  <term><option>dbg_levels</option></term>
+  <listitem><para>Please use <option>--log-level</option>
+  instead.</para></listitem>
   </varlistentry>
+
+  <varlistentry>
+  <term><option>--max-tray-width</option></term>
+  <term><option>--max-tray-height</option></term>
+  <term><option>max_tray_width</option></term>
+  <term><option>max_tray_height</option></term>
+  <listitem><para>Please use <option>--max-geometry</option> instead.</para> </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term><option>-w</option></term>
+  <term><option>--withdrawn</option></term>
+  <term><option>withdrawn</option></term>
+  <listitem><para>Please use <option>--dockapp-mode</option> instead.</para> </listitem>
+  </varlistentry>
+
+  <varlistentry>
+  <term><option>--respect-icon-hints</option></term>
+  <term><option>respect_icon_hints</option>></term>
+  <listitem><para>Please use <option>--kludges</option> with
+  <userinput>use_icon_hints</userinput> parameter instead.</para></listitem>
+  </varlistentry>
+
   </variablelist>
+
 </refsect1>
 
 <refsect1>
@@ -415,10 +462,11 @@
 <title>BUGS</title>
 <para>There are some, definetly.</para>
 
-<para>If you have found a bug, please try to reproduce it with debug level set to 8
-and send the log file to me: <email>busa_ru@users.sourceforge.net</email>. If
-you need support, the best way to get it is also to e-mail me directly. If
-you have installed stalonetray from distribution repository, you can also file a
-bug there.</para>
-</refsect1>
+<para>If you have found a bug, please try to reproduce it with log level set to
+<userinput>trace</userinput> and send the log file to me:
+<email>busa_ru@users.sourceforge.net</email>. If you need support, the best way
+to get it is also to e-mail me directly. If you have installed stalonetray from
+distribution repository, you can also file a bug in respective bug tracking
+database.</para> 
+</refsect1> 
 </refentry>

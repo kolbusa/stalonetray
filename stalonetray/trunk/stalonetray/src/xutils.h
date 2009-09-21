@@ -51,16 +51,19 @@ int x11_get_window_size(Display *dpy, Window w, int *x, int *y);
 int x11_get_window_min_size(Display *dpy, Window w, int *x, int *y);
 
 /* Retrive 32-bit property from the target window */
-int x11_get_win_prop32(Display *dpy, Window dst, Atom atom, Atom type, unsigned char **data, unsigned long *len);
+int x11_get_window_prop32(Display *dpy, Window dst, Atom atom, Atom type, unsigned char **data, unsigned long *len);
 
 /* Retrive window-list property from the specified window */
-#define x11_get_winlist_prop(dpy, dst, atom, data, len) x11_get_win_prop32(dpy, dst, atom, XA_WINDOW, data, len)
+#define x11_get_winlist_prop(dpy, dst, atom, data, len) x11_get_window_prop32(dpy, dst, atom, XA_WINDOW, data, len)
 
 /* Shortcut for the root window case */
 #define x11_get_root_winlist_prop(dpy, atom, data, len) x11_get_winlist_prop(dpy, DefaultRootWindow(dpy), atom, data, len)
 
 /* Returns window absolute position (relative to the root window) */
 int x11_get_window_abs_coords(Display *dpy, Window dst, int *x, int *y);
+
+/* Get window name. NOT THREAD SAFE. Returns pointer to static buffer */
+char *x11_get_window_name(Display *dpy, Window dst, char *def);
 
 /* Find subwindow by name */
 Window x11_find_subwindow_by_name(Display *dpy, Window tgt, char *name);

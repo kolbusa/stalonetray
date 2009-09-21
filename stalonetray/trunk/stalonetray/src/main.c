@@ -62,17 +62,14 @@ void cleanup()
 {
 	static int clean = 0;
 	static int cleanup_in_progress = 0;
-
 	if (!clean && cleanup_in_progress) {
-		ERR(("forced to die\n"));
+		LOG_ERROR(("forced to die\n"));
 		abort();
 	}
 	if (clean) return;
 	cleanup_in_progress = 1;
-	DBG(6, ("start\n"));
-
 	if (x11_connection_status()) {
-		DBG(8, ("being nice to the icons\n"));
+		LOG_TRACE(("being nice to the icons\n"));
 		/* Clean the list unembedding icons one by one */
 		icon_list_clean_callback(&embedder_unembed);
 		/* Give away the selection */
@@ -86,7 +83,6 @@ void cleanup()
 	}
 	cleanup_in_progress = 0;
 	clean = 1;
-	DBG(3, ("done\n"));
 }
 
 /**************************************
@@ -99,43 +95,18 @@ void dump_tray_status()
 	int grid_w, grid_h;
 	tray_status_requested = 0;
 	layout_get_size(&grid_w, &grid_h);
-
-#ifdef DEBUG
-#	define SHOWMSG(msg) DBG(0, msg)
-#else
-#	define SHOWMSG(msg)	print_message_to_stderr msg
-#endif
-
-#ifdef DEBUG
-	trace_mode = 1;
-#endif
-	SHOWMSG(("Someone asked for tray status. Here it comes.\n"));
-	SHOWMSG(("===================================\n"));
-	SHOWMSG(("tray status: %sactive\n", tray_data.is_active ? "" : "not "));
-	SHOWMSG(("grid geometry: %dx%d\n", 
-				grid_w / settings.slot_size, 
-				grid_h / settings.slot_size));
-	SHOWMSG(("tray geometry: %dx%d+%d+%d\n",
+	LOG_INFO(("----------- tray status -----------\n"));
+	LOG_INFO(("active: %s\n", tray_data.is_active ? "yes" : "no"));
+	LOG_INFO(("geometry: %dx%d+%d+%d\n",
 			tray_data.xsh.width, tray_data.xsh.height,
 			tray_data.xsh.x, tray_data.xsh.y));
-#ifdef DEBUG
-	{
-		XWindowAttributes xwa;
-		XGetWindowAttributes(tray_data.dpy, tray_data.tray, &xwa);
-		SHOWMSG(("real tray geometry: %dx%d+%d+%d\n",
-					xwa.width, xwa.height, xwa.x, xwa.y));
-	}
 	if (tray_data.xembed_data.current)
-		SHOWMSG(("icon with focus: 0x%x (pointer %p)\n", tray_data.xembed_data.current->wid, tray_data.xembed_data.current));
+		LOG_INFO(("XEMBED focus: 0x%x\n", tray_data.xembed_data.current->wid));
 	else
-		SHOWMSG(("no icon is focused\n"));
-#endif
-	dump_icon_list();
-	SHOWMSG(("===================================\n"));
-#ifdef DEBUG
-	trace_mode = 0;
-#endif
-#undef SHOWMSG
+		LOG_INFO(("XEMBED focus: none\n"));
+	LOG_INFO(("currently managed icons:\n"));
+	icon_list_forall(&print_icon_data);
+	LOG_INFO(("-----------------------------------\n"));
 }
 
 /**************************************
@@ -146,54 +117,47 @@ void dump_tray_status()
 void add_icon(Window w, int cmode)
 {
 	struct TrayIcon *ti;
-
 	/* Aviod adding duplicates */
 	if ((ti = icon_list_find(w)) != NULL) {
-		DBG(4, ("ignoring second request to embed 0x%x (requested cmode=%d, current cmode=%d\n",
-					w,
-					cmode,
-					ti->cmode));
+		LOG_TRACE(("ignoring second request to embed 0x%x"
+					"(requested cmode=%d, current cmode=%d\n",
+					w, cmode, ti->cmode));
 		return;
 	}
 	/* Dear Edsger W. Dijkstra, I see you behind my back =( */
-	ti = icon_list_new(w, cmode);
-	if (ti == NULL) return;
-
-#ifdef DEBUG
-	DBG(6, ("starting embedding process for 0x%x with cmode=%d\n", w, cmode));
+	if ((ti = icon_list_new(w, cmode)) == NULL) goto failed0;
+	LOG_TRACE(("starting embedding for icon 0x%x, cmode=%d\n", w, cmode));
 	x11_dump_win_info(tray_data.dpy, w);
-#endif
-
+	/* Start embedding cycle */
 	if (!xembed_check_support(ti)) goto failed1;
-	
 	if (ti->is_xembed_supported)
 		ti->is_visible = xembed_get_mapped_state(ti);
 	else
 		ti->is_visible = True;
-
 	if (ti->is_visible) {
 		if (!embedder_reset_size(ti)) goto failed1;
 		if (!layout_add(ti)) goto failed1;
 	}
-	
 	if (!xembed_embed(ti)) goto failed1;
 	if (!embedder_embed(ti)) goto failed2;
-
 	embedder_update_positions(False);
 	tray_update_window_props();
-
-	DBG(0, ("0x%x: icon added as %s\n", ti->wid, ti->is_visible ? "visible" : "hidden"));
-	dump_tray_status();
-	return;
-
+	/* Report success */
+	LOG_INFO(("added icon %s (wid 0x%x) as %s\n", 
+			x11_get_window_name(tray_data.dpy, ti->wid, "<unknown>"),
+			ti->wid, 
+			ti->is_visible ? "visible" : "hidden"));
+	goto ok;
 failed2:
 	layout_remove(ti);
 failed1:
-#ifdef DEBUG
-	DBG(0, ("0x%x: embedding failed\n", ti->wid));
-#endif
 	icon_list_free(ti);
-	dump_tray_status();
+failed0:
+	LOG_INFO(("failed to add icon %s (wid 0x%x)\n", 
+			x11_get_window_name(tray_data.dpy, ti->wid, "<unknown>"),
+			ti->wid));
+ok:
+	if (settings.log_level >= LOG_LEVEL_TRACE) dump_tray_status();
 	return;
 }
 
@@ -201,18 +165,19 @@ failed1:
 void remove_icon(Window w)
 {
 	struct TrayIcon *ti;
-	
+	char *name;
+	/* Ignore false alarms */
 	if ((ti = icon_list_find(w)) == NULL) return;
-
 	dump_tray_status();
 	embedder_unembed(ti);
 	xembed_unembed(ti);
 	layout_remove(ti);
 	icon_list_free(ti);
-
-	DBG(0, ("0x%x: icon removed\n", w));
-
-	/* This will call embedde_update_positions() */
+	LOG_INFO(("removed icon %s (wid 0x%x)\n",
+				x11_get_window_name(tray_data.dpy, ti->wid, "<unknown>"), 
+				w));
+	/* no need to call embedde_update_positions(), as
+	 * scrollbars_click(SB_WND_MAX) will call it */
 	/* XXX: maybe we need a different name for this
 	 * routine instad of passing cryptinc constant? */
 	scrollbars_click(SB_WND_MAX);
@@ -225,24 +190,18 @@ void icon_track_visibility_changes(Window w)
 {
 	struct TrayIcon *ti;
 	int mapped;
-
 	/* Ignore false alarms */
 	if ((ti = icon_list_find(w)) == NULL || !ti->is_xembed_supported) return;
-
 	mapped = xembed_get_mapped_state(ti);
-
-	DBG(8, ("xembed_is_mapped(0x%x) = %u\n", w, mapped));
-	DBG(8, ("is_visible = %u\n", ti->is_visible));
+	LOG_TRACE(("xembed_is_mapped(0x%x) = %u\n", w, mapped));
+	LOG_TRACE(("is_visible = %u\n", ti->is_visible));
 #ifdef DEBUG
 	x11_dump_win_info(tray_data.dpy, ti->wid);
 #endif
-
 	/* Nothing has changed */
 	if (mapped == ti->is_visible) return;
-
 	ti->is_visible = mapped;
-	DBG(0, ("0x%x: %s\n", w, mapped ? "showing" : "hiding"));
-
+	LOG_INFO(("%s icon 0x%x\n", mapped ? "showing" : "hiding", w));
 	if (mapped) { /* Icon has become mapped and is listed as hidden. Show this icon. */
 		embedder_reset_size(ti);
 		if (!layout_add(ti)) {
@@ -271,23 +230,22 @@ void kde_icons_update()
 {
 	unsigned long list_len, i;
 	Window *kde_tray_icons;
-
 	if (tray_data.kde_tray_old_mode || 
 		!x11_get_root_winlist_prop(tray_data.dpy, tray_data.xa_kde_net_system_tray_windows, 
 				(unsigned char **) &kde_tray_icons, &list_len)) 
 	{
 		return;
 	}
-
 	for (i = 0; i < list_len; i++) 
 		/* If the icon is not None and is non old, try to add it
 		 * (if the icon is already there, nothing is gonna happen). */
 		if (kde_tray_icons[i] != None && !kde_tray_is_old_icon(kde_tray_icons[i])) 
 		{
-			DBG(8, ("(possibly unembedded) KDE icon 0x%x\n", kde_tray_icons[i]));
+			LOG_TRACE(("found (possibly unembedded) KDE icon %s (wid 0x%x)\n", 
+						x11_get_window_name(tray_data.dpy, kde_tray_icons[i], "<unknown>"),
+						kde_tray_icons[i]));
 			add_icon(kde_tray_icons[i], CM_KDE);
 		}
-
 	XFree(kde_tray_icons);
 }
 #endif
@@ -301,12 +259,11 @@ void perform_periodic_tasks(int mask)
 	struct TrayIcon *ti;
 	/* 1. Remove all invalid icons */
 	while ((ti = icon_list_forall(&find_invalid_icons)) != NULL) {
-		DBG(4, ("0x%x is invalid. removing\n", ti->wid));
+		LOG_TRACE(("icon 0x%x is invalid; removing\n", ti->wid));
 		remove_icon(ti->wid);
 	}
 	/* 2. Print tray status if asked to */
 	if (tray_status_requested) dump_tray_status();
-
 	/* 3. KLUDGE to fix window size on (buggy?) WMs */
 	if (settings.kludge_flags & KLUDGE_FIX_WND_SIZE) {
 		/* KLUDGE TODO: resolve */
@@ -315,7 +272,7 @@ void perform_periodic_tasks(int mask)
 		if (!tray_data.is_reparented && 
 				(xwa.width != tray_data.xsh.width || xwa.height != tray_data.xsh.height)) 
 		{
-			DBG(8, ("KLUDGE: fixing window size (current: %dx%d, required: %dx%d)\n",
+			LOG_TRACE(("KLUDGE: fixing tray window size (current: %dx%d, required: %dx%d)\n",
 						xwa.width, xwa.height,
 						tray_data.xsh.width, tray_data.xsh.height));
 			tray_update_window_props();
@@ -345,7 +302,7 @@ void property_notify(XPropertyEvent ev)
 #if defined(DEBUG) && defined(TRACE_PROPS)
 	char *atom_name;
 	atom_name = XGetAtomName(tray_data.dpy, ev.atom);
-	DBG(6, ("atom = %s\n", atom_name));
+	LOG_TRACE(("atom = %s\n", atom_name));
 	XFree(atom_name);
 #endif
 	/* React on wallpaper change */
@@ -360,7 +317,7 @@ void property_notify(XPropertyEvent ev)
 		if (tray_data.is_active) 
 			kde_icons_update();
 		else 
-			DBG(6, ("not updating KDE icons list: tray is not active\n"));
+			LOG_TRACE(("not updating KDE icons list: tray is not active\n"));
 		kde_tray_update_old_icons(tray_data.dpy);
 	}
 #endif
@@ -391,29 +348,24 @@ void property_notify(XPropertyEvent ev)
 				}
 		}
 		if (nwindows) XFree(windows);
-		DBG(6, ("tray is %sreparented\n", tray_data.is_reparented ? "" : "not "));
+		LOG_TRACE(("tray was %sreparented\n", tray_data.is_reparented ? "" : "not "));
 	}
 }
 
 void reparent_notify(XReparentEvent ev)
 {
 	struct TrayIcon *ti;
-
 	ti = icon_list_find(ev.window);
 	if (ti == NULL) return;
-
 	/* Reparenting out of the tray is one of non-destructive
 	 * ways to end XEMBED protocol (see spec) */
 	if (ti->is_embedded && ti->mid_parent != ev.parent) {
-		DBG(3, ("initiating unembedding for 0x%x\n", ti->wid));
+		LOG_TRACE(("will now unembed 0x%x\n", ti->wid));
 #ifdef DEBUG
+		print_icon_data(ti);
 		x11_dump_win_info(tray_data.dpy, ev.parent);
-		dump_icon_list();
 #endif
 		remove_icon(ev.window);
-#ifdef DEBUG
-		dump_icon_list();
-#endif
 	}
 }
 
@@ -424,40 +376,34 @@ void client_message(XClientMessageEvent ev)
 #ifdef DEBUG
 	/* Print neat message(s) about this event to aid debugging */
 	char *msg_type_name;
-
 	msg_type_name = XGetAtomName(tray_data.dpy, ev.message_type);
-
 	if (msg_type_name != NULL) {
-		DBG(4, ("message \"%s\"\n", msg_type_name));
+		LOG_TRACE(("message \"%s\"\n", msg_type_name));
 		XFree(msg_type_name);
 	}
-
 	if (ev.message_type == tray_data.xa_wm_protocols) {
 		msg_type_name = XGetAtomName(tray_data.dpy, ev.data.l[0]);
 		if (msg_type_name != NULL) {
-			DBG(6, ("WM_PROTOCOLS message type: %s\n", msg_type_name));
+			LOG_TRACE(("WM_PROTOCOLS message type: %s\n", msg_type_name));
 			XFree(msg_type_name);
 		}
 	}
 #endif
-
 	/* Graceful exit */
 	if (ev.message_type == tray_data.xa_wm_protocols &&
 		ev.data.l[0] == tray_data.xa_wm_delete_window && 
 		ev.window == tray_data.tray)
 	{
-		DBG(3, ("got WM_DELETE message, will now exit\n"));
+		LOG_TRACE(("got WM_DELETE message, will now exit\n"));
 		exit(0);
 	} 
-
 	/* Handle _NET_SYSTEM_TRAY_* messages */
 	if (ev.message_type == tray_data.xa_tray_opcode && tray_data.is_active) {
-		DBG(6, ("this is the _NET_SYSTEM_TRAY_OPCODE(%lu) message\n", ev.data.l[1]));
-	
+		LOG_TRACE(("this is the _NET_SYSTEM_TRAY_OPCODE(%lu) message\n", ev.data.l[1]));
 		switch (ev.data.l[1]) {
 			/* This is the starting point of NET SYSTEM TRAY protocol */
 			case SYSTEM_TRAY_REQUEST_DOCK:
-				DBG(3, ("dockin' requested by 0x%x, serving in a moment\n", ev.data.l[2]));
+				LOG_TRACE(("dockin' requested by window 0x%x, serving in a moment\n", ev.data.l[2]));
 #ifndef NO_NATIVE_KDE
 				if (kde_tray_check_for_icon(tray_data.dpy, ev.data.l[2])) cmode = CM_KDE;
 				if (kde_tray_is_old_icon(ev.data.l[2])) kde_tray_old_icons_remove(ev.data.l[2]);
@@ -476,9 +422,9 @@ void client_message(XClientMessageEvent ev)
 				ti = icon_list_find(ev.data.l[2]);
 				if (ti != NULL && !ti->is_embedded) {
 					ti->is_embedded = True;
-					DBG(3, ("0x%x: embedding confirmed\n", ti->wid));
+					LOG_TRACE(("embedding confirmed for icon 0x%x\n", ti->wid));
 #ifdef DEBUG
-					dump_icon_list();
+					dump_tray_status();
 #endif
 				}
 				tray_update_window_props();
@@ -499,7 +445,7 @@ void client_message(XClientMessageEvent ev)
 	}
 #ifdef DEBUG
 	if (ev.message_type == tray_data.xa_tray_opcode && !tray_data.is_active)
-		DBG(6, ("ignoring _NET_SYSTEM_TRAY_OPCODE(%lu) message: tray not active\n", tray_data.is_active));
+		LOG_TRACE(("ignoring _NET_SYSTEM_TRAY_OPCODE(%lu) message because tray is not active\n", tray_data.is_active));
 #endif
 }
 
@@ -525,45 +471,41 @@ void configure_notify(XConfigureEvent ev)
 	struct TrayIcon *ti;
 	struct Point sz;
 	XWindowAttributes xwa;
-
 	if (ev.window == tray_data.tray) {
 		/* Tray window was resized */
 		/* TODO: distinguish between synthetic and real configure notifies */
 		/* TODO: catch rejected configure requests */
-		DBG(8, ("window geometry from event: %ux%u+%d+%d\n", ev.width, ev.height, ev.x, ev.y));
-
+		/* XXX: Geometry stuff is a mess. Geometry
+		 * is specified in slots, but almost always is 
+		 * stored in pixels... */
+		LOG_TRACE(("tray window geometry from event: %ux%u+%d+%d\n", ev.width, ev.height, ev.x, ev.y));
 		/* Sometimes, configure notifies come too late, so we fetch real geometry ourselves */
 		XGetWindowAttributes(tray_data.dpy, tray_data.tray, &xwa);
 		x11_get_window_abs_coords(tray_data.dpy, tray_data.tray, &tray_data.xsh.x, &tray_data.xsh.y);
-		DBG(8, ("real window geometry: %dx%d+%d+%d\n", xwa.width, xwa.height, tray_data.xsh.x, tray_data.xsh.y));
+		LOG_TRACE(("tray window geometry from X11 calls: %dx%d+%d+%d\n", xwa.width, xwa.height, tray_data.xsh.x, tray_data.xsh.y));
 		tray_data.xsh.width = xwa.width;
 		tray_data.xsh.height = xwa.height;
-
 		/* Update icons positions */
 		/* XXX: internal API is bad. example below */
 		icon_list_forall(&layout_translate_to_window);
 		embedder_update_positions(True);
-
 		/* Adjust window background if necessary */
 		tray_update_bg(False);
 		tray_refresh_window(True);
 		scrollbars_update();
 	} else if ((ti = icon_list_find(ev.window)) != NULL) { /* Some icon has resized its window */
-
 		/* KDE icons are not allowed to change their size. Reset icon size. */
 		if (ti->cmode == CM_KDE || settings.kludge_flags & KLUDGE_FORCE_ICONS_SIZE) {
 			embedder_reset_size(ti);
 			return;
 		}
-		
 		if (settings.kludge_flags & KLUDGE_FORCE_ICONS_SIZE) return;
-
 		/* Get new window size */
 		if (!x11_get_window_size(tray_data.dpy, ti->wid, &sz.x, &sz.y)) {
 			embedder_unembed(ti);
 			return;
 		}
-		DBG(3, ("icon window 0x%x was resized, new size: %ux%u, old size: %ux%u\n", ev.window, 
+		LOG_TRACE(("icon 0x%x was resized, new size: %ux%u, old size: %ux%u\n", ev.window, 
 					sz.x, sz.y, ti->l.wnd_sz.x, ti->l.wnd_sz.y));
 		/* Check if the size has really changed */
 		if (sz.x == ti->l.wnd_sz.x && sz.y == ti->l.wnd_sz.y) return;
@@ -578,7 +520,7 @@ void configure_notify(XConfigureEvent ev)
 		embedder_update_positions(False);
 		tray_update_window_props();
 #ifdef DEBUG
-		dump_icon_list();
+		dump_tray_status();
 #endif
 	}
 }
@@ -589,24 +531,23 @@ void selection_clear(XSelectionClearEvent ev)
 	if (ev.selection == tray_data.xa_tray_selection) {
 		/* Is it us who has lost the selection */
 		if (ev.window == tray_data.tray) {
-			DBG(0, ("stalonetray has lost _NET_WM_SYSTRAY selection; deactivating\n"));
+			LOG_INFO(("another tray detected; deactivating\n"));
 			tray_data.is_active = False;
 			tray_data.old_selection_owner = XGetSelectionOwner(tray_data.dpy, tray_data.xa_tray_selection);
 			if (!x11_ok()) {
-				DBG(0, ("could not get new selection owner. re-acquiring selection\n"));
+				LOG_INFO(("could not find proper new tray; reactivating\n"));
 				tray_acquire_selection();
 			};
-				
-			DBG(4, ("the new selection owner 0x%x\n", tray_data.old_selection_owner));
+			LOG_TRACE(("new selection owner is 0x%x\n", tray_data.old_selection_owner));
 			XSelectInput(tray_data.dpy, tray_data.old_selection_owner, StructureNotifyMask);
 			return;
 		} else if (!tray_data.is_active) {
 			/* Someone else has lost selection and tray is not active --- take over the selection */
-			DBG(0, ("re-reacquiring tray selection\n"));
+			LOG_INFO(("another tray exited; reactivating\n"));
 			tray_acquire_selection();
 		} else {
 			/* Just in case */
-			DBG(0, ("WEIRD: tray is active and someone else has lost tray selection :s\n"));
+			LOG_TRACE(("WEIRD: tray is active and someone else has lost tray selection\n"));
 		}
 	}
 }
@@ -616,13 +557,16 @@ void map_notify(XMapEvent ev)
 #ifndef NO_NATIVE_KDE
 	/* Legacy scheme to handle KDE icons */
 	if (tray_data.kde_tray_old_mode) {
-		Window w = kde_tray_find_icon(tray_data.dpy, ev.window);
-		if (w != None) {
-			DBG(4, ("Legacy scheme for KDE icons: detected KDE icon 0x%x. Adding.\n", w));
-			add_icon(w, CM_KDE);
-			/* TODO: remove some properties to trick ion3 so that it no longer thinks that w is a toplevel. 
-			 * Candidates for removal: 
-			 * 	- WM_STATE */
+		struct TrayIcon *ti = icon_list_find_ex(ev.window);
+		if (ti == NULL) {
+			Window w = kde_tray_find_icon(tray_data.dpy, ev.window);
+			if (w != None) {
+				LOG_TRACE(("Legacy scheme for KDE icons: detected KDE icon 0x%x. Adding.\n", w));
+				add_icon(w, CM_KDE);
+				/* TODO: remove some properties to trick ion3 so that it no longer thinks that w is a toplevel. 
+				 * Candidates for removal: 
+				 * 	- WM_STATE */
+			}
 		}
 	}
 #endif
@@ -632,12 +576,12 @@ void unmap_notify(XUnmapEvent ev)
 {
 	struct TrayIcon *ti;
 	ti = icon_list_find(ev.window);
-	if (ti != NULL && !ti->is_invalid && ti->cmode == CM_KDE) {
-		/* KLUDGE! sometimes KDE icons occasionally 
+	if (ti != NULL && !ti->is_invalid) {
+		/* KLUDGE! sometimes icons occasionally 
 		 * unmap their windows, but do _not_ destroy 
 		 * them. We map those windows back */
-		/* XXX: root cause unidentified */
-		DBG(8, ("Unmap KDE icons KLUDGE for 0x%x\n", ti->wid));
+		/* XXX: not root caused */
+		LOG_TRACE(("Unmap icons KLUDGE executed for 0x%x\n", ti->wid));
 		XMapRaised(tray_data.dpy, ti->wid);
 		if (!x11_ok()) ti->is_invalid = True;
 	}
@@ -648,7 +592,6 @@ void my_usleep(useconds_t usec)
 	struct timeval timeout;
 	fd_set rfds;
 	FD_ZERO(&rfds);
-
 	timeout.tv_sec = 0;
 	timeout.tv_usec = usec;
 	select(1, &rfds, NULL, NULL, &timeout);
@@ -659,14 +602,11 @@ void my_usleep(useconds_t usec)
 int tray_main(int argc, char **argv)
 {
 	XEvent		ev;
-	
 	/* Interpret those settings that need an open display */
 	interpret_settings();
-
 #ifdef DEBUG
 	ewmh_list_supported_atoms(tray_data.dpy);
 #endif
-
 	/* Create and show tray window */
 	tray_create_window(argc, argv);
 	tray_acquire_selection();
@@ -678,7 +618,6 @@ int tray_main(int argc, char **argv)
 #ifndef NO_NATIVE_KDE
 	kde_icons_update();
 #endif
-
 	/* Main event loop */
 	while ("my guitar gently wheeps") {
 		/* This is ugly and extra dependency. But who cares?
@@ -696,54 +635,54 @@ int tray_main(int argc, char **argv)
 			scrollbars_handle_event(ev);
 			switch (ev.type) {
 			case VisibilityNotify:
-				DBG(7, ("VisibilityNotify (0x%x, state=%d)\n", ev.xvisibility.window, ev.xvisibility.state));
+				LOG_TRACE(("VisibilityNotify (0x%x, state=%d)\n", ev.xvisibility.window, ev.xvisibility.state));
 				visibility_notify(ev.xvisibility);
 				break;
 			case Expose:
-				DBG(7, ("Expose (0x%x)\n", ev.xexpose.window));
+				LOG_TRACE(("Expose (0x%x)\n", ev.xexpose.window));
 				expose(ev.xexpose);
 				break;
 			case PropertyNotify:
-				DBG(7, ("PropertyNotify(0x%x)\n", ev.xproperty.window));
+				LOG_TRACE(("PropertyNotify(0x%x)\n", ev.xproperty.window));
 				property_notify(ev.xproperty);
 				break;
 			case DestroyNotify:
-				DBG(7, ("DestroyNotify(0x%x)\n", ev.xdestroywindow.window));
+				LOG_TRACE(("DestroyNotify(0x%x)\n", ev.xdestroywindow.window));
 				destroy_notify(ev.xdestroywindow);
 				break;
 			case ClientMessage:
-				DBG(5, ("ClientMessage(from 0x%x?)\n", ev.xclient.window));
+				LOG_TRACE(("ClientMessage(from 0x%x?)\n", ev.xclient.window));
 				client_message(ev.xclient);
 				break;
 			case ConfigureNotify:
-				DBG(7, ("ConfigureNotify(0x%x)\n", ev.xconfigure.window));
+				LOG_TRACE(("ConfigureNotify(0x%x)\n", ev.xconfigure.window));
 				configure_notify(ev.xconfigure);
 				break;
 			case MapNotify:
-				DBG(7, ("MapNotify(0x%x)\n", ev.xmap.window));
+				LOG_TRACE(("MapNotify(0x%x)\n", ev.xmap.window));
 				map_notify(ev.xmap);
 				break;
 			case ReparentNotify:
-				DBG(5, ("ReparentNotify(0x%x to 0x%x)\n", ev.xreparent.window, ev.xreparent.parent));
+				LOG_TRACE(("ReparentNotify(0x%x to 0x%x)\n", ev.xreparent.window, ev.xreparent.parent));
 				reparent_notify(ev.xreparent);
 				break;
 			case SelectionClear:
-				DBG(5, ("SelectionClear (0x%x has lost selection)\n", ev.xselectionclear.window));
+				LOG_TRACE(("SelectionClear (0x%x has lost selection)\n", ev.xselectionclear.window));
 				selection_clear(ev.xselectionclear);
 				break;
 			case SelectionNotify:
-				DBG(5, ("SelectionNotify\n"));
+				LOG_TRACE(("SelectionNotify\n"));
 				break;
 			case SelectionRequest:
-				DBG(5, ("SelectionRequest (from 0x%x to 0x%x)\n", ev.xselectionrequest.requestor, ev.xselectionrequest.owner));
+				LOG_TRACE(("SelectionRequest (from 0x%x to 0x%x)\n", ev.xselectionrequest.requestor, ev.xselectionrequest.owner));
 				break;
 			case UnmapNotify:
-				DBG(7, ("UnmapNotify(0x%x)\n", ev.xunmap.window));
+				LOG_TRACE(("UnmapNotify(0x%x)\n", ev.xunmap.window));
 				unmap_notify(ev.xunmap);
 				break;
 			default:
 #if defined(DEBUG) && defined(TRACE_EVENTS)
-				DBG(8, ("Unhandled event: %s, serial: %d, window: 0x%x\n", x11_event_names[ev.type], ev.xany.serial, ev.xany.window));
+				LOG_TRACE(("Unhandled event: %s, serial: %d, window: 0x%x\n", x11_event_names[ev.type], ev.xany.serial, ev.xany.window));
 #endif
 				break;
 			}
@@ -754,7 +693,7 @@ int tray_main(int argc, char **argv)
 		my_usleep(500000L);
 	}
 bailout:
-	DBG(2, ("Clean exit\n"));
+	LOG_TRACE(("Clean exit\n"));
 	return 0;
 }
 
@@ -768,9 +707,10 @@ int remote_main(int argc, char **argv)
 	unsigned int udummy, w, h;
 	tray_init_selection_atoms();
 	tray_create_phony_window();
-	DBG(0, ("REMOTE: name=\"%s\" btn=%d x=%d y=%d\n", 
+	LOG_TRACE(("name=\"%s\" btn=%d cnt=%d x=%d y=%d\n", 
 				settings.remote_click_name,
 				settings.remote_click_btn,
+				settings.remote_click_cnt,
 				settings.remote_click_pos.x,
 				settings.remote_click_pos.y));
 	tray = XGetSelectionOwner(tray_data.dpy, tray_data.xa_tray_selection);
@@ -800,6 +740,12 @@ int remote_main(int argc, char **argv)
 	/* 3.2. Find subwindow to execute click on */
 	win = x11_find_subwindow_at(tray_data.dpy, icon, x, y, depth);
 	/* 3.3. Send mouse click(s) to target */
+	LOG_TRACE(("wid=0x%x btn=%d x=%d y=%d\n", 
+				settings.remote_click_name,
+				win,
+				settings.remote_click_btn,
+				settings.remote_click_pos.x,
+				settings.remote_click_pos.y));
 #define SEND_BTN_EVENT(press, time) do { \
 	x11_send_button(tray_data.dpy, /* dispslay */ \
 			press, /* event type */ \
@@ -825,23 +771,21 @@ int main(int argc, char** argv)
 	/* Read settings */
 	tray_init();
 	read_settings(argc, argv);
-
 	/* Register cleanup and signal handlers */
 	atexit(cleanup);
 	signal(SIGUSR1, &request_tray_status_on_signal);
-	
 	/* Open display */
 	if ((tray_data.dpy = XOpenDisplay(settings.display_str)) == NULL) 
 		DIE(("could not open display\n"));
 	else 
-		DBG(9, ("Opened dpy %p\n", tray_data.dpy));
+		LOG_TRACE(("Opened dpy %p\n", tray_data.dpy));
 	if (settings.xsync)
 		XSynchronize(tray_data.dpy, True);
 	x11_trap_errors();
-
 	/* Execute proper main() function */
 	if (settings.remote_click_name != NULL) 
 		return remote_main(argc, argv);
 	else
 		return tray_main(argc, argv);
 }
+

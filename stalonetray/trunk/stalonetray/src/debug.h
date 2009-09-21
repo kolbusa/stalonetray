@@ -20,39 +20,52 @@
 #include <string.h>
 #include <time.h>
 
+#define LOG_LEVEL_ERR	0
+#define LOG_LEVEL_INFO	1
+#define LOG_LEVEL_TRACE	2
+
 /* Print the message to STDERR (in the sake of portability, we do not use varadic macros) */
 void print_message_to_stderr(const char *fmt,...);
 
 #ifdef DEBUG
 /* The following defines control what is printed in each logged line */	
-/* Print "stalonetray" */
-#undef  DBG_PRINT_TRAY_PREFIX
-/* Print the id of the process */
-#define DBG_PRINT_PID
-/* Print the name of display */
-#define  DBG_PRINT_DPY
-/* Print the timestamp */
-#define DBG_PRINT_TIMESTAMP
-/* Print the name of a function, file and line which outputs the message */
-#undef DBG_PRINT_LOCATION
-
+/* Print window name */
+#undef  TRACE_WM_NAME
+/* Print pid */
+#define TRACE_PID
+/* Print name of display */
+#define TRACE_DPY
+/* Print timestamp */
+#define TRACE__TIMESTAMP
+/* Print name of a function, file and line which outputs the message */
+/* Othewise, only function name is printed */
+#undef  TRACE_VERBOSE_LOCATION
 /* Print the debug header as specified by defines below */
-void print_debug_header(const char *funcname, const char *fname, const int line, const int level);
-
-/* If trace_mode == True, print all the messages regardless of their debug level */
-extern int trace_mode;
-
+void print_trace_header(const char *funcname, const char *fname, const int line);
+#define PRINT_TRACE_HEADER() do { \
+	print_trace_header(__FUNC__, __FILE__, __LINE__); \
+} while(0)
 /* Print the debug message of specified level */
-#define DBG(level,message)	do { \
-								if (settings.dbg_level >= level || trace_mode) { \
-									print_debug_header(__FUNC__, __FILE__, __LINE__, level); \
+#define LOG_TRACE(message)	do { \
+								if (settings.log_level >= LOG_LEVEL_TRACE) { \
+									PRINT_TRACE_HEADER(); \
 									print_message_to_stderr message; \
 									}; \
 							} while (0)
-#else /* DEBUG */
-	/* Dummy declaration */
-	#define DBG(level,message)	do {} while(0)
-#endif /* DEBUG */
+#else
+#define PRINT_TRACE_HEADER() do {} while(0)
+#define LOG_TRACE(message) do {} while(0)
+#endif 
+
+#define LOG_ERROR(message) do { \
+	if (settings.log_level >= LOG_LEVEL_TRACE) PRINT_TRACE_HEADER(); \
+	if (settings.log_level >= LOG_LEVEL_ERR) print_message_to_stderr message; \
+} while(0)
+
+#define LOG_INFO(message) do { \
+	if (settings.log_level >= LOG_LEVEL_TRACE) PRINT_TRACE_HEADER(); \
+	if (settings.log_level >= LOG_LEVEL_INFO) print_message_to_stderr message; \
+} while(0)
 
 /* Print the summary of icon data */
 int print_icon_data(struct TrayIcon *ti);

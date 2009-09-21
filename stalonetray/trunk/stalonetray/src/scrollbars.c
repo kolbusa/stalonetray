@@ -192,7 +192,7 @@ void scrollbars_validate_scroll_pos()
 
 	val_range(max_scroll_pos.x, 0, INT_MAX);
 	val_range(max_scroll_pos.y, 0, INT_MAX);
-	DBG(8, ("max scroll position: %dx%d\n", max_scroll_pos.x, max_scroll_pos.y));
+	LOG_TRACE(("computed max scroll position: %dx%d\n", max_scroll_pos.x, max_scroll_pos.y));
 
 	val_range(tray_data.scrollbars_data.scroll_pos.x, 0, max_scroll_pos.x);
 	val_range(tray_data.scrollbars_data.scroll_pos.y, 0, max_scroll_pos.y);
@@ -217,7 +217,7 @@ int scrollbars_click(int id)
 		scrollbars_deltas[id].y * settings.scrollbars_inc;
 
 	scrollbars_validate_scroll_pos();
-	DBG(8, ("new scroll position: %dx%d\n", tray_data.scrollbars_data.scroll_pos.x, tray_data.scrollbars_data.scroll_pos.y));
+	LOG_TRACE(("computed new scroll position: %dx%d\n", tray_data.scrollbars_data.scroll_pos.x, tray_data.scrollbars_data.scroll_pos.y));
 
 	icon_list_forall(&layout_translate_to_window);
 	embedder_update_positions(id != SB_WND_MAX);
@@ -229,7 +229,7 @@ void scrollbars_handle_event(XEvent ev)
 	int id;
 	switch (ev.type) {
 	case ButtonPress:
-		DBG(8, ("ButtonPress, state=0x%x\n", ev.xbutton.state));
+		LOG_TRACE(("ButtonPress, state=0x%x\n", ev.xbutton.state));
 		if (ev.xbutton.button == Button1 && 
 				(id = scrollbars_get_id(ev.xbutton.window, ev.xbutton.x, ev.xbutton.y)) != -1) 
 		{
@@ -240,14 +240,14 @@ void scrollbars_handle_event(XEvent ev)
 			}
 		break;
 	case MotionNotify:
-		DBG(8, ("MotionNotify, state=0x%x\n", ev.xbutton.state));
+		LOG_TRACE(("MotionNotify, state=0x%x\n", ev.xbutton.state));
 		if (tray_data.scrollbars_data.scrollbar_down != -1) {
 			tray_data.scrollbars_data.scrollbar_repeat_active = 
 				(scrollbars_get_id(ev.xmotion.window, ev.xmotion.x, ev.xmotion.y) == tray_data.scrollbars_data.scrollbar_down);
 		}
 		break;
 	case ButtonRelease:
-		DBG(8, ("ButtonRelease, state=0x%x\n", ev.xbutton.state));
+		LOG_TRACE(("ButtonRelease, state=0x%x\n", ev.xbutton.state));
 		switch (ev.xbutton.button) {
 		case Button1:
 			if (tray_data.scrollbars_data.scrollbar_down != -1) {
@@ -305,7 +305,7 @@ int scrollbars_scroll_to(struct TrayIcon *ti)
 	tray_data.scrollbars_data.scroll_pos.x = (settings.icon_gravity & GRAV_W ? 1 : -1) * (ti->l.icn_rect.x - tray_data.scrollbars_data.scroll_base.x);
 	tray_data.scrollbars_data.scroll_pos.y = (settings.icon_gravity & GRAV_W ? 1 : -1) * (ti->l.icn_rect.y - tray_data.scrollbars_data.scroll_base.y);
 	scrollbars_validate_scroll_pos();
-	DBG(8, ("new scroll position: %dx%d\n", tray_data.scrollbars_data.scroll_pos.x, tray_data.scrollbars_data.scroll_pos.y));
+	LOG_TRACE(("computed required scroll position: %dx%d\n", tray_data.scrollbars_data.scroll_pos.x, tray_data.scrollbars_data.scroll_pos.y));
 	icon_list_forall(&layout_translate_to_window);
 	embedder_update_positions(True);
 	return SUCCESS;

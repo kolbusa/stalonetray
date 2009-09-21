@@ -1,8 +1,0 @@
-vim:tw=78:et
-
-0. BASIC INFO
-
-The layout is a resizable grid with fixed step. It contaies variable-sized
-rectangles. Tray has two modes of operations: shrink-back and non-shrink-back,
-which define how tray window and layout interact.
-

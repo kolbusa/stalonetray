@@ -38,7 +38,7 @@ int image_tint(XImage *image, XColor *color, CARD8 alpha)
 	case 15:
 		return image_tint_15((CARD16 *) image->data, image->width * image->height, color->pixel, alpha);
 	default:
-		DIE(("Internal error: image_tint() called with unsupported depth %d\n", image->bits_per_pixel));
+		DIE_IE(("image_tint() called with unsupported depth %d\n", image->bits_per_pixel));
 		return FAILURE;
 	}
 }
@@ -55,7 +55,7 @@ int image_compose(XImage *image, XImage *bg, CARD8 *mask)
 	case 15:
 		return image_compose_15((CARD16 *) image->data, (CARD16 *) bg->data, mask, (image->width * image->height));
 	default:
-		DIE(("Internal error: image_tint() called with unsupported depth %d\n", image->bits_per_pixel));
+		DIE_IE(("image_compose() called with unsupported depth %d\n", image->bits_per_pixel));
 		return FAILURE;
 	}
 }
@@ -68,7 +68,7 @@ CARD8 *image_create_alpha_mask(int ord, int w, int h)
 	bord = (1 << ord) - 1;
 
 	m = malloc(w * h);
-	if (m == NULL) DIE(("Out of memory.\n"));
+	if (m == NULL) return NULL;
 	memset(m, 255, w * h);
 
 	/* Shade top and bootom of the rectangle */
