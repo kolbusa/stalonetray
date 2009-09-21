@@ -45,7 +45,6 @@ struct Settings {
     char *wnd_type;            /* Window type */
     char *wnd_layer;           /* Window layer */
     char *wnd_name;            /* Window name (WM_NAME) */
-    char *window_role;         /* Window role (XXX: UNUSED!) */
     char *bg_pmap_path;        /* Background pixmap path */
     char *tint_color_str;      /* Color used for tinting */
 	char *remote_click_name;   /* Icon name to execute remote click on */
@@ -78,9 +77,7 @@ struct Settings {
 #endif
 
     XColor bg_color;           /* Tray background color */
-#ifdef DEBUG    
-    int dbg_level;             /* Debug level */
-#endif
+    int log_level;             /* Debug level */
 };
 
 extern struct Settings settings;

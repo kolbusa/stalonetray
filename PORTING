@@ -1,6 +1,0 @@
-+ netbsd,solaris do not contain backtrace 
-  (solaris: see printstack, netbsd: no hope): done
-
-+ netbsd does not containd wordexp: done
-
-+ solaris cc does not understand all the directives... (worked around)

@@ -32,10 +32,10 @@ struct TrayIcon *icon_list_new(Window wid, int cmode)
 	/* Do not allocate second structure for the same window */
 	if (icon_list_find(wid) != NULL)
 		return NULL;
-	
-	if ((new_icon = malloc(sizeof(struct TrayIcon))) == NULL)
-		DIE(("Out of memory\n"));
-
+	if ((new_icon = malloc(sizeof(struct TrayIcon))) == NULL) {
+		LOG_ERR_OOM(("Could not allocate memory for new icon\n"));
+		return NULL;
+	}
 	new_icon->wid = wid;
 	new_icon->l.wnd_sz.x = 0;
 	new_icon->l.wnd_sz.y = 0;
@@ -50,7 +50,6 @@ struct TrayIcon *icon_list_new(Window wid, int cmode)
 	new_icon->is_xembed_supported = False;
 	new_icon->is_size_set = False;
 	new_icon->num_size_resets = 0;
-
 	LIST_ADD_ITEM(icons_head, new_icon);
 	return new_icon;
 }
@@ -88,13 +87,17 @@ int icon_list_backup()
 	struct TrayIcon *tmp, *cur, *cur2;
 	/* Refuse to perform second backup in a row */
 	if (backup_head != NULL) {
-		DIE(("Internal error: only one backup of icon list at a time is supported\n"));
+		DIE_IE(("Only one backup of icon list at a time is supported\n"));
 	}
 	/* For each icon in the list we allocate new temporary structure and add it
 	 * to the end of temporary list backup_head */
 	for (cur = icons_head, cur2 = NULL; cur != NULL; cur = cur->next, cur2 = tmp) {
 		tmp = (struct TrayIcon *) malloc(sizeof(struct TrayIcon));
-		if (tmp == NULL) DIE(("Out of memory\n"));
+		if (tmp == NULL) {
+			LOG_ERR_OOM(("Could not allocate backup list"));
+			icon_list_backup_purge();
+			return FAILURE;
+		}
 		memcpy(tmp, cur, sizeof(struct TrayIcon));
 		LIST_INSERT_AFTER(backup_head, cur2, tmp);
 		cur2 = tmp;
@@ -105,7 +108,7 @@ int icon_list_backup()
 int icon_list_restore()
 {
 	struct TrayIcon *cur_b, *cur_i, *prev_sv, *next_sv;
-	DBG(8, ("restoring the icon list from the backup\n"));
+	LOG_TRACE(("restoring the icon list from the backup\n"));
 	/* Restore the list by copying raw data from
 	 * backup list. This assumes that sequences have the
 	 * same length. */
@@ -129,7 +132,7 @@ int icon_list_restore()
 int icon_list_backup_purge()
 {
 	struct TrayIcon *tmp;
-	DBG(8, ("purging the backed up icon list\n"));
+	LOG_TRACE(("purging the backed up icon list\n"));
 	/* Clean backup list */
 	LIST_CLEAN(backup_head, tmp);
 	backup_head = NULL;
@@ -180,7 +183,6 @@ void icon_list_sort(IconCmpFunc cmp)
 		for (tmp = icons_head; tmp != NULL; tmp = tmp->next)
 			if (cmp(tmp, cur) > 0)
 				cur = tmp;
-
 		LIST_DEL_ITEM(icons_head, cur);
 		LIST_ADD_ITEM(new_head, cur);
 	}

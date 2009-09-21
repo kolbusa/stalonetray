@@ -15,7 +15,7 @@
 #include "kde_tray.h"
 
 /* This list holds "old" KDE icons, e.g. the icons that are (likely) to be
- * already embedded into some tray and, therefore, are to be ignored. The 
+ * already embedded into some system tray and, therefore, are to be ignored. The 
  * list is empty initially */
 Window *old_kde_icons = NULL;
 unsigned long n_old_kde_icons = -1;
@@ -30,13 +30,12 @@ int kde_tray_update_fallback_mode(Display *dpy)
 	    !x11_get_root_winlist_prop(dpy, tray_data.xa_kde_net_system_tray_windows, 
 				(unsigned char **) &old_kde_icons, &n_old_kde_icons)) 
 	{
-		DBG(3, ("WM does not support KDE_NET_SYSTEM_TRAY_WINDOWS, will use legacy scheme\n"));
+		LOG_INFO(("WM does not support KDE_NET_SYSTEM_TRAY_WINDOWS, will use legacy scheme\n"));
 		x11_extend_root_event_mask(tray_data.dpy, SubstructureNotifyMask);
 		tray_data.kde_tray_old_mode = 1;
 	} else {
 		tray_data.kde_tray_old_mode = 0;
 	}
-
 	return tray_data.kde_tray_old_mode;
 }
 
@@ -45,23 +44,18 @@ void kde_tray_init(Display *dpy)
 	unsigned long n_client_windows, i;
 	Window *client_windows;
 	Atom xa_net_client_list;
-
 	if (!kde_tray_update_fallback_mode(dpy)) return;
-
 	/* n_old_kde_icons == -1 iff this is the first time this function is called
 	 * with fallback mode disabled */
 	if (n_old_kde_icons != -1) return;
-
-	/* If theres no previous tray selection owner, try to embed all available
+	/* 1. If theres no previous tray selection owner, try to embed all available
 	 * KDE icons and, therefore, leave the list of old KDE icons empty */
 	if (tray_data.old_selection_owner == None) {
 		n_old_kde_icons = 0;
 		return;
 	}
-
-	/* Next, we are going to remove some entries from old_kde_icons list */
-
-	/* First, we remove all icons that are listed in _NET_CLIENT_LIST property,
+	/* 2.Next, we are going to remove some entries from old_kde_icons list */
+	/* 2.a. First, we remove all icons that are listed in _NET_CLIENT_LIST property,
 	 * since this means that they are not embedded in any kind of tray */
 	xa_net_client_list = XInternAtom(dpy, "_NET_CLIENT_LIST", True);
 	if (x11_get_root_winlist_prop(dpy, xa_net_client_list, 
@@ -70,8 +64,7 @@ void kde_tray_init(Display *dpy)
 		for (i = 0; i < n_client_windows; i++)
 			kde_tray_old_icons_remove(client_windows[i]);
 	}
-
-	/* Second, we remove all windows that have root window as their parent,
+	/* 2.b. Second, we remove all windows that have root window as their parent,
 	 * since this also means that they are not embedded in any kind of tray */
 	for (i = 0; i < n_old_kde_icons; i++) {
 		Window root, parent, *children;
@@ -84,12 +77,11 @@ void kde_tray_init(Display *dpy)
 		}
 		if (!x11_ok() || !rc) old_kde_icons[i] = None;
 	}
-
 #ifdef DEBUG
 	/* Some diagnostic output */
 	for (i = 0; i < n_old_kde_icons; i++)
 		if (old_kde_icons[i] != None)
-			DBG(6, ("0x%x is marked as old KDE icon\n", old_kde_icons[i]));
+			LOG_TRACE(("0x%x is marked as an old KDE icon\n", old_kde_icons[i]));
 #endif
 }
 
@@ -122,7 +114,7 @@ void kde_tray_old_icons_remove(Window w)
 	int i;
 	for (i = 0; i < n_old_kde_icons; i++)
 		if (old_kde_icons[i] == w) {
-			DBG(6, ("Unmarking 0x%x as old kde icon\n", w));
+			LOG_TRACE(("0x%x unmarked as an old kde icon\n", w));
 			old_kde_icons[i] = None;
 		}
 }
@@ -134,44 +126,34 @@ int kde_tray_check_for_icon(Display *dpy, Window w)
 	unsigned long nitems, bytes_after;
 	static Atom xa_kde_net_wm_system_tray_window_for = None;
 	unsigned char *data = NULL;
-
 	/* Check if the window has a property named _KDE_NET_WM_SYSTEM_TRAY_WINDOW FOR */
 	if (xa_kde_net_wm_system_tray_window_for == None)
 		xa_kde_net_wm_system_tray_window_for = XInternAtom(dpy, "_KDE_NET_WM_SYSTEM_TRAY_WINDOW_FOR", True);
-
 	/* If this atom does not exist, we have nothing to check for */
 	if (xa_kde_net_wm_system_tray_window_for == None) return False;
-
+	/* TODO: use x11_ call */
 	XGetWindowProperty(dpy, w, xa_kde_net_wm_system_tray_window_for, 0L, 1L,
 			False, XA_WINDOW, &actual_type, &actual_format, &nitems, &bytes_after,
 			&data);
 	XFree(data);
 	if (x11_ok() && actual_type == XA_WINDOW && nitems == 1)
-		return True;
+		return SUCCESS;
 	else
-		return False;
+		return FAILURE;
 }
 
-/* Searches recursively through window descendants
- * checking for KDE icons */
 Window kde_tray_find_icon(Display *dpy, Window w)
 {
 	Window root, parent, *children = NULL;
 	unsigned int nchildren;
 	int i;
 	Window r = None;
-
-	if (kde_tray_check_for_icon(dpy, w)) 
-		return w;
-
+	if (kde_tray_check_for_icon(dpy, w)) return w;
 	XQueryTree(dpy, w, &root, &parent, &children, &nchildren);
-
-	if (!x11_ok())
-		goto bailout;
-	
+	if (!x11_ok()) goto bailout;
 	for (i = 0; i < nchildren; i++) 
-		if ((r = kde_tray_find_icon(dpy, children[i])) != None) goto bailout;
-
+		if ((r = kde_tray_find_icon(dpy, children[i])) != None) 
+			goto bailout;
 bailout:
 	if (children != NULL && nchildren > 0) XFree(children);
 	return r;

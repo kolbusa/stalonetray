@@ -110,17 +110,21 @@ for 0.8
 + geometry bugs (wrong placement) (CANTREPRODUCE?)
 - valgrind
 	+ color background
-	- xpm background
-	- xpm background + transparency
-- remote interface (via send event to tray selection manager)
-- profile the code
+	+ xpm background
+	+ xpm background + transparency
++ remote interface (via send event to tray selection manager)
++ profile the code
 	+ powertop; fix event loop to block if there are no events and no scrolling
 		+ proper handling of signals required!!!
 			+ SIGUSR1 handing is OK (its for debug only anyway)
 			+ termination signals wont be handled to avoid hacks...
-- rework command line interface (?)
++ fix complaint about icon placement in WM dockapp mode
++ fix complaint about window layer under WM (CANTREPRODUCE, Window Maker 0.92.0)
++ rework DBG/ERR/DIE
++ update sample RC
 
 for 0.8.x/0.9
+- systray 0.3 spec (VISUAL)
 - proper dockapp behaviour in WM
 - profile the code
 	- gprofile; use array in icons.c instead of list (LATER)
@@ -129,3 +133,4 @@ for 0.8.x/0.9
 - track size changes of the icons that failed to fit into the tray? (WONTDO)
 - rework root transparency code (handle cases when root pmap size is less than root window) (WONTDO)
 - restructure command line params and reduce their count (WONTDO)
+- rework command line interface

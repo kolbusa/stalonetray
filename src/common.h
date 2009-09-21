@@ -27,10 +27,24 @@
 #define SUCCESS 1
 #define FAILURE 0
 
+/* Simple macro to return status and log it if necessary */
+#define RETURN_STATUS(rc) do { \
+	LOG_TRACE(("status = %s\n", ((rc) == SUCCESS ? "SUCCESS" : "FAILURE"))); \
+	return rc; \
+} while(0)
+
 /* Meaningful names for return values of icon mass-operations */
 #define MATCH 1
 #define NO_MATCH 0
 
+/* Simple macro to return mass-op status and log it if necessary */
+#define RETURN_MATCH(rc) do { \
+	LOG_TRACE(("status = %s\n", rc == MATCH : "MATCH" : "NO_MATCH")); \
+	return rc; \
+} while(0)
+
+/* Meaningful names for return values of icon mass-operations */
+#define MATCH 1
 /* Portable macro for function name */
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 	#define __FUNC__ __func__
@@ -40,22 +54,28 @@
 	#define __FUNC__ "unknown"
 #endif
 
-/* Print a error message */
-#ifdef DEBUG
-	#define ERR(message)	DBG(0, message)
-#else
-	#define ERR(message)	print_message_to_stderr message
-#endif
-
+/* DIE */
+#define DIEDIE() exit(-1)
 /* Print a message and... DIE */
-#define DIE(message)		do { ERR(message); exit(-1); } while(0)
+#define DIE(message) do { LOG_ERROR(message); DIEDIE(); } while(0)
+/* Log OOM condition */
+#define LOG_ERR_IE(message) do { \
+	LOG_ERROR(("Internal error, please report to maintaner (see AUTHORS)\n")); \
+	LOG_ERROR(message); \
+} while(0);
+/* DIE on internal error */
+#define DIE_IE(message)	do { LOG_ERR_IE(message); DIEDIE(); } while(0)
+/* Log OOM condition */
+#define LOG_ERR_OOM(message) do { \
+	LOG_ERROR(("Out of memory\n")); \
+	LOG_ERROR(message); \
+} while(0);
+/* DIE on OOM error */
+#define DIE_OOM(message) do { LOG_ERR_OOM(message); DIEDIE(); } while(0)
 
-/* WARNING: feed following macro only with 
- * side-effects-free expressions */
-
+/*** WARNING: feed following macros only with side-effects-free expressions ***/
 /* Get a value within target interval */
 #define cutoff(tgt,min,max) (tgt) < (min) ? (min) : ((tgt) > (max) ? max : tgt)
-
 /* Update value to fit into target interval */
 #define val_range(tgt,min,max) (tgt) = cutoff(tgt,min,max)
 
