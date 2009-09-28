@@ -71,7 +71,7 @@
 
 #define _NET_WM_STRUT_PARTIAL_SZ	12
 #define _NET_WM_STRUT_SZ			4
-typedef CARD32 wm_strut_t[_NET_WM_STRUT_PARTIAL_SZ];
+typedef unsigned long wm_strut_t[_NET_WM_STRUT_PARTIAL_SZ];
 #define WM_STRUT_IDX_LFT 0
 #define WM_STRUT_IDX_RHT 1
 #define WM_STRUT_IDX_TOP 2
