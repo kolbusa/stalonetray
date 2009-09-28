@@ -866,11 +866,11 @@ void interpret_settings()
 					settings.max_tray_dims.x,
 					settings.max_tray_dims.y));
 	if (!settings.max_tray_dims.x)
-		settings.max_tray_dims.x = root_wa.width / settings.slot_size;
+		settings.max_tray_dims.x = root_wa.width;
 	else
 		val_range(settings.max_tray_dims.x, settings.orig_tray_dims.x, INT_MAX);
 	if (!settings.max_tray_dims.y)
-		settings.max_tray_dims.y = root_wa.height / settings.slot_size;
+		settings.max_tray_dims.y = root_wa.height; 
 	else
 		val_range(settings.max_tray_dims.y, settings.orig_tray_dims.y, INT_MAX);
 	LOG_TRACE(("max geometry after normalization: %dx%d\n",
