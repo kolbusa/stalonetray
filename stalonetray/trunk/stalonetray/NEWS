@@ -1,3 +1,32 @@
+0.8 news
+
+- Scrollbars: now tray window has extra border, which user can click on to
+  scroll icon area. This means that one can have fixed-size tray window
+  (usefull when it is swallowed by FvwmButtons). See documentation on
+  --scrollbars option for more info.
+
+- Semi-ugly support for WindowMaker dockapp mode. See documentation on
+  --dockapp-mode option for more info.
+
+- Remote control. Now it is possible to execute clicks on icons windows from
+  command line. See documentation on --remote-click option for more info
+
+- Support for window struts EWMH property: now maximized windows do not cover
+  stalonetray window. See documentation on --window-strut option for more info.
+
+- In addition to --icon-size which defines default icon size, now there is also
+  a --slot-size which defines size of slot containing an icon.
+
+- Initial and maximal tray window dimensions are now specified in slot_size
+  multiples
+
+Notable fixes:
+
+- fix NetBSD build bug
+- fix EWMH window type support
+
+Some command line and configuration file options were depricated, see DEPRICATIONS section of manpage for more info.
+
 0.7.6 news
 - fix bug with sticky mode under Openbox
 - fix bug with dissappearing window under WindowMaker (sf.net bug #1858069)
