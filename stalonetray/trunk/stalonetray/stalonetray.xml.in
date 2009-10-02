@@ -116,7 +116,7 @@
   <varlistentry>
   <term><option>--dockapp-mode</option>
   <optional><replaceable>mode</replaceable></optional></term>
-  <term><option>docapp_mode</option>
+  <term><option>dockapp_mode</option>
   <optional><replaceable>mode</replaceable></optional></term>
   <listitem><para>Set dockapp mode, which can be either
   <userinput>simple</userinput> for e.g. OpenBox, <userinput>wmaker</userinput>
