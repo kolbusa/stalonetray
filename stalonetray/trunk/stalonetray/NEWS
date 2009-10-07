@@ -1,13 +1,5 @@
 0.8 news
 
-- Scrollbars: now tray window has extra border, which user can click on to
-  scroll icon area. This means that one can have fixed-size tray window
-  (usefull when it is swallowed by FvwmButtons). See documentation on
-  --scrollbars option for more info.
-
-- Semi-ugly support for WindowMaker dockapp mode. See documentation on
-  --dockapp-mode option for more info.
-
 - Remote control. Now it is possible to execute clicks on icons windows from
   command line. See documentation on --remote-click option for more info
 
@@ -19,6 +11,15 @@
 
 - Initial and maximal tray window dimensions are now specified in slot_size
   multiples
+
+- Scrollbars: now tray window has extra border, which user can click on to
+  scroll icon area. This means that one can have fixed-size tray window
+  (usefull when it is swallowed by FvwmButtons). See documentation on
+  --scrollbars option for more info. This feature is experimental.
+
+- Semi-ugly support for WindowMaker dockapp mode. See documentation on
+  --dockapp-mode option for more info.
+
 
 Notable fixes:
 
