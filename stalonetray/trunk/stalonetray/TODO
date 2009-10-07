@@ -108,7 +108,7 @@ for 0.8
 + add --kludge command line param that turns kludges on/off
 	+ move respect icon hints under this category
 + geometry bugs (wrong placement) (CANTREPRODUCE?)
-- valgrind
++ valgrind
 	+ color background
 	+ xpm background
 	+ xpm background + transparency
