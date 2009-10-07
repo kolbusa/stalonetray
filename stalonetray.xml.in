@@ -56,9 +56,7 @@
   <option>--option</option>=<replaceable>value</replaceable>. All
   flag-like parameters have optional boolean value that when ommited is assumed
   to be "true". Write "true", "yes", "1", for positive boolean values, and
-  "false", "no", "0" for negative ones. <emphasis>Please note, that a value
-  cannot start with "-". This limitation is to be fixed in future
-  releases.</emphasis> </para>
+  "false", "no", "0" for negative ones.</para>
 
   <para>Default configuration file is <filename>$HOME/.stalonetrayrc</filename>.
   A configuration file contains case-insensetive keyword-argument pairs, one per
@@ -421,8 +419,8 @@
   <variablelist>
 
   <varlistentry>
-  <term><option>--dbg-levels</option></term>
-  <term><option>dbg_levels</option></term>
+  <term><option>--dbg-level</option></term>
+  <term><option>dbg_level</option></term>
   <listitem><para>Please use <option>--log-level</option>
   instead.</para></listitem>
   </varlistentry>
