@@ -331,8 +331,12 @@ int tray_update_window_props()
 	x11_get_window_size(tray_data.dpy, tray_data.tray,
 			&tray_data.xsh.width, &tray_data.xsh.height);
 	layout_get_size(&layout_width, &layout_height);
+	LOG_TRACE(("layout geometry: %dx%d\n", layout_width, layout_height));
 	tray_calc_tray_area_size(tray_data.xsh.width, tray_data.xsh.height, 
 			&cur_base_width, &cur_base_height);
+	LOG_TRACE(("base tray geometry: %dx%d\n", cur_base_width, cur_base_height));
+	LOG_TRACE(("orig tray geometry: %dx%d\n", settings.orig_tray_dims.x, settings.orig_tray_dims.y));
+	LOG_TRACE(("max tray geometry: %dx%d\n", settings.max_tray_dims.x, settings.max_tray_dims.y));
 #define CALC_DIM(tgt,cur,layout,max,orig) \
 	if (layout > max) tgt = max; \
 	else if ((settings.shrink_back_mode && layout > orig) || layout > cur) tgt = layout; \
@@ -342,7 +346,9 @@ int tray_update_window_props()
 			settings.max_tray_dims.x, settings.orig_tray_dims.x);
 	CALC_DIM(new_height, cur_base_height, layout_height, 
 			settings.max_tray_dims.y, settings.orig_tray_dims.y);
+	LOG_TRACE(("new base tray geometry: %dx%d\n", new_width, new_height));
 	tray_calc_window_size(new_width, new_height, &new_width, &new_height);
+	LOG_TRACE(("new tray geometry: %dx%d\n", new_width, new_height));
 #if 1
 	/* Not sure if this is really necessary */
 	xsh.x = tray_data.xsh.x;

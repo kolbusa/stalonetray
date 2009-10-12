@@ -512,10 +512,10 @@ void usage(char *progname)
 			"    --skip-taskbar              hide tray`s window from the taskbar\n"
 			"    --sticky                    make tray`s window sticky across multiple\n"
 			"                                desktops/pages\n"
+			"    -t, --transparent           enable root transparency\n"
 			"    --tint-color <color>        tint tray background with color (not used\n"
 			"                                with plain color background)\n"
 			"    --tint-level <level>        set tinting level from 0 to 255\n"
-			"    -t, --transparent           enable root transparency\n"
 			"    -v, --vertical              use vertical layout of icons (horizontal\n"
 			"                                layout is used by default)\n"
 			"    --window-layer <layer>      set tray`s window EWMH layer\n"
@@ -837,8 +837,8 @@ void interpret_settings()
 	tray_data.xsh.max_width = tray_data.xsh.width;
 	tray_data.xsh.min_height = tray_data.xsh.height;
 	tray_data.xsh.flags = PResizeInc | PBaseSize | PMinSize | PMaxSize | PWinGravity; 
-	settings.orig_tray_dims.x = tray_data.xsh.width;
-	settings.orig_tray_dims.y = tray_data.xsh.height;
+	tray_calc_tray_area_size(tray_data.xsh.width, tray_data.xsh.height, 
+			&settings.orig_tray_dims.x, &settings.orig_tray_dims.y);
 	/* Dockapp mode */
 	if (settings.dockapp_mode == DOCKAPP_WMAKER) 
 		tray_data.xsh.flags |= USPosition; 
@@ -867,12 +867,16 @@ void interpret_settings()
 					settings.max_tray_dims.y));
 	if (!settings.max_tray_dims.x)
 		settings.max_tray_dims.x = root_wa.width;
-	else
+	else {
+		settings.max_tray_dims.x *= settings.slot_size;
 		val_range(settings.max_tray_dims.x, settings.orig_tray_dims.x, INT_MAX);
+	}
 	if (!settings.max_tray_dims.y)
 		settings.max_tray_dims.y = root_wa.height; 
-	else
+	else {
+		settings.max_tray_dims.y *= settings.slot_size;
 		val_range(settings.max_tray_dims.y, settings.orig_tray_dims.y, INT_MAX);
+	}
 	LOG_TRACE(("max geometry after normalization: %dx%d\n",
 					settings.max_tray_dims.x,
 					settings.max_tray_dims.y));

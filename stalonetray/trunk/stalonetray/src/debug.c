@@ -38,12 +38,21 @@ int trace_mode = False;
 void print_trace_header(const char *funcname, const char *fname, const int line)
 {
 	static pid_t pid = 0;
+#ifdef TRACE_TIMESTAMP
+	{
+        static char timestr[PATH_MAX+1];
+		time_t curtime = time(NULL);
+		struct tm * loctime = localtime(&curtime);
+		strftime(timestr, PATH_MAX, "%b %e %H:%M:%S", loctime);
+		fprintf(stderr, "%s ", timestr); 
+	}
+#endif
 #ifdef TRACE_WM_NAME
-	fprintf(stderr, "[%s] ", settings.wnd_name);
+	fprintf(stderr, "%s ", settings.wnd_name);
 #endif
 #ifdef TRACE_PID
 	if (!pid) pid = getpid();
-	fprintf(stderr, "%d ", pid);
+	fprintf(stderr, "(%d) ", pid);
 #endif
 #ifdef TRACE_DPY
 	if (tray_data.dpy != NULL)
@@ -51,17 +60,8 @@ void print_trace_header(const char *funcname, const char *fname, const int line)
 	else
 		fprintf(stderr, "(dpy) ");
 #endif
-#ifdef TRACE_TIMESTAMP
-	{
-        static char timestr[PATH_MAX+1];
-		time_t curtime = time(NULL);
-		struct tm * loctime = localtime(&curtime);
-		strftime(timestr, PATH_MAX, "%H:%M:%S", loctime);
-		fprintf(stderr, "%s ", timestr); 
-	}
-#endif
 #ifdef TRACE_VERBOSE_LOCATION
-	fprintf(stderr, "(%s:%d) ", fname, line);
+	fprintf(stderr, "(%s:%4d) ", fname, line);
 #endif
 	fprintf(stderr, "%s(): ", funcname); 
 }

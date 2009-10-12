@@ -122,6 +122,8 @@ for 0.8
 + fix complaint about window layer under WM (CANTREPRODUCE, Window Maker 0.92.0)
 + rework DBG/ERR/DIE
 + update sample RC
+- proper formatting of log lines (date + remove location)
+- fix bug with resize
 
 for 0.8.x/0.9
 - systray 0.3 spec (VISUAL)
