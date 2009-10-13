@@ -39,6 +39,7 @@ struct Settings {
     /* Strings */
     char *display_str;         /* Name of the display */
     char *bg_color_str;        /* Background color name */
+    char *scrollbars_highlight_color_str; /* Name of color to highlight scrollbars with. NULL means highlighting is disabled */
     char *geometry_str;        /* Geometry spec */
     char *max_geometry_str;    /* Geometry spec */
     char *config_fname;        /* Path to the configuration file */
@@ -77,6 +78,7 @@ struct Settings {
 #endif
 
     XColor bg_color;           /* Tray background color */
+    XColor scrollbars_highlight_color; /* Color to highlight scrollbars with */
     int log_level;             /* Debug level */
 };
 

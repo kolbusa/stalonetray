@@ -32,7 +32,8 @@ struct ScrollbarsData {
 	struct Point scroll_pos;                /* Current scroll position */
 	Window scrollbar[SB_WND_MAX];           /* Window IDs of scrollbars */
 	XSizeHints scrollbar_xsh[SB_WND_MAX];	/* Cached window sizes for scrollbars */
-	int scrollbar_down;						/* Click states */
+	int scrollbar_down;						/* Click state */
+	int scrollbar_highlighted;				/* Highlight state */
 	int scrollbar_repeat_active;			/* If repeat is active */
 	int scrollbar_repeat_counter;			/* Countown for repeat action */
 	int scrollbar_repeats_done;				/* Numberf of executed repeat actions */
@@ -60,4 +61,8 @@ void scrollbars_handle_event(XEvent ev);
 void scrollbars_periodic_tasks();
 /* Scroll to icon */
 int scrollbars_scroll_to(struct TrayIcon *ti);
+/* Highlight scrollbar */
+int scrollbars_highlight_on(int id);
+/* Switch hightlight off */
+int scrollbars_highlight_off(int id);
 #endif 

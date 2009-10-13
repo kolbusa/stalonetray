@@ -360,6 +360,14 @@ void x11_extend_root_event_mask(Display *dpy, long mask)
 	XSelectInput(dpy, DefaultRootWindow(dpy), old_mask);
 }
 
+int x11_parse_color(Display *dpy, char *str, XColor *color)
+{
+	int rc;
+	rc = XParseColor(dpy, XDefaultColormap(dpy, DefaultScreen(dpy)), str, color);
+	if (rc) XAllocColor(dpy, XDefaultColormap(dpy, DefaultScreen(dpy)), color);
+	return x11_ok() && rc;
+}
+
 #ifdef DEBUG
 const char *x11_event_names[LASTEvent] = {
 	"unknown0",
