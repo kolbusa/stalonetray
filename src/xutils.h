@@ -74,6 +74,9 @@ Window x11_find_subwindow_at(Display *dpy, Window top, int x, int y, int depth);
 /* Extends event mask of the root window */
 void x11_extend_root_event_mask(Display *dpy, long mask);
 
+/* Parse text representation of a color */
+int x11_parse_color(Display *dpy, char *str, XColor *color);
+
 /* Checks if any X11 errors have occured so far. */
 /* ACHTUNG!!! after any sequence X operations any of which
  * that might have failed, you _must_ call x11_ok(), since

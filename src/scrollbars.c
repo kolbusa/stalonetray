@@ -98,7 +98,7 @@ void scrollbars_create()
 			XMapRaised(tray_data.dpy, tray_data.scrollbars_data.scrollbar[i]);
 			XSelectInput(tray_data.dpy, 
 					tray_data.scrollbars_data.scrollbar[i], 
-					ButtonPressMask | ButtonReleaseMask | ButtonMotionMask );
+					ButtonPressMask | ButtonReleaseMask | ButtonMotionMask | EnterWindowMask | LeaveWindowMask );
 		}
 }
 
@@ -198,7 +198,6 @@ void scrollbars_validate_scroll_pos()
 	val_range(tray_data.scrollbars_data.scroll_pos.y, 0, max_scroll_pos.y);
 }
 
-
 int scrollbars_click(int id)
 {
 	/* TODO: implement scroll gravity (i.e. scroll weel must scroll in direction that agrees with
@@ -228,6 +227,17 @@ void scrollbars_handle_event(XEvent ev)
 {
 	int id;
 	switch (ev.type) {
+	case EnterNotify:
+	case LeaveNotify:
+		LOG_TRACE(("EnterNotify, wid=0x%x x=%d y=%d\n", ev.type == EnterNotify ? "EnterNotify" : "LeaveNotify", 
+					ev.xcrossing.window, ev.xcrossing.x, ev.xcrossing.y));
+		if (settings.scrollbars_highlight_color_str != NULL && (id = scrollbars_get_id(ev.xcrossing.window, 0, 0)) != -1) {
+			if (ev.type == EnterNotify)
+				scrollbars_highlight_on(id);
+			else
+				scrollbars_highlight_off(id);
+		}
+		break;
 	case ButtonPress:
 		LOG_TRACE(("ButtonPress, state=0x%x\n", ev.xbutton.state));
 		if (ev.xbutton.button == Button1 && 
@@ -241,10 +251,9 @@ void scrollbars_handle_event(XEvent ev)
 		break;
 	case MotionNotify:
 		LOG_TRACE(("MotionNotify, state=0x%x\n", ev.xbutton.state));
-		if (tray_data.scrollbars_data.scrollbar_down != -1) {
-			tray_data.scrollbars_data.scrollbar_repeat_active = 
-				(scrollbars_get_id(ev.xmotion.window, ev.xmotion.x, ev.xmotion.y) == tray_data.scrollbars_data.scrollbar_down);
-		}
+		tray_data.scrollbars_data.scrollbar_repeat_active = 
+			(tray_data.scrollbars_data.scrollbar_down != -1 && 
+			 scrollbars_get_id(ev.xmotion.window, ev.xmotion.x, ev.xmotion.y) == tray_data.scrollbars_data.scrollbar_down);
 		break;
 	case ButtonRelease:
 		LOG_TRACE(("ButtonRelease, state=0x%x\n", ev.xbutton.state));
@@ -309,4 +318,20 @@ int scrollbars_scroll_to(struct TrayIcon *ti)
 	icon_list_forall(&layout_translate_to_window);
 	embedder_update_positions(True);
 	return SUCCESS;
+}
+
+int scrollbars_highlight_on(int id)
+{
+	Window sb_wid;
+	sb_wid =  (0 <= id && id < 4) ? tray_data.scrollbars_data.scrollbar[id] : None;
+	if (sb_wid != None) XSetWindowBackground(tray_data.dpy, sb_wid, settings.scrollbars_highlight_color.pixel);
+	scrollbars_refresh(1);
+}
+
+int scrollbars_highlight_off(int id)
+{
+	Window sb_wid;
+	sb_wid =  (0 <= id && id < 4) ? tray_data.scrollbars_data.scrollbar[id] : None;
+	if (sb_wid != None) XSetWindowBackgroundPixmap(tray_data.dpy, sb_wid, ParentRelative);
+	scrollbars_refresh(1);
 }

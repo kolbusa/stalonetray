@@ -36,7 +36,9 @@ struct Settings settings;
 /* Initialize data */
 void init_default_settings() 
 {
-	settings.bg_color_str		= "#777777";
+	settings.bg_color_str		= "gray";
+	settings.tint_color_str		= "white";
+	settings.scrollbars_highlight_color_str	= "white";
 	settings.display_str		= NULL;
 #ifdef DEBUG
 	settings.log_level			= LOG_LEVEL_ERR;
@@ -67,7 +69,6 @@ void init_default_settings()
 	settings.pixmap_bg          = 0;
 	settings.bg_pmap_path       = NULL;
 	settings.tint_level         = 0;
-	settings.tint_color.pixel   = 0xffffff;
 	settings.fuzzy_edges        = 0;
 	settings.dockapp_mode		= DOCKAPP_NONE;
 	settings.scrollbars_size    = -1;
@@ -88,6 +89,18 @@ void init_default_settings()
 /* ******* general parsing utils ********* */
 
 #define PARSING_ERROR(msg,str) if (!silent) LOG_ERROR(("Parsing error: " msg ", \"%s\" found\n", str));
+
+/* Parse highlight color */
+int parse_scrollbars_highlight_color(char *str, char ***tgt, int silent)
+{
+	if (!strcasecmp(str, "disable")) 
+		**tgt = NULL;
+	else {
+		**tgt = strdup(str);
+		if (**tgt == NULL) DIE_OOM(("Could not copy value from parameter\n"));
+	}
+	return SUCCESS;
+}
 
 /* Parse log level */
 int parse_log_level(char *str, int **tgt, int silent)
@@ -429,6 +442,7 @@ struct Param params[] = {
 	{NULL, "--remote-click-position", NULL, {&settings.remote_click_pos}, (param_parser_t) &parse_pos, 1, 1, 0, NULL},
 	{NULL, "--remote-click-type", NULL, {&settings.remote_click_cnt}, (param_parser_t) &parse_remote_click_type, 1, 1, 0, NULL},
 	{NULL, "--scrollbars", "scrollbars", {&settings.scrollbars_mode}, (param_parser_t) &parse_sb_mode, 1, 1, 0, NULL},
+	{NULL, "--scrollbars-highlight", "scrollbars_highlight", {&settings.scrollbars_highlight_color_str}, (param_parser_t) &parse_scrollbars_highlight_color, 1, 1, 0, NULL},
 	{NULL, "--scrollbars-step", "scrollbars_step", {&settings.scrollbars_inc}, (param_parser_t) &parse_int, 1, 1, 0, NULL},
 	{NULL, "--scrollbars-size", "scrollbars_size", {&settings.scrollbars_size}, (param_parser_t) &parse_int, 1, 1, 0, NULL},
 	{NULL, "--skip-taskbar", "skip_taskbar", {&settings.skip_taskbar}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
@@ -476,7 +490,7 @@ void usage(char *progname)
 			"    --grow-gravity <gravity>    set tray`s grow gravity,\n"
 			"                                either to N, S, W, E, NW, NE, SW, or SE\n"
 			"    --icon-gravity <gravity>    icon positioning gravity (NW, NE, SW, SE)\n"
-			"    -i, --icon-size <n>         set basic icon size to <n>, default: 24\n"
+			"    -i, --icon-size <n>         set basic icon size to <n>; default is 24\n"
 			"    -h, --help                  show this message\n"
 #ifdef DEBUG
 			"    --log-level <level>         set the level of output to either err\n"
@@ -506,6 +520,7 @@ void usage(char *progname)
 			"                                type can be either single, or double\n"
 			"    --scrollbars <mode>         set scrollbar mode either to all, horizontal,\n"
 			"                                vertical, or none\n"
+			"    --scrollbars-highlight <color> set scrollbar highlight color\n"
 			"    --scrollbars-step <n>       set scrollbar step to n pixels\n"
 			"    --scrollbars-size <n>       set scrollbar size to n pixels\n"
 			"    --slot-size <n>             set icon slot size to n\n"
@@ -788,25 +803,22 @@ void interpret_settings()
 	}
 	if (settings.transparent)
 		settings.parent_bg = False;
-	/* Parse background color */
-	rc = XParseColor(tray_data.dpy, XDefaultColormap(tray_data.dpy, DefaultScreen(tray_data.dpy)),
-			settings.bg_color_str, &settings.bg_color);
-	if (rc) 
-		XAllocColor(tray_data.dpy, XDefaultColormap(tray_data.dpy, DefaultScreen(tray_data.dpy)), 
-				&settings.bg_color);
-	if (!x11_ok() || !rc)
+	/* Parse color-related settings */
+	if (!x11_parse_color(tray_data.dpy, settings.bg_color_str, &settings.bg_color))
 		DIE(("Could not parse background color \"%s\"\n", settings.bg_color_str));
+	if (settings.scrollbars_highlight_color_str != NULL)
+	{
+	    if (!x11_parse_color(tray_data.dpy, settings.scrollbars_highlight_color_str, &settings.scrollbars_highlight_color))
+		{
+			DIE(("Could not parse scrollbars highlight color \"%s\"\n", settings.bg_color_str));
+		}
+	}
 	/* Sanitize tint level value */
 	val_range(settings.tint_level, 0, 255);
 	if (settings.tint_level) {
 		/* Parse tint color */
-		rc = XParseColor(tray_data.dpy, XDefaultColormap(tray_data.dpy, DefaultScreen(tray_data.dpy)),
-				settings.tint_color_str, &settings.tint_color);
-		if (rc) 
-			XAllocColor(tray_data.dpy, XDefaultColormap(tray_data.dpy, DefaultScreen(tray_data.dpy)), 
-					&settings.tint_color);
-		if (!x11_ok() || !rc) 
-			DIE(("Could not parse tint color \"%s\"\n", settings.bg_color_str));
+		if (!x11_parse_color(tray_data.dpy, settings.tint_color_str, &settings.tint_color))
+			DIE(("Could not parse tint color \"%s\"\n", settings.tint_color_str));
 	}
 	/* Sanitize edges fuzziness */
 	val_range(settings.fuzzy_edges, 0, 3);
@@ -914,6 +926,8 @@ int read_settings(int argc, char **argv)
 	LOG_TRACE(("min_space_policy = %d\n", settings.min_space_policy));
 	LOG_TRACE(("need_help = %d\n", settings.need_help));
 	LOG_TRACE(("parent_bg = %d\n", settings.parent_bg));
+	LOG_TRACE(("scrollbars_highlight_color_str = \"%s\"\n", settings.scrollbars_highlight_color_str));
+	LOG_TRACE(("scrollbars_highlight_color.pixel = %ld\n", settings.scrollbars_highlight_color.pixel));
 	LOG_TRACE(("scrollbars_inc = %d\n", settings.scrollbars_inc));
 	LOG_TRACE(("scrollbars_mode = %d\n", settings.scrollbars_mode));
 	LOG_TRACE(("scrollbars_size = %d\n", settings.scrollbars_size));
