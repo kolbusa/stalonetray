@@ -303,6 +303,14 @@
   </varlistentry>
 
   <varlistentry>
+  <term><option>--scrollbars-highlight</option> <replaceable>mode</replaceable></term>
+  <term><option>scrollbars_highlight</option> <replaceable>mode</replaceable></term>
+  <listitem><para>Set scrollbars highlight mode, either color spec, or
+  <userinput>disable</userinput>. NEW in 0.8.
+  </para></listitem>
+  </varlistentry>
+
+  <varlistentry>
   <term><option>--scrollbars-size</option> <replaceable>n</replaceable></term>
   <term><option>scrollbars_size</option> <replaceable>n</replaceable></term>
   <listitem><para>Set scrollbar size to <userinput>n</userinput> pixels. 
