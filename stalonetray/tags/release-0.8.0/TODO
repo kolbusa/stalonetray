@@ -1,0 +1,138 @@
++ Each icon must have a newly created parent window, which matches its
+  dimentions (for ease of move and for them to be centered ?). 
++ Anvanced grow
++ Reorganize settings (and vars)  
+- Make use of resources (WONTDO)
++ rc file
++ Need to handle unusual sizes of "icons" (and resolve when to force
+  constraints)
++ Make satray survive even if window suddenly dissapears
+  (during some operation, when destroy\unmap was not handled)
++ KDE tray implementation (solves previous problem)
++ Handle tray icon move/resize
++ Simplify rc file syntax/re-reorganize settings
++ main.c cleanup 
++ update transparent/parent background on icon move/resize
++ review DBG() calls in accordance with doc/DEBUG-LEVELS
++ reacquire tray selection after loss (if holder exits) (update sample rc(done))
++ find and fix typos
++ fix (almost all) warnings with -Wall
++ .spec file for building rpms
++ man page
++ tray grow with wnd deco
+
+for 0.4
++ default values in the manpage, MWM/EWMH compliancy must be noted
++ ontop/onbottom/normal (wnd_layer param)
++ xorg7 build troubles
++ more flexible wnd deco specification
++ make use of ewmh spec (_NET_WM_STATE_SKIP_PAGER, _NET_WM_WINDOW_TYPE_DOCK and friends)
++ all configure.in needs review (refuse to build if something goes wrong)
++ update DBG so that it does not require C99
++ *wm tests (pwm(2), e17 have some issues):
+	+ WMaker (everything works)
+	+ Fvwm (for sure)
+	+ PWM(1) (no_{title,border} do not work)
+	+ E17 (the same =()
++ something has happened to vertical layout (all works)
++ tests on sf cf
+	+ now stalonetray can be build with Sun ONE 8 C compiler =) (because it's sources conform to C90 specs)
++ change status to beta =)
+
+
+for 0.5(unreleased, renamed to 0.6)
++ code cleanup (again :() (REVIEW layout.c very thoroughly!!!)
++ fix geometry issues
++ GNUisms in debug.h
++ icons are not aligned properly inside their mid-parents
++ basename can be either in libgen.h or in string.h o_O : XPG ver from libgen.h was chosen
++ update manpages, etc (docbook for documentation ?)
++ fix default rc file name
++ backtrace in configure.in is not detected ?
++ make boolean cfg file opts to have _optional_ argument
++ make permanent behaviour default and remove it from configuration
++ default values in documentation
++ validate stalonetray.xml
++ collect icons on startup (test, KDE icons issue) needs XEMBED ?!!!
++ Full XEMBED implementation (?)
++ issue with composite extension on (seq1,2)
++ version info
++ pixmap bg
++ check rc keyword names for concistency and update stalonetrayrc.sample
++ test non-debug version
++ test with LARGE pixmap
++ PORTING
++ fix the website for IE (and colors)
+
+for 0.7
+- DOXYGEN documentation (WONTDO, 0.8?)
+- one state instead of multiple flags for icons (WONTDO)
+- split main.c into: signals.c events.c main.c (WONTDO)
+- support for WINE icons (WONTDO: isn't it WINE problem?)
++ consistent naming scheme for funcs
++ shrink back mode
++ reconsider API
++ improve X11-using code
++ params for boolean cmd line parameters (reconsider cmd line params and rc file directives) ??? (--skip-taskbar=true)
++ indicate parsing errors (make them fatal?)
++ comments
++ bg tinting (with fade out)
++ wmaker mode (SORTOFWORKS)
++ fall back to legacy KDE icons handling scheme when list of icons is not available
++ withdrawn mode should be configurable
++ XEMBED test suite ?
++ rethink command line params names
++ merge changes from 0.6 bugfixes branch (x86_64 patches pending) (size hints handling?)
++ layout _needs_ fixin` (TEST!!!!, seq1) (HOORAY!!!!!)
++ automatic version string in _all_ documentation
++ update README/docs
++ sanitize DBG levels
+
+for 0.7.6
++ ensure that x11_ok() called at all exit paths from x11-calling functions
++ startup issues (collect existing icons)
+- focus issue in Wmaker
+
+for 0.8
++ slot size vs. icon size
++ review ignore_icon_resize usage
++ all dims must be given in slots not in pixels
++ scrollable tray area? (see http://wnd.katei.fi/weblog/entry-7)
+	+ need repeater mode
+	+ support for mouse wheel (scroll vertically if mousewheeling over vert sb and 
+	  horizontally if over horz sb; default to orientation otherwise)
++ strut WM hints (requires Xinerama?)
++ fix geometry code
++ fix wmaker docking mode (--widthrawn=off/simple/wmaker)
+	- proper dockapp behaviour in WM
++ add --kludge command line param that turns kludges on/off
+	+ move respect icon hints under this category
++ geometry bugs (wrong placement) (CANTREPRODUCE?)
++ valgrind
+	+ color background
+	+ xpm background
+	+ xpm background + transparency
++ remote interface (via send event to tray selection manager)
++ profile the code
+	+ powertop; fix event loop to block if there are no events and no scrolling
+		+ proper handling of signals required!!!
+			+ SIGUSR1 handing is OK (its for debug only anyway)
+			+ termination signals wont be handled to avoid hacks...
++ fix complaint about icon placement in WM dockapp mode
++ fix complaint about window layer under WM (CANTREPRODUCE, Window Maker 0.92.0)
++ rework DBG/ERR/DIE
++ update sample RC
++ proper formatting of log lines (date + remove location)
++ fix bug with resize
+
+for 0.8.1,2,../0.9
+- systray 0.3 spec (VISUAL)
+- proper dockapp behaviour in WM
+- profile the code
+	- gprofile; use array in icons.c instead of list
+- RENDER implementation of tinting/compositing, take implementation from rxvt
+- sanitize x11 calls: check return values instead of relying on x11_ok() whenever possible
+- track size changes of the icons that failed to fit into the tray
+- rework root transparency code (handle cases when root pmap size is less than root window; take implementation from urxvt)
+- restructure command line params and reduce their count
+- rework command line interface
