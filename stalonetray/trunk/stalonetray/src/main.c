@@ -492,6 +492,7 @@ void configure_notify(XConfigureEvent ev)
 		/* Adjust window background if necessary */
 		tray_update_bg(False);
 		tray_refresh_window(True);
+		tray_update_window_strut();
 		scrollbars_update();
 	} else if ((ti = icon_list_find(ev.window)) != NULL) { /* Some icon has resized its window */
 		/* KDE icons are not allowed to change their size. Reset icon size. */

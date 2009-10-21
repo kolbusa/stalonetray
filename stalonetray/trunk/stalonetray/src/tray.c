@@ -313,6 +313,77 @@ int tray_calc_tray_area_size(int wnd_width, int wnd_height, int *base_width, int
 	return SUCCESS;
 }
 
+int tray_update_window_strut()
+{
+	/* Set window strut */
+	if (settings.wm_strut_mode != WM_STRUT_NONE) {
+		int strut_mode;
+		if (settings.wm_strut_mode == WM_STRUT_AUTO) {
+			/* Do autodetection: if some edge of tray is adjacent to one
+			 * of screen edges, we could set window strut to that */
+			int h_strut_mode, v_strut_mode;
+			int p_strut_mode, s_strut_mode;
+			h_strut_mode = (tray_data.xsh.x == 0 ? WM_STRUT_LFT : 
+					(tray_data.xsh.x + tray_data.xsh.width == tray_data.root_wnd.width ? WM_STRUT_RHT : 
+					 	WM_STRUT_NONE));
+			v_strut_mode = (tray_data.xsh.y == 0 ? WM_STRUT_TOP :
+					(tray_data.xsh.x + tray_data.xsh.height == tray_data.root_wnd.height ? WM_STRUT_BOT :
+					 	WM_STRUT_NONE));
+			/* If tray is vertical, horizontal strut mode has higher priority,
+			 * else vertical strut mode has higher priority */
+			if (settings.vertical) {
+				p_strut_mode = h_strut_mode;
+				s_strut_mode = v_strut_mode;
+			} else {
+				p_strut_mode = v_strut_mode;
+				s_strut_mode = h_strut_mode;
+			}
+			if (p_strut_mode != WM_STRUT_NONE)
+				strut_mode = p_strut_mode;
+			else
+				strut_mode = s_strut_mode;
+		} else
+			strut_mode = settings.wm_strut_mode;
+		LOG_TRACE(("computed final strut mode: %d\n", strut_mode));
+		/* Update respective window hint */
+		if (strut_mode != WM_STRUT_NONE) {
+			wm_strut_t wm_strut;
+			int base_idx;
+			memset(wm_strut, 0, sizeof(wm_strut));
+			LOG_TRACE(("current tray geometry: %dx%d+%d+%d\n",
+						tray_data.xsh.width, tray_data.xsh.height,
+						tray_data.xsh.x, tray_data.xsh.y));
+			if (strut_mode == WM_STRUT_TOP || strut_mode == WM_STRUT_BOT) {
+				if (strut_mode == WM_STRUT_TOP) {
+					base_idx = WM_STRUT_IDX_TOP;
+					wm_strut[WM_STRUT_IDX_TOP] = tray_data.xsh.y + tray_data.xsh.height;
+				} else {
+					base_idx = WM_STRUT_IDX_BOT;
+					wm_strut[WM_STRUT_IDX_BOT] = tray_data.root_wnd.height - tray_data.xsh.y;
+				}
+				wm_strut[base_idx + WM_STRUT_IDX_START_OFFSET] = tray_data.xsh.x;
+				wm_strut[base_idx + WM_STRUT_IDX_END_OFFSET] = tray_data.xsh.x + tray_data.xsh.width;
+			} else {
+				if (strut_mode == WM_STRUT_LFT) {
+					base_idx = WM_STRUT_IDX_LFT;
+					wm_strut[WM_STRUT_IDX_LFT] = tray_data.xsh.x + tray_data.xsh.width;
+				} else {
+					base_idx = WM_STRUT_IDX_RHT;
+					wm_strut[WM_STRUT_IDX_RHT] = tray_data.root_wnd.width - tray_data.xsh.x;
+				}
+				wm_strut[base_idx + WM_STRUT_IDX_START_OFFSET] = tray_data.xsh.y;
+				wm_strut[base_idx + WM_STRUT_IDX_END_OFFSET] = tray_data.xsh.y + tray_data.xsh.height;
+			}
+			{	int i;
+				for (i = 0; i < _NET_WM_STRUT_PARTIAL_SZ; i++)
+					LOG_TRACE(("computed hints [%d] = %d\n", i, wm_strut[i]));
+			}
+			ewmh_set_window_strut(tray_data.dpy, tray_data.tray, wm_strut);
+		}
+	}
+	return SUCCESS;
+}
+
 int tray_update_window_props()
 {
 	XSizeHints xsh;
@@ -403,6 +474,7 @@ int tray_update_window_props()
 		XResizeWindow(tray_data.dpy, tray_data.tray, 
 						tray_data.xsh.width, tray_data.xsh.height);
 	}
+	tray_update_window_strut();
 	scrollbars_update();
 	return SUCCESS;
 }
@@ -556,72 +628,6 @@ int tray_set_wm_hints()
 		ewmh_add_window_type(tray_data.dpy, tray_data.tray, settings.wnd_type);
 	/* Alwas add NORMAL window type for WM that do not support (some) special types */
 	ewmh_add_window_type(tray_data.dpy, tray_data.tray, _NET_WM_WINDOW_TYPE_NORMAL);
-	/* Set window strut */
-	if (settings.wm_strut_mode != WM_STRUT_NONE) {
-		int strut_mode;
-		if (settings.wm_strut_mode == WM_STRUT_AUTO) {
-			/* Do autodetection: if some edge of tray is adjacent to one
-			 * of screen edges, we could set window strut to that */
-			int h_strut_mode, v_strut_mode;
-			int p_strut_mode, s_strut_mode;
-			h_strut_mode = (tray_data.xsh.x == 0 ? WM_STRUT_LFT : 
-					(tray_data.xsh.x + tray_data.xsh.width == tray_data.root_wnd.width ? WM_STRUT_RHT : 
-					 	WM_STRUT_NONE));
-			v_strut_mode = (tray_data.xsh.y == 0 ? WM_STRUT_TOP :
-					(tray_data.xsh.x + tray_data.xsh.height == tray_data.root_wnd.height ? WM_STRUT_BOT :
-					 	WM_STRUT_NONE));
-			/* If tray is vertical, horizontal strut mode has higher priority,
-			 * else vertical strut mode has higher priority */
-			if (settings.vertical) {
-				p_strut_mode = h_strut_mode;
-				s_strut_mode = v_strut_mode;
-			} else {
-				p_strut_mode = v_strut_mode;
-				s_strut_mode = h_strut_mode;
-			}
-			if (p_strut_mode != WM_STRUT_NONE)
-				strut_mode = p_strut_mode;
-			else
-				strut_mode = s_strut_mode;
-		} else
-			strut_mode = settings.wm_strut_mode;
-		LOG_TRACE(("computed final strut mode: %d\n", strut_mode));
-		/* Update respective window hint */
-		if (strut_mode != WM_STRUT_NONE) {
-			wm_strut_t wm_strut;
-			int base_idx;
-			memset(wm_strut, 0, sizeof(wm_strut));
-			LOG_TRACE(("current tray geometry: %dx%d+%d+%d\n",
-						tray_data.xsh.width, tray_data.xsh.height,
-						tray_data.xsh.x, tray_data.xsh.y));
-			if (strut_mode == WM_STRUT_TOP || strut_mode == WM_STRUT_BOT) {
-				if (strut_mode == WM_STRUT_TOP) {
-					base_idx = WM_STRUT_IDX_TOP;
-					wm_strut[WM_STRUT_IDX_TOP] = tray_data.xsh.y + tray_data.xsh.height;
-				} else {
-					base_idx = WM_STRUT_IDX_BOT;
-					wm_strut[WM_STRUT_IDX_BOT] = tray_data.root_wnd.height - tray_data.xsh.y;
-				}
-				wm_strut[base_idx + WM_STRUT_IDX_START_OFFSET] = tray_data.xsh.x;
-				wm_strut[base_idx + WM_STRUT_IDX_END_OFFSET] = tray_data.xsh.x + tray_data.xsh.width;
-			} else {
-				if (strut_mode == WM_STRUT_LFT) {
-					base_idx = WM_STRUT_IDX_LFT;
-					wm_strut[WM_STRUT_IDX_LFT] = tray_data.xsh.x + tray_data.xsh.width;
-				} else {
-					base_idx = WM_STRUT_IDX_RHT;
-					wm_strut[WM_STRUT_IDX_RHT] = tray_data.root_wnd.width - tray_data.xsh.x;
-				}
-				wm_strut[base_idx + WM_STRUT_IDX_START_OFFSET] = tray_data.xsh.y;
-				wm_strut[base_idx + WM_STRUT_IDX_END_OFFSET] = tray_data.xsh.y + tray_data.xsh.height;
-			}
-			{	int i;
-				for (i = 0; i < _NET_WM_STRUT_PARTIAL_SZ; i++)
-					LOG_TRACE(("computed hints [%d] = %d\n", i, wm_strut[i]));
-			}
-			ewmh_set_window_strut(tray_data.dpy, tray_data.tray, wm_strut);
-		}
-	}
 	return SUCCESS;
 }
 
