@@ -131,6 +131,8 @@ int tray_update_bg(int update_pixmap);
 int tray_calc_window_size(int base_width, int base_height, int *new_width, int *new_height);
 /* Calculate size of icon area given the tray window size in pixels. */
 int tray_calc_tray_area_size(int wnd_width, int wnd_height, int *base_width, int *base_height);
+/* Update window struts (if enabled) */
+int tray_update_window_strut();
 /* Update tray window size and hints */
 int tray_update_window_props();
 /* Set tray window WM hints */

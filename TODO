@@ -122,17 +122,17 @@ for 0.8
 + fix complaint about window layer under WM (CANTREPRODUCE, Window Maker 0.92.0)
 + rework DBG/ERR/DIE
 + update sample RC
-- proper formatting of log lines (date + remove location)
-- fix bug with resize
++ proper formatting of log lines (date + remove location)
++ fix bug with resize
 
-for 0.8.x/0.9
+for 0.8.1,2,../0.9
 - systray 0.3 spec (VISUAL)
 - proper dockapp behaviour in WM
 - profile the code
-	- gprofile; use array in icons.c instead of list (LATER)
-- RENDER implementation of tinting/compositing, take implementation from rxvt (LATER)
-- sanitize x11 calls: check return values instead of relying on x11_ok() whenever possible (LATER)
-- track size changes of the icons that failed to fit into the tray? (WONTDO)
-- rework root transparency code (handle cases when root pmap size is less than root window) (WONTDO)
-- restructure command line params and reduce their count (WONTDO)
+	- gprofile; use array in icons.c instead of list
+- RENDER implementation of tinting/compositing, take implementation from rxvt
+- sanitize x11 calls: check return values instead of relying on x11_ok() whenever possible
+- track size changes of the icons that failed to fit into the tray
+- rework root transparency code (handle cases when root pmap size is less than root window; take implementation from urxvt)
+- restructure command line params and reduce their count
 - rework command line interface

@@ -39,7 +39,7 @@ tray_menu.show_all()
 
 send_signal(2)
 
-tray_icon = gtk.status_icon_new_from_stock(gtk.STOCK_DIALOG_INFO)
+tray_icon = gtk.status_icon_new_from_stock(gtk.STOCK_DIALOG_ERROR)
 tray_icon.connect('popup-menu', show_menu, tray_menu)
 tray_icon.connect('size-changed', notify_about_resize);
 tray_icon.set_tooltip("Right click me!")
