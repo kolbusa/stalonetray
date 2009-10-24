@@ -137,8 +137,8 @@
   <term><option>geometry</option> <replaceable>geometry_spec</replaceable></term>
   <listitem><para>Set tray`s initial geometry to <replaceable>geometry_spec</replaceable>,
   specified in standard X notation: 
-  <replaceable>width</replaceable>x<replaceable>height</replaceable>[+<replaceable>x</replaceable>[+<replaceable>y</replaceable>]].
-  Default value: <userinput>124x24+0-0</userinput>.
+  <replaceable>width</replaceable>x<replaceable>height</replaceable>[+<replaceable>x</replaceable>[+<replaceable>y</replaceable>]],
+  where width and height are specified in icon slot multiples.  Default value: <userinput>1x1+0-0</userinput>.
   </para></listitem>
   </varlistentry>
 
