@@ -304,7 +304,10 @@ Window x11_find_subwindow_by_name(Display *dpy, Window tgt, char *name)
 	Window ret = None, *children, dummy;
 	int i;
 	unsigned int nchildren;
-	if (XFetchName(dpy, tgt, &tgt_name) && !strcmp(tgt_name, name)) ret = tgt;
+	if (XFetchName(dpy, tgt, &tgt_name)) {
+		LOG_TRACE(("tgt_name=\"%s\", name=\"%s\"\n", tgt_name, name));
+		if (!strcmp(tgt_name, name)) ret = tgt;
+	}
 	if (!x11_ok()) return None;
 	if (tgt_name != NULL) XFree(tgt_name);
 	if (ret != None) return ret;
@@ -318,27 +321,32 @@ Window x11_find_subwindow_by_name(Display *dpy, Window tgt, char *name)
 	return ret;
 }
 
-Window x11_find_subwindow_at(Display *dpy, Window top, int x, int y, int depth)
+/* x and y are relative to top at input, and relative to found window on return */
+Window x11_find_subwindow_at(Display *dpy, Window top, int *x, int *y, int depth)
 {
 	int d, c, bx = 0, by = 0;
 	Window dummy, *children;
 	unsigned int nchildren;
-	Window cur = top;
-	for (d = 1; d < depth; d++) {
+	Window cur = top, old = None;
+	for (d = 1; d != depth && cur != old && old != None; d++)
+	{
+		old = cur;
 		/* Query children of current window and traverse them starting
 		 * from the top in stacking order (i.e. from the end of the list
-		 * returned by XQueryTree */
+		 * returned by XQueryTree) */
 		XQueryTree(dpy, cur, &dummy, &dummy, &children, &nchildren);
+		LOG_TRACE(("cur=0x%x nchildren=%d\n", cur, nchildren));
 		if (!x11_ok()) goto fail;
 		/* Exit the loop if window has no children */
 		if (nchildren == 0) break;
+		/* Loop over children starting from topmost */
 		for (c = nchildren-1; c >=0; c--) {
 			XWindowAttributes xwa;
 			XGetWindowAttributes(dpy, children[c], &xwa);
 			if (!x11_ok()) goto fail;
 			/* Check if this child contains the (x,y) point */
-			if (xwa.x + bx <= x && x < xwa.x + xwa.width + bx &&
-			    xwa.y + by <= y && y < xwa.y + xwa.height + by)
+			if (xwa.x + bx <= *x && *x < xwa.x + xwa.width + bx &&
+			    xwa.y + by <= *y && *y < xwa.y + xwa.height + by)
 			{
 				cur = children[c];
 				bx += xwa.x; by += xwa.y;
@@ -347,6 +355,8 @@ Window x11_find_subwindow_at(Display *dpy, Window top, int x, int y, int depth)
 		}
 		if (children != NULL) XFree(children);
 	}
+	*x -= bx;
+	*y -= by;
 	return cur;
 fail:
 	if (children != NULL) XFree(children);

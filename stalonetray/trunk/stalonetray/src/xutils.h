@@ -69,7 +69,7 @@ char *x11_get_window_name(Display *dpy, Window dst, char *def);
 Window x11_find_subwindow_by_name(Display *dpy, Window tgt, char *name);
 
 /* Find subwindow by at coords */
-Window x11_find_subwindow_at(Display *dpy, Window top, int x, int y, int depth);
+Window x11_find_subwindow_at(Display *dpy, Window top, int *x, int *y, int depth);
 
 /* Extends event mask of the root window */
 void x11_extend_root_event_mask(Display *dpy, long mask);
