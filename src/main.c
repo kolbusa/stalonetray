@@ -49,6 +49,19 @@
 
 struct TrayData tray_data;
 static int tray_status_requested = 0;
+#ifdef ENABLE_GRACEFUL_EXIT_HACK
+static Display *async_dpy;
+#endif
+
+void my_usleep(useconds_t usec)
+{
+	struct timeval timeout;
+	fd_set rfds;
+	FD_ZERO(&rfds);
+	timeout.tv_sec = 0;
+	timeout.tv_usec = usec;
+	select(1, &rfds, NULL, NULL, &timeout);
+}
 
 /****************************
  * Signal handlers, cleanup
@@ -57,6 +70,22 @@ void request_tray_status_on_signal(int sig)
 {
 	tray_status_requested = 1;
 }
+
+#ifdef ENABLE_GRACEFUL_EXIT_HACK
+void exit_on_signal(int sig)
+{
+	/* This is UGLY and is, probably, to be submitted to
+	 * Daily WTF, but it is the only way I found not to
+ 	 * use usleep in main event loop. */
+	LOG_TRACE(("Sending fake WM_DELETE_WINDOW message\n"));
+	x11_send_client_msg32(async_dpy, 
+			tray_data.tray, 
+			tray_data.tray, 
+			tray_data.xa_wm_protocols, 
+			tray_data.xa_wm_delete_window, 0, 0, 0, 0);
+	XSync(async_dpy, False);
+}
+#endif
 
 void cleanup()
 {
@@ -399,7 +428,7 @@ void client_message(XClientMessageEvent ev)
 		ev.window == tray_data.tray)
 	{
 		LOG_TRACE(("got WM_DELETE message, will now exit\n"));
-		exit(0);
+		exit(0); // atexit will call cleanup()
 	} 
 	/* Handle _NET_SYSTEM_TRAY_* messages */
 	if (ev.message_type == tray_data.xa_tray_opcode && tray_data.is_active) {
@@ -442,6 +471,45 @@ void client_message(XClientMessageEvent ev)
 				ti = icon_list_find(ev.window);
 				if (ti == NULL) break;
 				scrollbars_scroll_to(ti);
+#if 0
+				/* Quick hack */
+				{
+					Window icon = ev.window;
+					int rc;
+					int x = ev.data.l[3], y = ev.data.l[4], depth = 0, idummy, i;
+					int btn = ev.data.l[2];
+					Window win, root;
+					unsigned int udummy, w, h;
+					XGetGeometry(tray_data.dpy, icon, &root, 
+							&idummy, &idummy, 
+							&w, &h, &udummy, &udummy);
+					LOG_TRACE(("wid=0x%x w=%d h=%d\n", icon, w, h));
+					x = (x == REMOTE_CLICK_POS_DEFAULT) ? w / 2 : x;
+					y = (y == REMOTE_CLICK_POS_DEFAULT) ? h / 2 : y;
+					/* 3.2. Find subwindow to execute click on */
+					win = x11_find_subwindow_at(tray_data.dpy, icon, &x, &y, depth);
+					/* 3.3. Send mouse click(s) to target */
+					LOG_TRACE(("wid=0x%x btn=%d x=%d y=%d\n", 
+								win, btn, x, y));
+#define SEND_BTN_EVENT(press, time) do { \
+					x11_send_button(tray_data.dpy, /* dispslay */ \
+							press, /* event type */ \
+							win, /* target window */ \
+							root, /* root window */ \
+							time, /* time */ \
+							btn, /* button */ \
+							Button1Mask << (btn - 1), /* state mask */ \
+							x, /* x coord (relative) */ \
+							y); /* y coord (relative) */ \
+				} while (0)
+					for (i = 0; i < ev.data.l[0]; i++) {
+						SEND_BTN_EVENT(1, x11_get_server_timestamp(tray_data.dpy, tray_data.tray));
+						my_usleep(250);
+						SEND_BTN_EVENT(0, x11_get_server_timestamp(tray_data.dpy, tray_data.tray));
+					}
+#undef SEND_BTN_EVENT
+				}
+#endif
 				break;
 			default:
 				break;
@@ -592,16 +660,6 @@ void unmap_notify(XUnmapEvent ev)
 	}
 }
 
-void my_usleep(useconds_t usec)
-{
-	struct timeval timeout;
-	fd_set rfds;
-	FD_ZERO(&rfds);
-	timeout.tv_sec = 0;
-	timeout.tv_usec = usec;
-	select(1, &rfds, NULL, NULL, &timeout);
-}
-
 /*********************************************************/
 /* main() for usual operation */
 int tray_main(int argc, char **argv)
@@ -635,7 +693,6 @@ int tray_main(int argc, char **argv)
 		 * exit on e.g. Ctrl-C cannot be implemented without hacks. */
 		while (XPending(tray_data.dpy) || tray_data.scrollbars_data.scrollbar_down == -1) {
 			XNextEvent(tray_data.dpy, &ev);
-			if (tray_data.terminated) goto bailout;
 			xembed_handle_event(ev);
 			scrollbars_handle_event(ev);
 			switch (ev.type) {
@@ -691,6 +748,7 @@ int tray_main(int argc, char **argv)
 #endif
 				break;
 			}
+			if (tray_data.terminated) goto bailout;
 			/* Perform all periodic tasks but for scrollbars */
 			perform_periodic_tasks(PT_MASK_ALL & (~PT_MASK_SB));
 		}
@@ -728,11 +786,11 @@ int remote_main(int argc, char **argv)
 			tray, /* destination */
 			icon, /* window */ 
 			tray_data.xa_tray_opcode, /* atom */
-			0, /* data0 */
+			settings.remote_click_cnt, /* data0 */
 			STALONE_TRAY_REMOTE_CONTROL, /* data1 */
-			0, /* data2 */
-			0, /* data3 */
-			0 /* data4 */
+			settings.remote_click_btn, /* data2 */
+			settings.remote_click_pos.x, /* data3 */
+			settings.remote_click_pos.y /* data4 */
 			);
 	if (!rc) return 63;
 	/* 3. Execute the click */
@@ -740,17 +798,14 @@ int remote_main(int argc, char **argv)
 	XGetGeometry(tray_data.dpy, icon, &root, 
 			&idummy, &idummy, 
 			&w, &h, &udummy, &udummy);
+	LOG_TRACE(("wid=0x%x w=%d h=%d\n", icon, w, h));
 	x = (settings.remote_click_pos.x == REMOTE_CLICK_POS_DEFAULT) ? w / 2 : settings.remote_click_pos.x;
 	y = (settings.remote_click_pos.y == REMOTE_CLICK_POS_DEFAULT) ? h / 2 : settings.remote_click_pos.y;
 	/* 3.2. Find subwindow to execute click on */
-	win = x11_find_subwindow_at(tray_data.dpy, icon, x, y, depth);
+	win = x11_find_subwindow_at(tray_data.dpy, icon, &x, &y, depth);
 	/* 3.3. Send mouse click(s) to target */
 	LOG_TRACE(("wid=0x%x btn=%d x=%d y=%d\n", 
-				settings.remote_click_name,
-				win,
-				settings.remote_click_btn,
-				settings.remote_click_pos.x,
-				settings.remote_click_pos.y));
+				win, settings.remote_click_btn, x, y));
 #define SEND_BTN_EVENT(press, time) do { \
 	x11_send_button(tray_data.dpy, /* dispslay */ \
 			press, /* event type */ \
@@ -764,6 +819,7 @@ int remote_main(int argc, char **argv)
 } while (0)
 	for (i = 0; i < settings.remote_click_cnt; i++) {
 		SEND_BTN_EVENT(1, x11_get_server_timestamp(tray_data.dpy, tray_data.tray));
+		my_usleep(250);
 		SEND_BTN_EVENT(0, x11_get_server_timestamp(tray_data.dpy, tray_data.tray));
 	}
 #undef SEND_BTN_EVENT
@@ -779,11 +835,22 @@ int main(int argc, char** argv)
 	/* Register cleanup and signal handlers */
 	atexit(cleanup);
 	signal(SIGUSR1, &request_tray_status_on_signal);
+#ifdef ENABLE_GRACEFUL_EXIT_HACK
+	signal(SIGINT, &exit_on_signal);
+	signal(SIGTERM, &exit_on_signal);
+	signal(SIGPIPE, &exit_on_signal);
+#endif
 	/* Open display */
 	if ((tray_data.dpy = XOpenDisplay(settings.display_str)) == NULL) 
 		DIE(("could not open display\n"));
 	else 
 		LOG_TRACE(("Opened dpy %p\n", tray_data.dpy));
+#ifdef ENABLE_GRACEFUL_EXIT_HACK
+	if ((async_dpy = XOpenDisplay(settings.display_str)) == NULL) 
+		DIE(("could not open display\n"));
+	else 
+		LOG_TRACE(("Opened async dpy %p\n", async_dpy));
+#endif
 	if (settings.xsync)
 		XSynchronize(tray_data.dpy, True);
 	x11_trap_errors();

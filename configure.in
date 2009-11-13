@@ -4,7 +4,7 @@ AC_INIT
 
 AM_CONFIG_HEADER(src/config.h)
 AC_CONFIG_SRCDIR(src/main.c)
-AM_INIT_AUTOMAKE(stalonetray, 0.8.0)
+AM_INIT_AUTOMAKE(stalonetray, 0.8.1)
 
 dnl ============ General =============
 
@@ -112,6 +112,11 @@ AC_ARG_ENABLE(enable-dump-win-info,
 	[ac_cv_dump_win_info="$enableval"],
 	[ac_cv_dump_win_info="yes"])
 
+AC_ARG_ENABLE(enable-graceful-exit,
+	[  --enable-graceful-exit  use non-portable hack to exit gracefuly on signal],
+	[ac_cv_graceful_exit="$enableval"],
+	[ac_cv_graceful_exit="yes"])
+
 case "$ac_cv_debug" in
 	yes)
 		AC_DEFINE(DEBUG, 1, [enable debugging code])
@@ -147,6 +152,14 @@ case "$ac_cv_dump_win_info" in
 	;;
 esac
 
+case "$ac_cv_graceful_exit" in
+	no)
+	;;
+	*)
+		AC_DEFINE(ENABLE_GRACEFUL_EXIT_HACK, 1, [use non-portable hack to exit gracefuly on signal])
+	;;
+esac
+
 case "$ac_cv_events_trace" in
 	yes)
 		AC_DEFINE(TRACE_EVENTS, 1, [enable full event trace (debug)])
@@ -173,5 +186,6 @@ if test "x$ac_cv_debug" = "xyes" -a "x$GCC" != "xyes"; then
 fi
 echo "* Native KDE support     : $ac_cv_no_native_kde"
 echo "* XPM background support : $ac_cv_xpm_supported"
+echo "* Graceful exit support  : $ac_cv_graceful_exit"
 echo "*"
 

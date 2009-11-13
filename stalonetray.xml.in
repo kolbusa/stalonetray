@@ -205,10 +205,10 @@
   <itemizedlist>
   <listitem><para><userinput>fix_window_pos</userinput> &mdash; fix tray window
   position on erroneous moves by WM</para></listitem>
-  <listitem><para><userinput>force_icon_size</userinput> &mdash; ignore resize
+  <listitem><para><userinput>force_icons_size</userinput> &mdash; ignore resize
   events on all icons; force their size to be equal to
   <option>icon_size</option></para></listitem>
-  <listitem><para><userinput>use_icon_hints</userinput> &mdash; use icon window
+  <listitem><para><userinput>use_icons_hints</userinput> &mdash; use icon window
   hints to determine icon size</para></listitem>
   </itemizedlist>
   </listitem>
