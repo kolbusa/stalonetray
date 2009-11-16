@@ -74,10 +74,15 @@ void request_tray_status_on_signal(int sig)
 #ifdef ENABLE_GRACEFUL_EXIT_HACK
 void exit_on_signal(int sig)
 {
-	/* This is UGLY and is, probably, to be submitted to
-	 * Daily WTF, but it is the only way I found not to
- 	 * use usleep in main event loop. */
-	LOG_TRACE(("Sending fake WM_DELETE_WINDOW message\n"));
+	if (sig == SIGPIPE) {
+		debug_disable_output();
+	} else {
+		psignal(sig, "");
+		/* This is UGLY and is, probably, to be submitted to
+		 * Daily WTF, but it is the only way I found not to
+		 * use usleep in main event loop. */
+		LOG_TRACE(("Sending fake WM_DELETE_WINDOW message\n"));
+	}
 	x11_send_client_msg32(async_dpy, 
 			tray_data.tray, 
 			tray_data.tray, 

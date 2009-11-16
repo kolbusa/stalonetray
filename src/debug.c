@@ -20,6 +20,14 @@
 #include <unistd.h>
 #endif
 
+int debug_output_disabled = 0;
+
+/* Disables all output from debugging macros */
+void debug_disable_output()
+{
+	debug_output_disabled = 1;
+}
+
 /* Print the message to STDERR (varadic macros is not used in the sake of portability) */
 void print_message_to_stderr(const char *fmt,...)
 {
