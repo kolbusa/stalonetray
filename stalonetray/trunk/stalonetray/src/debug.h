@@ -24,6 +24,11 @@
 #define LOG_LEVEL_INFO	1
 #define LOG_LEVEL_TRACE	2
 
+extern int debug_output_disabled;
+
+/* Disables all output from debugging macros */
+void debug_disable_output();
+
 /* Print the message to STDERR (in the sake of portability, we do not use varadic macros) */
 void print_message_to_stderr(const char *fmt,...);
 
@@ -47,24 +52,28 @@ void print_trace_header(const char *funcname, const char *fname, const int line)
 } while(0)
 /* Print the debug message of specified level */
 #define LOG_TRACE(message)	do { \
-								if (settings.log_level >= LOG_LEVEL_TRACE) { \
-									PRINT_TRACE_HEADER(); \
-									print_message_to_stderr message; \
-									}; \
-							} while (0)
+	if (!debug_output_disabled && settings.log_level >= LOG_LEVEL_TRACE) { \
+		PRINT_TRACE_HEADER(); \
+		print_message_to_stderr message; \
+		}; \
+} while (0)
 #else
 #define PRINT_TRACE_HEADER() do {} while(0)
 #define LOG_TRACE(message) do {} while(0)
 #endif 
 
 #define LOG_ERROR(message) do { \
-	if (settings.log_level >= LOG_LEVEL_TRACE) PRINT_TRACE_HEADER(); \
-	if (settings.log_level >= LOG_LEVEL_ERR) print_message_to_stderr message; \
+	if (!debug_output_disabled) { \
+		if (settings.log_level >= LOG_LEVEL_TRACE) PRINT_TRACE_HEADER(); \
+		if (settings.log_level >= LOG_LEVEL_ERR) print_message_to_stderr message; \
+	} \
 } while(0)
 
 #define LOG_INFO(message) do { \
-	if (settings.log_level >= LOG_LEVEL_TRACE) PRINT_TRACE_HEADER(); \
-	if (settings.log_level >= LOG_LEVEL_INFO) print_message_to_stderr message; \
+	if (!debug_output_disabled) { \
+		if (settings.log_level >= LOG_LEVEL_TRACE) PRINT_TRACE_HEADER(); \
+		if (settings.log_level >= LOG_LEVEL_INFO) print_message_to_stderr message; \
+	} \
 } while(0)
 
 /* Print the summary of icon data */
