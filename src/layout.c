@@ -213,7 +213,8 @@ int layout_translate_to_window(struct TrayIcon *ti)
 				ti->l.grd_rect.w, ti->l.grd_rect.h, ti->l.grd_rect.x, ti->l.grd_rect.y,
 				ti->l.icn_rect.w, ti->l.icn_rect.h, ti->l.icn_rect.x, ti->l.icn_rect.y));
 	/* Set flag indicating if new position is different from old */
-	ti->is_updated = !(ti->l.icn_rect.x == old_icn_rect.x && 
+	ti->is_updated = ti->is_updated ||
+					 !(ti->l.icn_rect.x == old_icn_rect.x && 
 	                   ti->l.icn_rect.y == old_icn_rect.y &&
 	                   ti->l.icn_rect.w == old_icn_rect.w &&
 	                   ti->l.icn_rect.h == old_icn_rect.h);
@@ -280,7 +281,8 @@ int grid_place_icon(struct TrayIcon *ti, struct IconPlacement *ip)
 	struct Layout *l = &ti->l;
 	struct Point *p = &ip->pos;
 	/* Set the flag if icon position was really updated */
-	ti->is_updated = (p->x != l->grd_rect.x || p->y != l->grd_rect.y);
+	ti->is_updated = ti->is_updated || 
+			(p->x != l->grd_rect.x || p->y != l->grd_rect.y);
 	if (ti->is_updated || !ti->is_layed_out) {
 		LOG_TRACE(("updating position (%d,%d) to (%d,%d)\n", 
 				ti->l.grd_rect.x, ti->l.grd_rect.y,
