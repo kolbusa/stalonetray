@@ -452,10 +452,10 @@ struct Param params[] = {
 	{NULL, "--tint-level", "tint_level", {&settings.tint_level}, (param_parser_t) &parse_int, 1, 1, 0, NULL},
 	{"-t", "--transparent", "transparent", {&settings.transparent}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
 	{"-v", "--vertical", "vertical", {&settings.vertical}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
-	{NULL, "--window-layer", "window_layer", {&settings.wnd_layer}, (param_parser_t) &parse_wnd_layer, 1, 1, 1, NULL},
-	{NULL, "--window-name", "window_name", {&settings.wnd_name}, (param_parser_t) &parse_copystr, 1, 1, 1, NULL},
-	{NULL, "--window-strut", "window_strut", {&settings.wm_strut_mode}, (param_parser_t) &parse_strut_mode, 1, 1, 1, NULL},
-	{NULL, "--window-type", "window_type", {&settings.wnd_type}, (param_parser_t) &parse_wnd_type, 1, 1, 1, NULL},
+	{NULL, "--window-layer", "window_layer", {&settings.wnd_layer}, (param_parser_t) &parse_wnd_layer, 1, 1, 0, NULL},
+	{NULL, "--window-name", "window_name", {&settings.wnd_name}, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
+	{NULL, "--window-strut", "window_strut", {&settings.wm_strut_mode}, (param_parser_t) &parse_strut_mode, 1, 1, 0, NULL},
+	{NULL, "--window-type", "window_type", {&settings.wnd_type}, (param_parser_t) &parse_wnd_type, 1, 1, 0, NULL},
 	{NULL, "--xsync", "xsync", {&settings.xsync}, (param_parser_t) &parse_bool, 1, 1, 1, "true"},
 	{NULL, NULL, NULL, {NULL}}
 };
