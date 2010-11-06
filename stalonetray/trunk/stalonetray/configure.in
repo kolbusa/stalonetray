@@ -107,12 +107,12 @@ AC_ARG_ENABLE(embedding-confirmation-delay,
 		LDFLAGS="$LDFLAGS -lpthread"
 	],
 	[])
-AC_ARG_ENABLE(enable-dump-win-info,
+AC_ARG_ENABLE(dump-win-info,
 	[  --enable-dump-win-info  use xprop/xwininfo to dump icon window info],
 	[ac_cv_dump_win_info="$enableval"],
 	[ac_cv_dump_win_info="yes"])
 
-AC_ARG_ENABLE(enable-graceful-exit,
+AC_ARG_ENABLE(graceful-exit,
 	[  --enable-graceful-exit  use non-portable hack to exit gracefuly on signal],
 	[ac_cv_graceful_exit="$enableval"],
 	[ac_cv_graceful_exit="yes"])
