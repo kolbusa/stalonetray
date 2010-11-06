@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="latin1" standalone="no"?>
-<!-- 
-    vim: et:tw=80 
+<!--
+    vim: et:tw=80
 -->
 
-<!DOCTYPE refentry PUBLIC 
-  "-//OASIS//DTD DocBook V4.4//EN" 
-  "/usr/share/xml/docbook/schema/dtd/4.4/docbookx.dtd"
+<!DOCTYPE refentry PUBLIC
+  "-//OASIS//DTD DocBook V4.4//EN"
+  "/usr/share/sgml/docbook/xml-dtd-4.4/docbookx.dtd"
 >
 
 <refentry id="stalonetray">
@@ -108,7 +108,7 @@
   <term><option>-display</option> <replaceable>display</replaceable></term>
   <term><option>display</option> <replaceable>display</replaceable>
   </term>
-  <listitem><para>Use X display <replaceable>display</replaceable>.</para></listitem> 
+  <listitem><para>Use X display <replaceable>display</replaceable>.</para></listitem>
   </varlistentry>
 
   <varlistentry>
@@ -126,9 +126,9 @@
   <term><option>-f</option> <optional><replaceable>level</replaceable></optional></term>
   <term><option>--fuzzy-edges</option> <optional><replaceable>level</replaceable></optional></term>
   <term><option>fuzzy_edges</option> <optional><replaceable>level</replaceable></optional></term>
-  <listitem><para>Enable fuzzy edges of tray window and sets fuzziness level
+  <listitem><para>Enable fuzzy edges of tray window and set fuzziness level
   which can range from <userinput>0</userinput> (disabled, default) to <userinput>3</userinput>.
-  When ommited, <replaceable>level</replaceable> defaults to 2.
+  When ommited, the value of <replaceable>level</replaceable> defaults to 2.
   </para></listitem>
   </varlistentry>
 
@@ -136,13 +136,13 @@
   <term><option>--geometry</option> <replaceable>geometry_spec</replaceable></term>
   <term><option>geometry</option> <replaceable>geometry_spec</replaceable></term>
   <listitem><para>Set tray`s initial geometry to <replaceable>geometry_spec</replaceable>,
-  specified in standard X notation: 
+  specified in standard X notation:
   <replaceable>width</replaceable>x<replaceable>height</replaceable>[+<replaceable>x</replaceable>[+<replaceable>y</replaceable>]],
   where width and height are specified in icon slot multiples.  Default value: <userinput>1x1+0-0</userinput>.
   </para></listitem>
   </varlistentry>
 
-  <varlistentry> 
+  <varlistentry>
   <term><option>--grow-gravity</option>
   <replaceable>gravity</replaceable></term> <term><option>grow_gravity</option>
   <replaceable>gravity</replaceable></term> <listitem><para>Specify icon
@@ -150,22 +150,23 @@
   <userinput>S</userinput>, <userinput>W</userinput>, <userinput>E</userinput>,
   <userinput>NW</userinput>, <userinput>NE</userinput>,
   <userinput>SW</userinput>, <userinput>SE</userinput>). Grow gravity specifies
-  directions in which tray may and will grow.  For instance, if you specify
-  <userinput>NW</userinput> it will make tray grow down vertically and to the
-  right horizontally (these are sides that are opposite to upper-left or
-  North-West corner); with <userinput>W</userinput> tray will be allowed to grow
-  horizontally to the left (opposite to West) side only and vertically it will
-  grow equally both to the top and bottom sides. Please note that the latter
-  behaviour is new in 0.8. Default value: <userinput>NW</userinput>.
-  </para></listitem> </varlistentry>
+  directions in which the tray's window may grow. For instance, if you specify
+  <userinput>NW</userinput> the tray's window will grow down vertically and to
+  the right horizontally (these are sides that are opposite to upper-left or
+  North-West corner of the window); with <userinput>W</userinput> the tray's
+  window will grow horizontally to the left side only, and it will vertically
+  grow both upwards and downwards maintaining position of its center. Please
+  note that the latter behaviour is new in 0.8. Default value:
+  <userinput>NW</userinput>.  </para></listitem> </varlistentry>
 
   <varlistentry>
   <term><option>--icon-gravity</option> <replaceable>gravity</replaceable></term>
   <term><option>icon_gravity</option> <replaceable>gravity</replaceable></term>
-  <listitem><para>Specify icon positioning gravity (either <userinput>NW</userinput>,
-  <userinput>NE</userinput>, <userinput>SW</userinput>, <userinput>SE</userinput>). If you specify,
-  for instance, <userinput>SW</userinput>, icons will appear starting from the lower-left corner
-  of stalonetray window. Default value: <userinput>NW</userinput>.
+  <listitem><para>Specify icon positioning gravity (either
+  <userinput>NW</userinput>, <userinput>NE</userinput>,
+  <userinput>SW</userinput>, <userinput>SE</userinput>). If you specify, e.g
+  <userinput>SW</userinput>, then icons will appear starting from the lower-left
+  corner of the tray's window. Default value: <userinput>NW</userinput>.
   </para></listitem>
   </varlistentry>
 
@@ -173,9 +174,8 @@
   <term><option>-i</option> <replaceable>n</replaceable></term>
   <term><option>--icon-size</option> <replaceable>n</replaceable></term>
   <term><option>icon_size</option> <replaceable>n</replaceable></term>
-  <listitem><para>Set basic icon size to <replaceable>n</replaceable>.
-  Default value: <userinput>24</userinput>. Minimal value:
-  <userinput>16</userinput>.
+  <listitem><para>Set default icon size to <replaceable>n</replaceable>. Default
+  value: <userinput>24</userinput>. Minimum: <userinput>16</userinput>.
   </para></listitem>
   </varlistentry>
 
@@ -188,11 +188,11 @@
   <varlistentry>
   <term><option>--log-level</option> <replaceable>level</replaceable></term>
   <term><option>log_level</option> <replaceable>level</replaceable></term>
-  <listitem><para>Set the amount of info output by stalonetray. Possible 
+  <listitem><para>Set the amount of info to be output by stalonetray. Possible
   values for <replaceable>level</replaceable>: <userinput>err</userinput>
-  (default), <userinput>info</userinput>, and <userinput>trace</userinput>.
-  For <userinput>trace</userinput> to be available, stalonetray must be
-  configured with <option>--enable-debug</option> at build-time. NEW in @VERSION_STR@.
+  (default), <userinput>info</userinput>, and <userinput>trace</userinput>.  For
+  the <userinput>trace</userinput> option to be available, stalonetray must be
+  configured with <option>--enable-debug</option> at build-time.
   </para></listitem>
   </varlistentry>
 
@@ -201,7 +201,7 @@
   <replaceable>kludge</replaceable><arg rep="repeat">,<replaceable>kludge</replaceable></arg></term>
   <listitem><para>
   Enable specific kludges to work around non-conforming WMs and/or stalonetray
-  bugs. NEW in @VERSION_STR@. Argument is a comma-separated list of:</para>
+  bugs. Argument is a comma-separated list of:</para>
   <itemizedlist>
   <listitem><para><userinput>fix_window_pos</userinput> &mdash; fix tray window
   position on erroneous moves by WM</para></listitem>
@@ -218,8 +218,8 @@
   <term><option>--max-geometry</option>
   <replaceable>geometry_spec</replaceable></term>
   <term><option>max_geometry</option> <replaceable>geometry_spec</replaceable></term>
-  <listitem><para>Set tray`s maximal geometry to <replaceable>geometry_spec</replaceable> 
-  Default value: <userinput>0x0</userinput>, no limit. NEW in @VERSION_STR@.
+  <listitem><para>Set tray`s maximal geometry to <replaceable>geometry_spec</replaceable>
+  Default value: <userinput>0x0</userinput>, no limit.
   </para></listitem>
   </varlistentry>
 
@@ -235,15 +235,17 @@
   <term><option>-p</option></term>
   <term><option>--parent-bg</option></term>
   <term><option>parent_bg</option> <optional><replaceable>bool</replaceable></optional></term>
-  <listitem><para>Use parent for background. Default value: <userinput>false</userinput>.
+  <listitem><para>Use the parent's window as a background of the tray's window.
+  Default value: <userinput>false</userinput>.
   </para></listitem>
   </varlistentry>
 
   <varlistentry>
   <term><option>--pixmap-bg <replaceable>path_to_xpm</replaceable></option></term>
   <term><option>pixmap_bg</option> <replaceable>path_to_xpm</replaceable></term>
-  <listitem><para>Use pixmap from an XPM file specified by <replaceable>path_to_xpm</replaceable> for 
-  tray`s background (pixmap will be tiled to fill the whole window).
+  <listitem><para>Use the pixmap from an XPM file specified by
+  <replaceable>path_to_xpm</replaceable> for the tray`s window background (pixmap will be
+  tiled to fill the entire window).
   </para></listitem>
   </varlistentry>
 
@@ -251,33 +253,35 @@
   <term><option>-r</option> <replaceable>name</replaceable></term>
   <term><option>--remote-click-icon</option> <replaceable>name</replaceable></term>
   <listitem><para>
-  Remote control/click. When this option is specified, stalonetray sends fake
-  click to icon with window named <replaceable>name</replaceable> and exits.
-  Icon is searched for in currently active tray for given screen. By defauld,
-  single click with 1st mousr button is made to the center of the icon. See
-  options below for information on how to alter defaults. NEW in @VERSION_STR@.
+  Remote control/click. When this option is specified, stalonetray sends a fake
+  click to the icon with a window named <replaceable>name</replaceable> and
+  exits.  The icon is searched for in the currently active tray for the current
+  screen. By default, stalonetray sends a single click with the 1st mouse button
+  to the center of the icon. See the options below for additional information on
+  how to alter the defaults.
   </para></listitem>
   </varlistentry>
 
   <varlistentry>
   <term><option>--remote-click-button</option> <replaceable>n</replaceable></term>
   <listitem><para>
-  Sets remote click button number to <replaceable>n</replaceable> (in X11 numbering order). NEW in @VERSION_STR@.
+  Sets the remote click's button number to <replaceable>n</replaceable> (in the
+  X11 numbering order).
   </para></listitem>
   </varlistentry>
 
   <varlistentry>
   <term><option>--remote-click-position</option> <replaceable>x</replaceable>x<replaceable>y</replaceable></term>
   <listitem><para>
-  Sets remote click position. NEW in @VERSION_STR@.
+  Sets the remote click's position.
   </para></listitem>
   </varlistentry>
 
   <varlistentry>
   <term><option>--remote-click-type</option> <replaceable>type</replaceable></term>
   <listitem><para>
-  Sets remote click type which can be either <userinput>single</userinput> or
-  <userinput>double</userinput>. NEW in @VERSION_STR@.
+  Sets the remote click's type. Possible values: <userinput>single</userinput>
+  and <userinput>double</userinput>.
   </para></listitem>
   </varlistentry>
 
@@ -285,44 +289,45 @@
   <term><option>-s</option> <replaceable>n</replaceable></term>
   <term><option>--slot-size</option> <replaceable>n</replaceable></term>
   <term><option>slot_size</option> <replaceable>n</replaceable></term>
-  <listitem><para>Set grid slot size to <replaceable>n</replaceable>. Cannot be
-  less then <option>icon_size</option> which is default value unless specified.
-  NEW in @VERSION_STR@.
+  <listitem><para>Set grid slot size to <replaceable>n</replaceable>, which
+  cannot be less then <option>icon_size</option>. By default, the slot size is
+  the same as the icon size.
   </para></listitem>
   </varlistentry>
 
   <varlistentry>
   <term><option>--scrollbars</option> <replaceable>mode</replaceable></term>
   <term><option>scrollbars</option> <replaceable>mode</replaceable></term>
-  <listitem><para>Set scrollbar mode, either <userinput>vertical</userinput>,
-  <userinput>horizontal</userinput>, <userinput>all</userinput>, or
-  <userinput>none</userinput> (default). Scrollbars appear as additional space
-  at tray borders that can be clicked to scroll icon area. Mouse wheel also
-  works. NEW in @VERSION_STR@.
+  <listitem><para>Set scrollbar mode. Possible values:
+  <userinput>vertical</userinput>, <userinput>horizontal</userinput>,
+  <userinput>all</userinput>, or <userinput>none</userinput> (default).
+  Scrollbars appear as additional space at tray borders that can be clicked to
+  scroll icon area. Mouse wheel also
+  works.
   </para></listitem>
   </varlistentry>
 
   <varlistentry>
   <term><option>--scrollbars-highlight</option> <replaceable>mode</replaceable></term>
   <term><option>scrollbars_highlight</option> <replaceable>mode</replaceable></term>
-  <listitem><para>Set scrollbars highlight mode, either color spec, or
-  <userinput>disable</userinput>. NEW in 0.8.
+  <listitem><para>Set scrollbars highlight mode. Possible values: a color spec,
+  or <userinput>disable</userinput>.
   </para></listitem>
   </varlistentry>
 
   <varlistentry>
   <term><option>--scrollbars-size</option> <replaceable>n</replaceable></term>
   <term><option>scrollbars_size</option> <replaceable>n</replaceable></term>
-  <listitem><para>Set scrollbar size to <userinput>n</userinput> pixels. 
-  Default is quarter of <option>slot_size</option>. NEW in @VERSION_STR@.
+  <listitem><para>Set scrollbar size to <userinput>n</userinput> pixels.
+  By default, the size is 1/4 of <option>slot_size</option>.
   </para></listitem>
   </varlistentry>
 
   <varlistentry>
   <term><option>--scrollbars-step</option> <replaceable>n</replaceable></term>
   <term><option>scrollbars_step</option> <replaceable>n</replaceable></term>
-  <listitem><para>Set scrollbar step to <userinput>n</userinput> pixels. 
-  Default is half of <option>slot_size</option>. NEW in @VERSION_STR@.
+  <listitem><para>Set scrollbar step to <userinput>n</userinput> pixels.
+  Default is 1/2 of <option>slot_size</option>.
   </para></listitem>
   </varlistentry>
 
@@ -377,7 +382,7 @@
   <varlistentry>
   <term><option>--window-layer</option> <replaceable>layer</replaceable></term>
   <term><option>window_layer</option> <replaceable>layer</replaceable></term>
-  <listitem><para>Sets the <abbrev>EWMH</abbrev>-compliant layer of tray`s window. Possible values for <replaceable>layer</replaceable>: 
+  <listitem><para>Sets the <abbrev>EWMH</abbrev>-compliant layer of tray`s window. Possible values for <replaceable>layer</replaceable>:
   <userinput>bottom</userinput>, <userinput>normal</userinput>, <userinput>top</userinput>. Default value: <userinput>normal</userinput>.
   </para></listitem>
   </varlistentry>
@@ -397,7 +402,7 @@
   <varlistentry>
   <term><option>--window-type</option> <replaceable>type</replaceable></term>
   <term><option>window_type</option> <replaceable>type</replaceable></term>
-  <listitem><para>Sets the <abbrev>EWMH</abbrev>-compliant type of tray`s window. Possible values for <replaceable>type</replaceable>: 
+  <listitem><para>Sets the <abbrev>EWMH</abbrev>-compliant type of tray`s window. Possible values for <replaceable>type</replaceable>:
   <userinput>desktop</userinput>, <userinput>dock</userinput>, <userinput>normal</userinput>, <userinput>toolbar</userinput>,
   <userinput>utility</userinput>. Default value: <userinput>dock</userinput>.</para></listitem>
   </varlistentry>
@@ -418,9 +423,9 @@
   </variablelist>
 </refsect1>
 
-<refsect1> 
+<refsect1>
   <title>DEPRICATIONS</title>
-  <para>As of stalonetray @VERSION_STR@ following command line and configuration
+  <para>As of stalonetray 0.8, the following command line and configuration file
   parameters are depricated:
   </para>
 
@@ -450,7 +455,7 @@
 
   <varlistentry>
   <term><option>--respect-icon-hints</option></term>
-  <term><option>respect_icon_hints</option>></term>
+  <term><option>respect_icon_hints</option></term>
   <listitem><para>Please use <option>--kludges</option> with
   <userinput>use_icon_hints</userinput> parameter instead.</para></listitem>
   </varlistentry>
@@ -468,11 +473,11 @@
 <title>BUGS</title>
 <para>There are some, definetly.</para>
 
-<para>If you have found a bug, please try to reproduce it with log level set to
-<userinput>trace</userinput> and send the log file to me:
+<para>If you have found a bug, please try to reproduce it with the log level set
+to <userinput>trace</userinput> and send the log file to me:
 <email>busa_ru@users.sourceforge.net</email>. If you need support, the best way
 to get it is also to e-mail me directly. If you have installed stalonetray from
-distribution repository, you can also file a bug in respective bug tracking
-database.</para> 
-</refsect1> 
+a distribution repository, you can also file a bug in the respective bug
+tracking database.</para>
+</refsect1>
 </refentry>
