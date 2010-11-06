@@ -1,0 +1,50 @@
+#!/usr/bin/env python
+# vim:et
+import gtk, pygtk, gobject
+import os
+
+def send_signal(sig = 1):
+    pass
+#    os.system('pkill -USR%s stalonetray' % sig)
+
+def show_menu(status_icon, button, activate_time, menu):
+    menu.popup(None, None, gtk.status_icon_position_menu, button, activate_time, status_icon)
+
+def hide_icon(widget):
+    print "hide"
+    send_signal(2)
+    tray_icon.set_visible(False)
+    gobject.timeout_add(500, show_icon, None)
+
+def show_icon(widget):
+    print "show"
+    send_signal(2)
+    tray_icon.set_visible(True)
+#   gobject.timeout_add(500, hide_icon, None)
+    return False
+
+def notify_about_resize(icon, size, **args):
+    print "notify_about_resize:", size
+    return False
+
+send_signal(2)
+tray_menu = gtk.Menu()
+menu_hide = gtk.ImageMenuItem(gtk.STOCK_REMOVE)
+menu_hide.connect("activate", hide_icon)
+tray_menu.append(menu_hide)
+menu_quit = gtk.ImageMenuItem(gtk.STOCK_CLOSE)
+menu_quit.connect("activate", lambda w: gtk.main_quit())
+tray_menu.append(menu_quit)
+tray_menu.show_all()
+
+send_signal(2)
+
+tray_icon = gtk.status_icon_new_from_stock(gtk.STOCK_DIALOG_ERROR)
+tray_icon.connect('popup-menu', show_menu, tray_menu)
+tray_icon.connect('size-changed', notify_about_resize);
+tray_icon.set_tooltip("Right click me!")
+#gobject.timeout_add(500, hide_icon, None)
+
+send_signal()
+
+gtk.main()
