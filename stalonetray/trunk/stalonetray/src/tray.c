@@ -487,10 +487,12 @@ void tray_create_window(int argc, char **argv)
 	XWMHints xwmh;
 	Atom net_system_tray_orientation;
 	Atom orient;
-	Atom protocols_atoms[2];
+	Atom protocols_atoms[3];
 	/* Create some atoms */
 	tray_data.xa_wm_delete_window = 
 		XInternAtom(tray_data.dpy, "WM_DELETE_WINDOW", False);
+	tray_data.xa_net_wm_ping = 
+		XInternAtom(tray_data.dpy, "_NET_WM_PING", False);
 	tray_data.xa_wm_take_focus = 
 		XInternAtom(tray_data.dpy, "WM_TAKE_FOCUS", False);
 	tray_data.xa_wm_protocols = 
@@ -577,7 +579,8 @@ void tray_create_window(int argc, char **argv)
 	/* Ask X server / WM to report certain events */
 	protocols_atoms[0] = tray_data.xa_wm_delete_window;
 	protocols_atoms[1] = tray_data.xa_wm_take_focus;
-	XSetWMProtocols(tray_data.dpy, tray_data.tray, protocols_atoms, 2);
+	protocols_atoms[2] = tray_data.xa_net_wm_ping;
+	XSetWMProtocols(tray_data.dpy, tray_data.tray, protocols_atoms, 3);
 	XSelectInput(tray_data.dpy, tray_data.tray, 
 			StructureNotifyMask | FocusChangeMask | PropertyChangeMask | ExposureMask );
 	x11_extend_root_event_mask(tray_data.dpy, PropertyChangeMask);

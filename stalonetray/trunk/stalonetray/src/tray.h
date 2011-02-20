@@ -93,6 +93,7 @@ struct TrayData {
 	Atom xa_tray_data;						/* Atom: _NET_SYSTEM_TRAY_MESSAGE_DATA */
 	Atom xa_wm_protocols;					/* Atom: WM_PROTOCOLS */
 	Atom xa_wm_delete_window;				/* Atom: WM_DELETE_WINDOW */
+	Atom xa_net_wm_ping;					/* Atom: WM_PING */
 	Atom xa_wm_take_focus;					/* Atom: WM_TAKE_FOCUS */
 	Atom xa_kde_net_system_tray_windows;	/* Atom: _KDE_NET_SYSTEM_TRAY_WINDOWS */
 	Atom xa_net_client_list;				/* Atom: _NET_CLIENT_LIST */

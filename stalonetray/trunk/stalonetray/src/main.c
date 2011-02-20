@@ -435,6 +435,18 @@ void client_message(XClientMessageEvent ev)
 		LOG_TRACE(("got WM_DELETE message, will now exit\n"));
 		exit(0); // atexit will call cleanup()
 	} 
+	/* Handle _NET_WM_PING */
+	if (ev.message_type == tray_data.xa_wm_protocols &&
+		ev.data.l[0] == tray_data.xa_net_wm_ping &&
+		ev.window == tray_data.tray)
+	{
+		LOG_TRACE(("got WM_PING message, sending it back\n"));
+		XEvent reply;
+		reply.xclient = ev;
+		reply.xclient.window = tray_data.tray;
+		XSendEvent(tray_data.dpy, DefaultRootWindow(tray_data.dpy), False,
+				(SubstructureNotifyMask|SubstructureRedirectMask), &reply);
+	}
 	/* Handle _NET_SYSTEM_TRAY_* messages */
 	if (ev.message_type == tray_data.xa_tray_opcode && tray_data.is_active) {
 		LOG_TRACE(("this is the _NET_SYSTEM_TRAY_OPCODE(%lu) message\n", ev.data.l[1]));
