@@ -45,12 +45,12 @@ void *send_delayed_confirmation(void *dummy)
 		LOG_TRACE(("will now sleep for %d seconds\n", settings.confirmation_delay));
 		sleep(settings.confirmation_delay);
 		LOG_TRACE(("sending embedding confirmation\n"));
-		x11_send_client_msg32(dpy, 
-				tray_data.tray, 
-				tray_data.tray, 
-				tray_data.xa_tray_opcode, 
-				0, 
-				STALONE_TRAY_DOCK_CONFIRMED, 
+		x11_send_client_msg32(dpy,
+				tray_data.tray,
+				tray_data.tray,
+				tray_data.xa_tray_opcode,
+				0,
+				STALONE_TRAY_DOCK_CONFIRMED,
 				ti->wid, 0, 0);
 		XSync(dpy, False);
 		XClose(dpy);
@@ -66,7 +66,7 @@ int embedder_embed(struct TrayIcon *ti)
 	int x, y, rc;
 	XSetWindowAttributes xswa;
 	/* If the icon is being embedded as hidden,
-	 * we just start listening for property changes 
+	 * we just start listening for property changes
 	 * to track _XEMBED mapped state */
 	if (!ti->is_visible) {
 		XSelectInput(tray_data.dpy, ti->wid, PropertyChangeMask);
@@ -79,8 +79,8 @@ int embedder_embed(struct TrayIcon *ti)
 	CALC_INNER_POS(x, y, ti);
 	LOG_TRACE(("position of icon 0x%x inside the tray: (%d, %d)\n", ti->wid, x, y));
 	/* 2. Create mid-parent window */
-	ti->mid_parent = XCreateSimpleWindow(tray_data.dpy, tray_data.tray, 
-				ti->l.icn_rect.x + x, ti->l.icn_rect.y + y, 
+	ti->mid_parent = XCreateSimpleWindow(tray_data.dpy, tray_data.tray,
+				ti->l.icn_rect.x + x, ti->l.icn_rect.y + y,
 				ti->l.wnd_sz.x, ti->l.wnd_sz.y, 0, 0, 0);
 	/* 2.5. Setup mid-parent window properties */
 	xswa.win_gravity = settings.bit_gravity;
@@ -104,18 +104,18 @@ int embedder_embed(struct TrayIcon *ti)
 	}
 	/* 4. Show mid-parent */
 	XMapWindow(tray_data.dpy, ti->mid_parent);
-	/* mid-parent must be lowered so that it does not osbcure 
+	/* mid-parent must be lowered so that it does not osbcure
 	 * scollbar windows */
 	XLowerWindow(tray_data.dpy, ti->mid_parent);
 	if (!x11_ok()) RETURN_STATUS(FAILURE);
 #ifndef DELAY_EMBEDDING_CONFIRMATION
 	/* 5. Send message confirming embedding */
-	rc = x11_send_client_msg32(tray_data.dpy, 
-			tray_data.tray, 
-			tray_data.tray, 
-			tray_data.xa_tray_opcode, 
-			0, 
-			STALONE_TRAY_DOCK_CONFIRMED, 
+	rc = x11_send_client_msg32(tray_data.dpy,
+			tray_data.tray,
+			tray_data.tray,
+			tray_data.xa_tray_opcode,
+			0,
+			STALONE_TRAY_DOCK_CONFIRMED,
 			ti->wid, 0, 0);
 	RETURN_STATUS(rc != 0);
 #else
@@ -183,7 +183,7 @@ int embedder_show(struct TrayIcon *ti)
 		ti->is_visible = True;
 		return embedder_embed(ti);
 	}
-	/* 0. calculate new position for mid-parent */	
+	/* 0. calculate new position for mid-parent */
 	CALC_INNER_POS(x, y, ti);
 	/* 1. move mid-parent to new location */
 	XMoveResizeWindow(tray_data.dpy, ti->mid_parent,
@@ -223,8 +223,8 @@ static int embedder_update_window_position(struct TrayIcon *ti)
 	ti->is_resized = False;
 	ti->is_updated = False;
 	/* Move mid-parent window */
-	XMoveResizeWindow(tray_data.dpy, ti->mid_parent, 
-				ti->l.icn_rect.x + x, ti->l.icn_rect.y + y, 
+	XMoveResizeWindow(tray_data.dpy, ti->mid_parent,
+				ti->l.icn_rect.x + x, ti->l.icn_rect.y + y,
 				ti->l.wnd_sz.x, ti->l.wnd_sz.y);
 	/* Sanitize icon position inside mid-parent */
 	XMoveWindow(tray_data.dpy, ti->wid, 0, 0);
@@ -268,7 +268,7 @@ int embedder_reset_size(struct TrayIcon *ti)
 	 * are handled */
 	if (ti->is_size_set && ti->cmode != CM_KDE && !settings.kludge_flags & KLUDGE_FORCE_ICONS_SIZE)
 		return SUCCESS;
-	/* Increase counter of size resets for given icon. If this number 
+	/* Increase counter of size resets for given icon. If this number
 	 * exeeds the threshold, do nothing. This should work around the icons
 	 * that react badly to size changes */
 	if (ti->is_size_set) ti->num_size_resets++;
@@ -282,7 +282,7 @@ int embedder_reset_size(struct TrayIcon *ti)
 			rc = x11_get_window_min_size(tray_data.dpy, ti->wid, &icon_sz.x, &icon_sz.y);
 		/* If this has failed, or icon hinst are not respected, or minimal size hints
 		 * are too small, fall back to default values */
-		if (!rc || 
+		if (!rc ||
 		    !settings.kludge_flags & KLUDGE_USE_ICONS_HINTS ||
 		     settings.kludge_flags & KLUDGE_FORCE_ICONS_SIZE ||
 		    (icon_sz.x < settings.icon_size && icon_sz.y < settings.icon_size))

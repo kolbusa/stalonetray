@@ -49,7 +49,7 @@ struct TrayIcon {
 };
 
 /* Typedef for comparison function */
-typedef int (*IconCmpFunc) (struct TrayIcon *, struct TrayIcon *); 
+typedef int (*IconCmpFunc) (struct TrayIcon *, struct TrayIcon *);
 
 /* Typedef for callback function */
 typedef int (*IconCallbackFunc) (struct TrayIcon *);
@@ -65,8 +65,8 @@ struct TrayIcon *icon_list_next(struct TrayIcon *ti);
 struct TrayIcon *icon_list_prev(struct TrayIcon *ti);
 
 /*************************************************
- * BIG FAT  WARNING: backup/restore routines  will 
- * memleak/fail  if  the  number  of icons in  the 
+ * BIG FAT  WARNING: backup/restore routines  will
+ * memleak/fail  if  the  number  of icons in  the
  * list has changed between  backup/restore calls.
  * (in return, it does not invalidate pointers :P)
  *************************************************/
@@ -96,7 +96,7 @@ int icon_list_clean();
 /* Clear the whole list, calling cbk for each icon */
 int icon_list_clean_callback(IconCallbackFunc cbk);
 
-/* Sort the list using comparison function specified by cmp. 
+/* Sort the list using comparison function specified by cmp.
  * Memo for writing comparison functions:
  * if a < b => cmp(a,b) < 0
  * if a = b => cmp(a,b) = 0

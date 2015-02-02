@@ -1,8 +1,8 @@
 /* -------------------------------
  * vim:tabstop=4:shiftwidth=4
- * main.c 
+ * main.c
  * Tue, 24 Aug 2004 12:00:24 +0700
- * ------------------------------- 
+ * -------------------------------
  * main is main
  * ------------------------------- */
 
@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include <string.h>
 
-/* from System Tray Protocol Specification 
+/* from System Tray Protocol Specification
  * http://freedesktop.org/Standards/systemtray-spec/systemtray-spec-0.1.html */
 #define SYSTEM_TRAY_REQUEST_DOCK    0
 #define SYSTEM_TRAY_BEGIN_MESSAGE   1
@@ -74,7 +74,7 @@ Atom		xa_wm_take_focus;
 Atom 		xa_xembed;
 
 void create_window(int argc, char **argv)
-{ 
+{
 #if 0
 	XWMHints			xwmh = {
 		flags:	(InputHint | StateHint ),
@@ -149,7 +149,7 @@ void redraw_buttons()
 	unsigned long pixel = 0;
 	for (i = 0; i < 4; i++) {
 		if (has_focus) {
-			if (i == sel_idx) 
+			if (i == sel_idx)
 				pixel = buttons_selected.pixel;
 			else
 				pixel = buttons_focused.pixel;
@@ -171,7 +171,7 @@ void focus_in(int how)
 			xembed_send_focus_prev(dpy, tray, current_xembed_timestamp);
 	} else {
 		has_focus = 1;
-		if (how == XEMBED_FOCUS_FIRST) 
+		if (how == XEMBED_FOCUS_FIRST)
 			sel_idx = 0;
 		else if (how == XEMBED_FOCUS_LAST)
 			sel_idx = 3;
@@ -195,7 +195,7 @@ void focus_next()
 		if (sel_idx < 3) {
 			sel_idx++;
 			redraw_buttons();
-		} else 
+		} else
 			xembed_send_focus_next(dpy, tray, x11_get_server_timestamp(dpy, wnd));
 	}
 }
@@ -210,7 +210,7 @@ void focus_prev()
 		if (sel_idx > 0) {
 			sel_idx--;
 			redraw_buttons();
-		} else 
+		} else
 			xembed_send_focus_prev(dpy, tray, x11_get_server_timestamp(dpy, wnd));
 	};
 	DBG(0, ("sel_idx=%d\n", sel_idx));
@@ -219,13 +219,13 @@ void focus_prev()
 void client_event(XClientMessageEvent ev)
 {
     char *msg_type_name;
-    
+
 	msg_type_name = XGetAtomName(dpy, ev.message_type);
-    
+
 	if (msg_type_name != NULL) {
         DBG(3, ("message name: \"%s\"\n", msg_type_name));
         XFree(msg_type_name);
-    }   
+    }
 
 	if (ev.message_type == xa_xembed) {
 		DBG(3, ("XEMBED message opcode: %d\n", ev.data.l[1]));
@@ -240,7 +240,7 @@ void client_event(XClientMessageEvent ev)
 			XSetWindowBackground(dpy, wnd, wnd_bg_embedded.pixel);
 			XClearWindow(dpy, wnd);
 			redraw_buttons();
-			if (request_focus) 
+			if (request_focus)
 				xembed_send_request_focus(dpy, tray, x11_get_server_timestamp(dpy, wnd));
 			break;
 		case XEMBED_FOCUS_OUT:
@@ -288,7 +288,7 @@ int main(int argc, char** argv)
 	int			i;
 
 	for (i = 1; i < argc; i++)
-		if (!strcmp(argv[i], "-n")) 
+		if (!strcmp(argv[i], "-n"))
 			do_not_accept_focus = 1;
 		else if (!strcmp(argv[i], "-r"))
 			request_focus = 1;
@@ -319,7 +319,7 @@ int main(int argc, char** argv)
 
 	create_window(argc, argv);
 
-	if (register_accel) 
+	if (register_accel)
 		xembed_send_register_accelerator(dpy, tray, x11_get_server_timestamp(dpy, wnd), accel_id, accel_sym, accel_mods);
 
 	XFlush(dpy);

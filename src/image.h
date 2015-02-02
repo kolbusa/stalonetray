@@ -3,7 +3,7 @@
  * image.h
  * Fri, 22 Jun 2007 23:32:27 +0700
  * -------------------------------
- * Simple XImage manipulation 
+ * Simple XImage manipulation
  * interface
  * -------------------------------*/
 
@@ -23,7 +23,7 @@ CARD8 *image_create_alpha_mask(int ord, int w, int h);
 /* Alpha-tint image using color. */
 int image_tint(XImage *image, XColor *color, CARD8 alpha);
 
-/* Compose image stored in tgt with image stored in bg. 
+/* Compose image stored in tgt with image stored in bg.
  * Alpha of each pixel is defined by mask, which should */
 int image_compose(XImage *tgt, XImage *bg, CARD8 *mask);
 

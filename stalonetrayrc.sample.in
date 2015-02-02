@@ -1,12 +1,12 @@
 # vim:filetype=config:tw=80:et
-# 
+#
 # This is sample ~/.stalonetrayrc, resembling default configuration.
 # Remember: command line parameters take precedence.
 #
 # Directives introduced in @VERSION_STR@ are marked with "NEW in @VERSION_STR@"
 #
 ####################################################################
-# 
+#
 # stalonetray understands following directives
 #
 ####################################################################
@@ -74,7 +74,7 @@ max_geometry 0x0
 # no_shrink [<bool>]         # disables shrink-back mode
 no_shrink false
 
-# parent_bg [<bool>]         # whether to use pseudo-transparency 
+# parent_bg [<bool>]         # whether to use pseudo-transparency
                              # (looks better when reparented into smth like FvwmButtons)
 parent_bg false
 

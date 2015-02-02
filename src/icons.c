@@ -3,8 +3,8 @@
 * icons.c
 * Tue, 24 Aug 2004 12:05:38 +0700
 * -------------------------------
-* Manipulations with reparented 
-* windows --- tray icons 
+* Manipulations with reparented
+* windows --- tray icons
 * -------------------------------*/
 
 #include <X11/Xlib.h>
@@ -71,7 +71,7 @@ struct TrayIcon *icon_list_next(struct TrayIcon *ti)
 struct TrayIcon *icon_list_prev(struct TrayIcon *ti)
 {
 	struct TrayIcon *tmp;
-	if (ti != NULL && ti->prev != NULL) 
+	if (ti != NULL && ti->prev != NULL)
 		return ti->prev;
 	else {
 		tmp = icons_head;
@@ -171,7 +171,7 @@ int icon_list_clean_callback(IconCallbackFunc cbk)
 	struct TrayIcon *tmp;
 	LIST_CLEAN_CBK(icons_head, tmp, cbk);
 	return SUCCESS;
-}	
+}
 
 /* TODO: is it necessary always to sort the full list? */
 void icon_list_sort(IconCmpFunc cmp)
@@ -198,7 +198,7 @@ struct TrayIcon *icon_list_forall_from(struct TrayIcon *tgt, IconCallbackFunc cb
 {
 	/* Traverse the list starting from tgt*/
 	struct TrayIcon *tmp;
-	for (tmp = tgt != NULL ? tgt : icons_head; tmp != NULL; tmp = tmp->next) 
+	for (tmp = tgt != NULL ? tgt : icons_head; tmp != NULL; tmp = tmp->next)
 		if (cbk(tmp) == MATCH) {
 			return tmp;
 		}

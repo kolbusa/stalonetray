@@ -1,7 +1,7 @@
 + Each icon must have a newly created parent window, which matches its
-  dimentions (for ease of move and for them to be centered ?). 
+  dimentions (for ease of move and for them to be centered ?).
 + Anvanced grow
-+ Reorganize settings (and vars)  
++ Reorganize settings (and vars)
 - Make use of resources (WONTDO)
 + rc file
 + Need to handle unusual sizes of "icons" (and resolve when to force
@@ -11,7 +11,7 @@
 + KDE tray implementation (solves previous problem)
 + Handle tray icon move/resize
 + Simplify rc file syntax/re-reorganize settings
-+ main.c cleanup 
++ main.c cleanup
 + update transparent/parent background on icon move/resize
 + review DBG() calls in accordance with doc/DEBUG-LEVELS
 + reacquire tray selection after loss (if holder exits) (update sample rc(done))
@@ -99,7 +99,7 @@ for 0.8
 + all dims must be given in slots not in pixels
 + scrollable tray area? (see http://wnd.katei.fi/weblog/entry-7)
 	+ need repeater mode
-	+ support for mouse wheel (scroll vertically if mousewheeling over vert sb and 
+	+ support for mouse wheel (scroll vertically if mousewheeling over vert sb and
 	  horizontally if over horz sb; default to orientation otherwise)
 + strut WM hints (requires Xinerama?)
 + fix geometry code

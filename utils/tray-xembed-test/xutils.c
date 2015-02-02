@@ -33,7 +33,7 @@ int x11_error_handler(Display *dpy, XErrorEvent *err)
 int x11_ok_helper(const char *file, const int line, const char *func)
 {
 	if (trapped_x11_error_code) {
-		DBG(0, ("X11 error %d detected at %s:%d:%s\n", 
+		DBG(0, ("X11 error %d detected at %s:%d:%s\n",
 					trapped_x11_error_code,
 					file,
 					line,
@@ -44,7 +44,7 @@ int x11_ok_helper(const char *file, const int line, const char *func)
 		return SUCCESS;
 }
 
-int x11_current_error() 
+int x11_current_error()
 {
 	return trapped_x11_error_code;
 }
@@ -76,7 +76,7 @@ Time x11_get_server_timestamp(Display *dpy, Window wnd)
 	unsigned char c = 's';
 	XEvent xevent;
 
-	if (timestamp_atom == None) 
+	if (timestamp_atom == None)
 		timestamp_atom = XInternAtom(dpy, "STALONETRAY_TIMESTAMP", False);
 
 	/* Trigger PropertyNotify event which has a timestamp field */
@@ -99,7 +99,7 @@ int x11_get_win_prop32(Display *dpy, Window dst, Atom atom, Atom type, unsigned 
 
 	*data = NULL; *len = 0;
 	/* Get the property size */
-	rc = XGetWindowProperty(dpy, dst, atom, 
+	rc = XGetWindowProperty(dpy, dst, atom,
 		    0L, 0L, False, type, &act_type, &act_fmt,
 			&buf_len, &bytes_after, &buf);
 

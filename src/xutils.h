@@ -33,9 +33,9 @@ int x11_send_visibility(Display *dpy, Window dst, long state);
 int x11_send_expose(Display *dpy, Window dst, int x, int y, int width, int height);
 
 /* Same for button event */
-int x11_send_button(Display *dpy, 
+int x11_send_button(Display *dpy,
 		int press, Window dst, Window root, Time time,
-		unsigned int button, unsigned int state, 
+		unsigned int button, unsigned int state,
 		int x, int y);
 
 /* Refresh window */
@@ -81,7 +81,7 @@ int x11_parse_color(Display *dpy, char *str, XColor *color);
 /* ACHTUNG!!! after any sequence X operations any of which
  * that might have failed, you _must_ call x11_ok(), since
  * it resets the internal error flag. If you dont, it will show
- * up as a error elsewhere. JFYI, always check for x11_ok() first, 
+ * up as a error elsewhere. JFYI, always check for x11_ok() first,
  * since
  * 		if (!rc || x11_ok()) { fail; }
  * is likely to leave error condition on: x11_ok() wont be called

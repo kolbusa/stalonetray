@@ -28,8 +28,8 @@ dnl ========== Backtrace =============
 AC_TRY_LINK([#include <execinfo.h>
 			 #include <sys/types.h>
 			],
-            [void *array[10]; 
-			 size_t size; 
+            [void *array[10];
+			 size_t size;
 			 size = backtrace(array, 10);
 			 backtrace_symbols_fd(array, size, 0);
 			],
@@ -58,7 +58,7 @@ if test "x$no_x" = "xyes"; then
 	echo "X11 libraries/headers could not be found."
 	echo "If they are definetly installed, use"
 	echo " --x-includes and --x-libraries to set the paths."
-	echo 
+	echo
 	echo "Aborting"
 	echo
 	exit 1
@@ -72,7 +72,7 @@ dnl ============= X11 ================
 dnl ========= libxpm presence
 
 ac_cv_xpm_supported=yes
-AC_CHECK_LIB(Xpm, 
+AC_CHECK_LIB(Xpm,
              XpmReadFileToPixmap, ,
              [ac_cv_xpm_supported=no],
              [$X_LIBS])

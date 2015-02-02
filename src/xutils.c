@@ -53,7 +53,7 @@ int x11_error_handler(Display *dpy, XErrorEvent *err)
 int x11_ok_helper(const char *file, const int line, const char *func)
 {
 	if (trapped_x11_error_code) {
-		LOG_ERROR(("X11 error %d detected at %s:%d:%s\n", 
+		LOG_ERROR(("X11 error %d detected at %s:%d:%s\n",
 					trapped_x11_error_code,
 					file,
 					line,
@@ -64,7 +64,7 @@ int x11_ok_helper(const char *file, const int line, const char *func)
 		return SUCCESS;
 }
 
-int x11_current_error() 
+int x11_current_error()
 {
 	return trapped_x11_error_code;
 }
@@ -99,7 +99,7 @@ Time x11_get_server_timestamp(Display *dpy, Window wnd)
 	unsigned char c = 's';
 	XEvent xevent;
 
-	if (timestamp_atom == None) 
+	if (timestamp_atom == None)
 		timestamp_atom = XInternAtom(dpy, "STALONETRAY_TIMESTAMP", False);
 
 	x11_ok(); /* Just reset the status (XXX) */
@@ -120,11 +120,11 @@ int x11_get_window_prop32(Display *dpy, Window dst, Atom atom, Atom type, unsign
 	Atom act_type;
 	int act_fmt, rc;
 	unsigned long bytes_after, prop_len, buf_len;
-	unsigned char *buf = NULL;	
+	unsigned char *buf = NULL;
 
 	*data = NULL; *len = 0;
 	/* Get the property size */
-	rc = XGetWindowProperty(dpy, dst, atom, 
+	rc = XGetWindowProperty(dpy, dst, atom,
 		    0L, 1L, False, type, &act_type, &act_fmt,
 			&buf_len, &bytes_after, &buf);
 
@@ -181,9 +181,9 @@ int x11_send_visibility(Display *dpy, Window dst, long state)
 	return x11_ok() && rc != 0;
 }
 
-int x11_send_button(Display *dpy, 
+int x11_send_button(Display *dpy,
 		int press, Window dst, Window root, Time time,
-		unsigned int button, unsigned int state, 
+		unsigned int button, unsigned int state,
 		int x, int y)
 {
 	XEvent ev;
@@ -192,8 +192,8 @@ int x11_send_button(Display *dpy,
 	Window dst_root;
 
 	if (!x11_get_window_abs_coords(dpy, dst, &rx, &ry)) return FAILURE;
-	XGetGeometry(dpy, dst, &dst_root, 
-			&idummy, &idummy, 
+	XGetGeometry(dpy, dst, &dst_root,
+			&idummy, &idummy,
 			&udummy, &udummy, &udummy, &udummy);
 	if (!x11_ok()) return FAILURE;
 
@@ -205,13 +205,13 @@ int x11_send_button(Display *dpy,
 	ev.xbutton.time = time;
 	ev.xbutton.x = x;
 	ev.xbutton.y = y;
-	ev.xbutton.x_root = rx + x; 
+	ev.xbutton.x_root = rx + x;
 	ev.xbutton.y_root = ry + y;
 	ev.xbutton.button = button;
 	ev.xbutton.state = state;
 	ev.xbutton.same_screen = (root == dst_root);
 
-	rc = XSendEvent(dpy, dst, True, 
+	rc = XSendEvent(dpy, dst, True,
 			SubstructureNotifyMask | (press ? ButtonPressMask : ButtonReleaseMask),
 			&ev);
 	return rc && x11_ok();
@@ -418,7 +418,7 @@ const char *x11_event_names[LASTEvent] = {
 };
 
 void x11_dump_win_info(Display *dpy, Window wid)
-{	
+{
 #if defined(DEBUG) && defined(ENABLE_DUMP_WIN_INFO)
 	if (settings.log_level >= LOG_LEVEL_TRACE) {
 		char cmd[PATH_MAX];
@@ -428,5 +428,5 @@ void x11_dump_win_info(Display *dpy, Window wid)
 		system(cmd);
 	}
 #endif
-}	
+}
 #endif

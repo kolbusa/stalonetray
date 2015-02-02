@@ -25,7 +25,7 @@
 /* not very nice (and calculates its arguments twice!), but allows doing things like swap(*a, *b) */
 #define swap(a,b) do { int t; t = (a); (a) = (b); (b) = t; } while (0)
 
-/***************** 
+/*****************
 * Grid interface *
 *****************/
 
@@ -90,7 +90,7 @@ int layout_handle_icon_resize(struct TrayIcon *ti)
 	 * that are after ti in the icon list. */
 	/* 1. Unset layout flags of all icons after ti */
 	icon_list_forall_from(ti, &layout_unset_flag);
-	/* 2. If shrink mode is on, recalculate the size of the grid 
+	/* 2. If shrink mode is on, recalculate the size of the grid
 	 *    for the remaining icons. This ensures that final grid
 	 *    will be "minimal" (I did not prove that :) */
 	if (settings.shrink_back_mode) grid_update(ti, False);
@@ -102,8 +102,8 @@ int layout_handle_icon_resize(struct TrayIcon *ti)
 #endif
 	/* 3. Start adding icons after ti back to the grid one
 	 *    by one. If this fails for some icon, forall_icons_from()
-	 *    will return non-NULL value and this will be considered 
-	 *    as a error condition */ 
+	 *    will return non-NULL value and this will be considered
+	 *    as a error condition */
 	if (icon_list_forall_from(ti, &grid_add_wrapper) == NULL) {
 		/* Everything is OK */
 		icon_list_backup_purge();
@@ -133,7 +133,7 @@ void layout_get_size(int *width, int *height)
 
 struct TrayIcon *layout_next(struct TrayIcon *current)
 {
-	if ((settings.icon_gravity & GRAV_H) == GRAV_W) 
+	if ((settings.icon_gravity & GRAV_H) == GRAV_W)
 		return icon_list_next(current);
 	else
 		return icon_list_prev(current);
@@ -141,7 +141,7 @@ struct TrayIcon *layout_next(struct TrayIcon *current)
 
 struct TrayIcon *layout_prev(struct TrayIcon *current)
 {
-	if ((settings.icon_gravity & GRAV_H) == GRAV_W) 
+	if ((settings.icon_gravity & GRAV_H) == GRAV_W)
 		return icon_list_prev(current);
 	else
 		return icon_list_next(current);
@@ -192,7 +192,7 @@ int layout_translate_to_window(struct TrayIcon *ti)
 		ti->l.icn_rect.x = tray_data.xsh.width - (ti->l.grd_rect.x + ti->l.grd_rect.w) * settings.slot_size;
 	if (settings.icon_gravity & GRAV_N)
 		ti->l.icn_rect.y =	ti->l.grd_rect.y * settings.slot_size;
-	else 
+	else
 		ti->l.icn_rect.y = tray_data.xsh.height - (ti->l.grd_rect.y + ti->l.grd_rect.h) * settings.slot_size;
 	ti->l.icn_rect.w = ti->l.grd_rect.w * settings.slot_size;
 	ti->l.icn_rect.h = ti->l.grd_rect.h * settings.slot_size;
@@ -203,10 +203,10 @@ int layout_translate_to_window(struct TrayIcon *ti)
 	}
 	/* Shift icon position according to scrollbars positions */
 	/* TODO: must be in separate function, with a reverse */
-	ti->l.icn_rect.x += ((settings.icon_gravity & GRAV_W ? 1 : -1) * 
-							(tray_data.scrollbars_data.scroll_base.x - 
+	ti->l.icn_rect.x += ((settings.icon_gravity & GRAV_W ? 1 : -1) *
+							(tray_data.scrollbars_data.scroll_base.x -
 						tray_data.scrollbars_data.scroll_pos.x));
-	ti->l.icn_rect.y += ((settings.icon_gravity & GRAV_N ? 1 : -1) * 
+	ti->l.icn_rect.y += ((settings.icon_gravity & GRAV_N ? 1 : -1) *
 							(tray_data.scrollbars_data.scroll_base.y -
 						tray_data.scrollbars_data.scroll_pos.y));
 	LOG_TRACE(("grid %dx%d+%d+%d -> window  %dx%d+%d+%d\n",
@@ -214,7 +214,7 @@ int layout_translate_to_window(struct TrayIcon *ti)
 				ti->l.icn_rect.w, ti->l.icn_rect.h, ti->l.icn_rect.x, ti->l.icn_rect.y));
 	/* Set flag indicating if new position is different from old */
 	ti->is_updated = ti->is_updated ||
-					 !(ti->l.icn_rect.x == old_icn_rect.x && 
+					 !(ti->l.icn_rect.x == old_icn_rect.x &&
 	                   ti->l.icn_rect.y == old_icn_rect.y &&
 	                   ti->l.icn_rect.w == old_icn_rect.w &&
 	                   ti->l.icn_rect.h == old_icn_rect.h);
@@ -281,10 +281,10 @@ int grid_place_icon(struct TrayIcon *ti, struct IconPlacement *ip)
 	struct Layout *l = &ti->l;
 	struct Point *p = &ip->pos;
 	/* Set the flag if icon position was really updated */
-	ti->is_updated = ti->is_updated || 
+	ti->is_updated = ti->is_updated ||
 			(p->x != l->grd_rect.x || p->y != l->grd_rect.y);
 	if (ti->is_updated || !ti->is_layed_out) {
-		LOG_TRACE(("updating position (%d,%d) to (%d,%d)\n", 
+		LOG_TRACE(("updating position (%d,%d) to (%d,%d)\n",
 				ti->l.grd_rect.x, ti->l.grd_rect.y,
 				p->x, p->y));
 		l->grd_rect.x = p->x;
@@ -293,7 +293,7 @@ int grid_place_icon(struct TrayIcon *ti, struct IconPlacement *ip)
 	/* Update grid dimensions */
 	grid_sz.x += ip->sz_delta.x;
 	grid_sz.y += ip->sz_delta.y;
-	/* Update icon position */	
+	/* Update icon position */
 	layout_translate_to_window(ti);
 	LOG_TRACE(("current grid size: %dx%d\n", grid_sz.x, grid_sz.y));
 	return ti->is_updated;
@@ -305,7 +305,7 @@ static struct Rect chk_rect;
 /* Check if grid rect of ti intersects with chk_rect */
 int find_obstacle(struct TrayIcon *ti)
 {
-	return ti->is_layed_out && 
+	return ti->is_layed_out &&
 		(RECTS_ISECT(chk_rect, ti->l.grd_rect) || RECTS_ISECT(ti->l.grd_rect, chk_rect));
 }
 
@@ -322,7 +322,7 @@ int grid_check_rect_free(int x, int y, int w, int h)
 	if (obst == NULL) {
 		return 0;
 	} else {
-		if (settings.vertical) 
+		if (settings.vertical)
 			return obst->l.grd_rect.h;
 		else
 			return obst->l.grd_rect.w;
@@ -354,7 +354,7 @@ int icon_placement_create(struct IconPlacement *ip, int x, int y, struct Rect *r
 	ip->valid = (ip->pos.x + rect->w <= max_layout_width) &&
 				(ip->pos.y + rect->h <= max_layout_height);
 #ifdef DEBUG
-	LOG_TRACE(("placement (%d, %d, %d, %d) is %s\n", 
+	LOG_TRACE(("placement (%d, %d, %d, %d) is %s\n",
 	        x, y, ip->sz_delta.x, ip->sz_delta.y,
 	        ip->valid ? "valid" : "invalid"));
 #endif
@@ -369,8 +369,8 @@ int icon_placement_create(struct IconPlacement *ip, int x, int y, struct Rect *r
  * if either
  * 	- min_space_policy is on and (window) size delta for A is
  * 	  strictly less then size delta for B;
- * 	- position for A is less (in lexographical order) 
- * 	  than position for B. 
+ * 	- position for A is less (in lexographical order)
+ * 	  than position for B.
  * 	  */
 void icon_placement_choose_best(struct IconPlacement *old, struct IconPlacement *new)
 {
@@ -384,7 +384,7 @@ void icon_placement_choose_best(struct IconPlacement *old, struct IconPlacement 
 		delta.x = cutoff((grid_sz.x + pmt->sz_delta.x) * settings.slot_size - tray_data.xsh.width, 0, pmt->sz_delta.x * settings.slot_size); \
 		delta.y = cutoff((grid_sz.y + pmt->sz_delta.y) * settings.slot_size - tray_data.xsh.height, 0, pmt->sz_delta.y * settings.slot_size); \
 	} while(0)
-	/* If tray is vertically oriented, swap width <-> height 
+	/* If tray is vertically oriented, swap width <-> height
 	 * (just for readability sake) */
 	if (settings.vertical) {
 		swap(tray_data.xsh.width, tray_data.xsh.height);
@@ -411,11 +411,11 @@ void icon_placement_choose_best(struct IconPlacement *old, struct IconPlacement 
 		swap(settings.orig_tray_dims.x, settings.orig_tray_dims.y);
 	}
 	LOG_TRACE(("old placement = (%d, %d, %d, %d, %d, %d)\n",
-	        old->pos.x, old->pos.y, 
+	        old->pos.x, old->pos.y,
 			old->sz_delta.x, old->sz_delta.y,
 			old_wnd_sz_delta.x, old_wnd_sz_delta.y));
 	LOG_TRACE(("new placement = (%d, %d, %d, %d, %d, %d)\n",
-	        new->pos.x, new->pos.y, 
+	        new->pos.x, new->pos.y,
 			new->sz_delta.x, new->sz_delta.y,
 			new_wnd_sz_delta.x, new_wnd_sz_delta.y));
 	/* Compute norms for window deltas */
@@ -430,12 +430,12 @@ void icon_placement_choose_best(struct IconPlacement *old, struct IconPlacement 
 	LOG_TRACE(("new wnd delta norm = %d, lout delta norm = %d\n", new_wnd_delta_norm, new_lout_delta_norm));
 	LOG_TRACE(("lout norm cmp = %d, wnd norm cmp = %d\n", lout_norm_cmp, wnd_norm_cmp));
 	LOG_TRACE(("compare points (new, old) = %d\n", compare_points(new->pos, old->pos)));
-	/* CORE of placement logic. In short, 
+	/* CORE of placement logic. In short,
 	 * - valid placement is always better than invalid
 	 * - with minimal space policy on (off by default), placement with smaller deltas is better
 	 * - placement which does not cause tray window to grow is always better than one that does
 	 * - otherwise, placement that is "closer" to initial point (that depends on gravity) is better */
-	if (!old->valid && new->valid) goto replace; 
+	if (!old->valid && new->valid) goto replace;
 	if (settings.min_space_policy && (lout_norm_cmp || wnd_norm_cmp)) goto replace;
 	if (old_lout_delta_norm && !new_lout_delta_norm) goto replace;
 	if (old_wnd_delta_norm && !new_wnd_delta_norm) goto replace;
@@ -457,7 +457,7 @@ struct IconPlacement *grid_find_placement(struct TrayIcon *ti)
 	ti->is_layed_out = 0; /* to avoid self-intersections */
 	/* General idea is to look through all possible placements
 	 * while keeping one which is considered to be the "best" and
-	 * comparing current placement with "best" one and updating 
+	 * comparing current placement with "best" one and updating
 	 * it accordingly */
 	if (grid_sz.x == 0 || grid_sz.x == 0) { 	/* Grid is empty */
 		/* This is the only possible placement */
@@ -497,8 +497,8 @@ struct IconPlacement *grid_find_placement(struct TrayIcon *ti)
 	/* Restore layed out state */
 	ti->is_layed_out = orig_layed_out;
 	if (cur_pmt.valid) {
-		LOG_TRACE(("using placement (%d, %d, %d, %d)\n", 
-				cur_pmt.pos.x, cur_pmt.pos.y, 
+		LOG_TRACE(("using placement (%d, %d, %d, %d)\n",
+				cur_pmt.pos.x, cur_pmt.pos.y,
 				cur_pmt.sz_delta.x, cur_pmt.sz_delta.y));
 		return &cur_pmt;
 	} else {
@@ -510,7 +510,7 @@ struct IconPlacement *grid_find_placement(struct TrayIcon *ti)
 
 int trayicon_cmp_func(struct TrayIcon *ti1, struct TrayIcon *ti2)
 {
-	return (!ti2->is_layed_out && ti1->is_layed_out) || 
+	return (!ti2->is_layed_out && ti1->is_layed_out) ||
 	       compare_points(ti2->l.grd_rect, ti1->l.grd_rect);
 }
 

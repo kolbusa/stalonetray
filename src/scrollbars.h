@@ -51,7 +51,7 @@ int scrollbars_refresh(int exposures);
 int scrollbars_get_id(Window wid, int x, int y);
 /* Update tray wrt scrollbar click;
  *  - id == SB_WND_MAX is a special case used to
- *    update scroll positions without chaning it 
+ *    update scroll positions without chaning it
  *    (i.e. after icon removal)
  */
 int scrollbars_click(int id);
@@ -65,4 +65,4 @@ int scrollbars_scroll_to(struct TrayIcon *ti);
 int scrollbars_highlight_on(int id);
 /* Switch hightlight off */
 int scrollbars_highlight_off(int id);
-#endif 
+#endif
