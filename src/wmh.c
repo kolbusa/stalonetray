@@ -114,7 +114,6 @@ int ewmh_set_window_strut(Display *dpy, Window wnd, wm_strut_t wm_strut)
 int ewmh_set_window_atom32(Display *dpy, Window wnd, char *prop_name, CARD32 value)
 {
 	Atom prop;
-	Atom atom;
 	XWindowAttributes xwa;
 	int rc;
 	prop = XInternAtom(dpy, prop_name, False);
@@ -127,6 +126,7 @@ int ewmh_set_window_atom32(Display *dpy, Window wnd, char *prop_name, CARD32 val
 		return x11_send_client_msg32(dpy, DefaultRootWindow(dpy), wnd, prop,
 		                             value, 2 /* source indication */, 0, 0, 0);
 	} else {
+		Atom atom = value;
 		/* Else, alter the window state atom value ourselves */
 		XChangeProperty(dpy, wnd, prop, XA_ATOM, 32, PropModeAppend, (unsigned char *)&atom, 1);
 		return x11_ok();
