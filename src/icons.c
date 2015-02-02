@@ -198,7 +198,7 @@ struct TrayIcon *icon_list_forall_from(struct TrayIcon *tgt, IconCallbackFunc cb
 {
 	/* Traverse the list starting from tgt*/
 	struct TrayIcon *tmp;
-	for (tmp = tgt != NULL ? tgt : icons_head; tmp != NULL; tmp = tmp->next)
+	for (tmp = (tgt != NULL ? tgt : icons_head); tmp != NULL; tmp = tmp->next)
 		if (cbk(tmp) == MATCH) {
 			return tmp;
 		}

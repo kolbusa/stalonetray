@@ -262,7 +262,7 @@ int embedder_refresh(struct TrayIcon *ti)
  * is used to reset size of the icon window */
 int embedder_reset_size(struct TrayIcon *ti)
 {
-	struct Point icon_sz;
+	struct Point icon_sz = {0, 0};
 	int rc = FAILURE;
 	/* Do not reset size for non-KDE icons with size set if icon_resizes
 	 * are handled */
@@ -283,8 +283,8 @@ int embedder_reset_size(struct TrayIcon *ti)
 		/* If this has failed, or icon hinst are not respected, or minimal size hints
 		 * are too small, fall back to default values */
 		if (!rc ||
-		    !settings.kludge_flags & KLUDGE_USE_ICONS_HINTS ||
-		     settings.kludge_flags & KLUDGE_FORCE_ICONS_SIZE ||
+		    !(settings.kludge_flags & KLUDGE_USE_ICONS_HINTS) ||
+		     (settings.kludge_flags & KLUDGE_FORCE_ICONS_SIZE) ||
 		    (icon_sz.x < settings.icon_size && icon_sz.y < settings.icon_size))
 		{
 			icon_sz.x = settings.icon_size;
