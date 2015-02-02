@@ -760,6 +760,8 @@ void parse_rc()
 		}
 		free(argv);
 	}
+
+	fclose(cfg);
 }
 
 /* Interpret all settings that need an open display or other settings */

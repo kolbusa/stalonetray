@@ -36,7 +36,7 @@ void print_message_to_stderr(const char *fmt,...)
 	va_start(va, fmt);
 	vsnprintf(msg, PATH_MAX, fmt, va);
 	va_end(va);
-	fprintf(stderr, msg);
+	fprintf(stderr, "%s", msg);
 }
 
 #ifdef DEBUG

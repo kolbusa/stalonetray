@@ -459,7 +459,7 @@ struct IconPlacement *grid_find_placement(struct TrayIcon *ti)
 	 * while keeping one which is considered to be the "best" and
 	 * comparing current placement with "best" one and updating
 	 * it accordingly */
-	if (grid_sz.x == 0 || grid_sz.x == 0) { 	/* Grid is empty */
+	if (grid_sz.x == 0 || grid_sz.y == 0) { 	/* Grid is empty */
 		/* This is the only possible placement */
 		icon_placement_create(&cur_pmt, 0, 0, &ti->l.grd_rect);
 	} else {									/* Seek and place */
