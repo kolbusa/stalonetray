@@ -102,7 +102,7 @@ void cleanup()
 	}
 	if (clean) return;
 	cleanup_in_progress = 1;
-	if (x11_connection_status()) {
+	if (tray_data.dpy != NULL && x11_connection_status()) {
 		LOG_TRACE(("being nice to the icons\n"));
 		/* Clean the list unembedding icons one by one */
 		icon_list_clean_callback(&embedder_unembed);
