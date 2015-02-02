@@ -61,7 +61,7 @@ log_level err
                              # comma-separated list of
                              # * fix_window_pos - fix tray window position on
                              #     erroneous moves by WM
-                             # * force_icon_size - ignore resize events on all
+                             # * force_icons_size - ignore resize events on all
                              #     icons; force their size to be equal to
                              #     icon_size
                              # * use_icon_hints - use icon window hints to
@@ -118,7 +118,7 @@ transparent false
 vertical false
 
 # window_layer <layer>       # set the EWMH-compatible window layer; one of:
-                             # bootom, normal, top
+                             # bottom, normal, top
 window_layer normal
 
 # window_strut <mode>        # enable/disable window struts for tray window (to
