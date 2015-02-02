@@ -76,8 +76,8 @@ typedef unsigned long wm_strut_t[_NET_WM_STRUT_PARTIAL_SZ];
 #define WM_STRUT_IDX_RHT 1
 #define WM_STRUT_IDX_TOP 2
 #define WM_STRUT_IDX_BOT 3
-#define WM_STRUT_IDX_START_OFFSET 4
-#define WM_STRUT_IDX_END_OFFSET 8
+#define WM_STRUT_IDX_START(B) B * 2 + 4
+#define WM_STRUT_IDX_END(B) B * 2 + 5
 
 /* Check if WM that supports EWMH hints is present on given display */
 int ewmh_wm_present(Display *dpy);

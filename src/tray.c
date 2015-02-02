@@ -361,8 +361,8 @@ int tray_update_window_strut()
 					base_idx = WM_STRUT_IDX_BOT;
 					wm_strut[WM_STRUT_IDX_BOT] = tray_data.root_wnd.height - tray_data.xsh.y;
 				}
-				wm_strut[base_idx + WM_STRUT_IDX_START_OFFSET] = tray_data.xsh.x;
-				wm_strut[base_idx + WM_STRUT_IDX_END_OFFSET] = tray_data.xsh.x + tray_data.xsh.width;
+				wm_strut[WM_STRUT_IDX_START(base_idx)] = tray_data.xsh.x;
+				wm_strut[WM_STRUT_IDX_END(base_idx)] = tray_data.xsh.x + tray_data.xsh.width - 1;
 			} else {
 				if (strut_mode == WM_STRUT_LFT) {
 					base_idx = WM_STRUT_IDX_LFT;
@@ -371,8 +371,8 @@ int tray_update_window_strut()
 					base_idx = WM_STRUT_IDX_RHT;
 					wm_strut[WM_STRUT_IDX_RHT] = tray_data.root_wnd.width - tray_data.xsh.x;
 				}
-				wm_strut[base_idx + WM_STRUT_IDX_START_OFFSET] = tray_data.xsh.y;
-				wm_strut[base_idx + WM_STRUT_IDX_END_OFFSET] = tray_data.xsh.y + tray_data.xsh.height;
+				wm_strut[WM_STRUT_IDX_START(base_idx)] = tray_data.xsh.y;
+				wm_strut[WM_STRUT_IDX_END(base_idx)] = tray_data.xsh.y + tray_data.xsh.height - 1;
 			}
 			{	int i;
 				for (i = 0; i < _NET_WM_STRUT_PARTIAL_SZ; i++)
