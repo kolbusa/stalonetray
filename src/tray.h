@@ -66,7 +66,7 @@
 #define KLUDGE_FIX_WND_SIZE (1L << 1)
 #define KLUDGE_FIX_WND_POS  (1L << 2)
 #define KLUDGE_USE_ICONS_HINTS (1L << 3)
-#define KLUDGE_FORCE_ICONS_SIZE (1L << 3)
+#define KLUDGE_FORCE_ICONS_SIZE (1L << 4)
 
 /* Remote click constants */
 #define REMOTE_CLICK_BTN_DEFAULT Button1
