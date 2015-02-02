@@ -183,13 +183,13 @@ int parse_kludges(char *str, int **tgt, int silent)
 	do {
 		if ((rest = strchr(rest, ',')) != NULL) *(rest++) = 0;
 		if (!strcasecmp(curtok, "fix_window_pos"))
-			**tgt = KLUDGE_FIX_WND_POS;
+			**tgt |= KLUDGE_FIX_WND_POS;
 /*        else if (!strcasecmp(curtok, "fix_window_size"))*/
 /*            **tgt = KLUDGE_FIX_WND_SIZE;*/
 		else if (!strcasecmp(curtok, "force_icons_size"))
-			**tgt = KLUDGE_FORCE_ICONS_SIZE;
+			**tgt |= KLUDGE_FORCE_ICONS_SIZE;
 		else if (!strcasecmp(curtok, "use_icons_hints"))
-			**tgt = KLUDGE_USE_ICONS_HINTS;
+			**tgt |= KLUDGE_USE_ICONS_HINTS;
 		else {
 			PARSING_ERROR("kludge flag expected", curtok);
 			return FAILURE;
