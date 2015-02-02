@@ -35,7 +35,7 @@
 #define XEMBED_REQUEST_FOCUS		 	3
 #define XEMBED_FOCUS_IN 	 			4
 #define XEMBED_FOCUS_OUT  				5
-#define XEMBED_FOCUS_NEXT 				6	
+#define XEMBED_FOCUS_NEXT 				6
 #define XEMBED_FOCUS_PREV 				7
 /* 8-9 were used for XEMBED_GRAB_KEY/XEMBED_UNGRAB_KEY */
 #define XEMBED_MODALITY_ON 				10
@@ -134,7 +134,7 @@ void xembed_init()
 	tray_data.xembed_data.xa_xembed = XInternAtom(tray_data.dpy, "_XEMBED", False);
 	tray_data.xembed_data.xa_xembed_info = XInternAtom(tray_data.dpy, "_XEMBED_INFO", False);
 	/* 2. Create focus proxy (see XEMBED spec) */
-	tray_data.xembed_data.focus_proxy = 
+	tray_data.xembed_data.focus_proxy =
 		XCreateSimpleWindow(tray_data.dpy, tray_data.tray, -1, -1, 1, 1, 0, 0, 0);
 	XSelectInput(tray_data.dpy, tray_data.xembed_data.focus_proxy, FocusChangeMask | KeyPressMask | KeyReleaseMask);
 	XMapRaised(tray_data.dpy, tray_data.xembed_data.focus_proxy);
@@ -152,18 +152,18 @@ void xembed_handle_event(XEvent ev)
 			xembed_track_focus_change(False);
 		break;
 	case ClientMessage:
-		/* Handle XEMBED-related messages */ 
+		/* Handle XEMBED-related messages */
 		if (ev.xclient.message_type == tray_data.xembed_data.xa_xembed) {
 			xembed_message(ev.xclient);
 		} else if (ev.xclient.message_type == tray_data.xa_tray_opcode) {
-			/* we peek at _NET_SYSTEM_TRAY_OPCODE messages 
+			/* we peek at _NET_SYSTEM_TRAY_OPCODE messages
 			 * to obtain proper timestamp for embedding */
 			tray_data.xembed_data.timestamp = ev.xclient.data.l[0];
-			if (tray_data.xembed_data.timestamp == CurrentTime) 
+			if (tray_data.xembed_data.timestamp == CurrentTime)
 				tray_data.xembed_data.timestamp = x11_get_server_timestamp(tray_data.dpy, tray_data.tray);
-		} else if (ev.xclient.message_type == tray_data.xa_wm_protocols && 
+		} else if (ev.xclient.message_type == tray_data.xa_wm_protocols &&
 				   ev.xclient.data.l[0] == tray_data.xa_wm_take_focus &&
-				   tray_data.xembed_data.focus_requested) 
+				   tray_data.xembed_data.focus_requested)
 		{
 			XSetInputFocus(tray_data.dpy, tray_data.xembed_data.focus_proxy, RevertToParent, ev.xclient.data.l[1]);
 			if (!x11_ok()) DIE_IE(("Could not set focus to XEMBED focus proxy\n"));
@@ -203,7 +203,7 @@ int xembed_get_mapped_state(struct TrayIcon *ti)
 {
 	/* It is OK to retrive data each time this function
 	 * is called, since there is some overhead only during
-	 * initialization, when xembed_retrive_data is called 2 
+	 * initialization, when xembed_retrive_data is called 2
 	 * times in a row(). */
 	int rc = xembed_retrive_data(ti);
 	if (ti->is_xembed_supported && rc == XEMBED_RESULT_OK)
@@ -243,7 +243,7 @@ int xembed_embed(struct TrayIcon *ti)
 		tray_data.xembed_data.current = ti;
 	}
 	/* Send activation message if tray window has focus */
-	if (tray_data.xembed_data.window_has_focus) 
+	if (tray_data.xembed_data.window_has_focus)
 		return xembed_send_window_activate(tray_data.dpy, ti->wid, tray_data.xembed_data.timestamp);
 	return SUCCESS;
 }
@@ -309,7 +309,7 @@ void xembed_message(XClientMessageEvent ev)
 	LOG_TRACE(("this is an _XEMBED message, window: 0x%x, timestamp: %u, opcode: %u, \ndetail: 0x%x, data1 = 0x%x, data2 = 0x%x\n",
 	        ev.window, ev.data.l[0], ev.data.l[1], ev.data.l[2], ev.data.l[3], ev.data.l[4]));
 #if DEBUG
-	if (tray_data.xembed_data.current != NULL) 
+	if (tray_data.xembed_data.current != NULL)
 		LOG_TRACE(("XEMBED focus is in window 0x%x (pointer %p)\n", tray_data.xembed_data.current->wid, tray_data.xembed_data.current));
 	else
 		LOG_TRACE(("XEMBED focus is unset\n"));
@@ -319,7 +319,7 @@ void xembed_message(XClientMessageEvent ev)
 		return;
 	}
 	/* Update timestamp if necessary */
-	if (ev.data.l[0] == CurrentTime) 
+	if (ev.data.l[0] == CurrentTime)
 		ev.data.l[0] = x11_get_server_timestamp(tray_data.dpy, tray_data.tray);
 	tray_data.xembed_data.timestamp = ev.data.l[0];
 	msgid = ev.data.l[1];
@@ -343,14 +343,14 @@ void xembed_message(XClientMessageEvent ev)
 				 * as not accepting focus. */
 				if (new_focus->xembed_last_timestamp == tray_data.xembed_data.timestamp &&
 						(new_focus->xembed_last_msgid == XEMBED_FOCUS_NEXT ||
-						 new_focus->xembed_last_msgid == XEMBED_FOCUS_PREV)) 
+						 new_focus->xembed_last_msgid == XEMBED_FOCUS_PREV))
 				{
 					new_focus->is_xembed_accepts_focus = False;
 					new_focus = False;
 				}
 				old_focus->xembed_last_timestamp = tray_data.xembed_data.timestamp;
 				old_focus->xembed_last_msgid = msgid;
-			} else 
+			} else
 				new_focus = NULL;
 			xembed_switch_focus_to(new_focus, (msgid == XEMBED_FOCUS_NEXT) ?
 												XEMBED_FOCUS_FIRST :
@@ -389,7 +389,7 @@ void xembed_add_accel(long id, long symb, long mods)
 			tmp->overloaded++;
 		}
 	LIST_ADD_ITEM(tray_data.xembed_data.accels, xaccel);
-	LOG_TRACE(("added new XEMBED accelerator: id=0x%x, sym=0x%x, mods=0x%x, overloaded=%d\n", 
+	LOG_TRACE(("added new XEMBED accelerator: id=0x%x, sym=0x%x, mods=0x%x, overloaded=%d\n",
 	        id, symb, mods, xaccel->overloaded));
 }
 
@@ -407,7 +407,7 @@ void xembed_del_accel(long id)
 	}
 	/* Update overloaded status of the remaining accelerators */
 	for (tmp = tray_data.xembed_data.accels; tmp != NULL; tmp = tmp->next)
-		if (tmp->symb == tgt->symb && tmp->mods == tgt->mods) 
+		if (tmp->symb == tgt->symb && tmp->mods == tgt->mods)
 			tmp->overloaded--;
 	LIST_DEL_ITEM(tray_data.xembed_data.accels, tgt);
 	LOG_TRACE(("removed XEMBED accelator id=0x%x", tgt->id));
@@ -418,9 +418,9 @@ static struct XEMBEDAccel *cur_accel;
 
 int xembed_act_accel_helper(struct TrayIcon *ti)
 {
-	xembed_send_activate_accelerator(tray_data.dpy, 
-			ti->wid, 
-			tray_data.xembed_data.timestamp, 
+	xembed_send_activate_accelerator(tray_data.dpy,
+			ti->wid,
+			tray_data.xembed_data.timestamp,
 			cur_accel->id, cur_accel->overloaded ? 1 : 0);
 	return NO_MATCH;
 }
@@ -519,7 +519,7 @@ int xembed_post_data(struct TrayIcon *ti)
 void xembed_request_focus_from_wm()
 {
 	if (!tray_data.is_reparented) {
-		x11_send_client_msg32(tray_data.dpy, 
+		x11_send_client_msg32(tray_data.dpy,
 				DefaultRootWindow(tray_data.dpy),
 				tray_data.tray,
 				XInternAtom(tray_data.dpy, "_NET_ACTIVE_WINDOW", True),

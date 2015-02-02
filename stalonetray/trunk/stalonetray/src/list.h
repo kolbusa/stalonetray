@@ -9,7 +9,7 @@
 #ifndef _LIST_H_
 #define _LIST_H_
 
-/* Implement basic functions for doubly-linked list. 
+/* Implement basic functions for doubly-linked list.
  * Each structure to hold an element of the list must have two
  * fields pointer fields: prev and next. */
 

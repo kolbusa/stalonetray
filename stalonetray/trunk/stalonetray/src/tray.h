@@ -21,7 +21,7 @@
 #include "scrollbars.h"
 #include "xembed.h"
 
-/* Tray opcode messages from System Tray Protocol Specification 
+/* Tray opcode messages from System Tray Protocol Specification
  * http:freedesktop.org/Standards/systemtray-spec/systemtray-spec-0.2.html */
 #define SYSTEM_TRAY_REQUEST_DOCK    0
 /* These two are unused */
@@ -36,7 +36,7 @@
 /* Name of tray selection atom */
 #define	TRAY_SEL_ATOM "_NET_SYSTEM_TRAY_S"
 /* Name of tray orientation atom*/
-#define TRAY_ORIENTATION_ATOM "_NET_SYSTEM_TRAY_ORIENTATION" 
+#define TRAY_ORIENTATION_ATOM "_NET_SYSTEM_TRAY_ORIENTATION"
 /* Name of tray orientation atom*/
 #define STALONETRAY_REMOTE_ATOM "STALONETRAY_REMOTE"
 /* Values of tray orientation property */

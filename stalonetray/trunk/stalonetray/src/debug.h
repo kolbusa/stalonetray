@@ -3,7 +3,7 @@
 * debug.h
 * Tue, 24 Aug 2004 12:05:38 +0700
 * -------------------------------
-* Debugging code/utilities 
+* Debugging code/utilities
 * -------------------------------*/
 
 #ifndef _DEBUG_H_
@@ -33,7 +33,7 @@ void debug_disable_output();
 void print_message_to_stderr(const char *fmt,...);
 
 #ifdef DEBUG
-/* The following defines control what is printed in each logged line */	
+/* The following defines control what is printed in each logged line */
 /* Print window name */
 #define TRACE_WM_NAME
 /* Print pid */
@@ -60,7 +60,7 @@ void print_trace_header(const char *funcname, const char *fname, const int line)
 #else
 #define PRINT_TRACE_HEADER() do {} while(0)
 #define LOG_TRACE(message) do {} while(0)
-#endif 
+#endif
 
 #define LOG_ERROR(message) do { \
 	if (!debug_output_disabled) { \

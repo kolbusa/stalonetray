@@ -3,7 +3,7 @@
 * debug.c
 * Mon, 01 May 2006 01:44:42 +0700
 * -------------------------------
-* Debugging code/utilities 
+* Debugging code/utilities
 * -------------------------------*/
 
 #include "config.h"
@@ -52,7 +52,7 @@ void print_trace_header(const char *funcname, const char *fname, const int line)
 		time_t curtime = time(NULL);
 		struct tm * loctime = localtime(&curtime);
 		strftime(timestr, PATH_MAX, "%b %e %H:%M:%S", loctime);
-		fprintf(stderr, "%s ", timestr); 
+		fprintf(stderr, "%s ", timestr);
 	}
 #endif
 #ifdef TRACE_WM_NAME
@@ -71,7 +71,7 @@ void print_trace_header(const char *funcname, const char *fname, const int line)
 #ifdef TRACE_VERBOSE_LOCATION
 	fprintf(stderr, "(%s:%4d) ", fname, line);
 #endif
-	fprintf(stderr, "%s(): ", funcname); 
+	fprintf(stderr, "%s(): ", funcname);
 }
 #endif
 
@@ -91,10 +91,10 @@ int print_icon_data(struct TrayIcon *ti)
 	LOG_TRACE(("  update_pos = %d\n", ti->is_updated));
 	LOG_INFO (("  name = %s\n", x11_get_window_name(tray_data.dpy, ti->wid, "<unknown>")));
 	LOG_INFO (("  visible = %d\n", ti->is_visible));
-	LOG_INFO (("  position (grid) = %dx%d+%d+%d\n", 
+	LOG_INFO (("  position (grid) = %dx%d+%d+%d\n",
 			ti->l.grd_rect.w, ti->l.grd_rect.h,
 			ti->l.grd_rect.x, ti->l.grd_rect.y));
-	LOG_INFO (("  position (pixels) = %dx%d+%d+%d\n", 
+	LOG_INFO (("  position (pixels) = %dx%d+%d+%d\n",
 			ti->l.icn_rect.w, ti->l.icn_rect.h,
 			ti->l.icn_rect.x, ti->l.icn_rect.y));
 	LOG_INFO (("  wnd_sz = %dx%d\n", ti->l.wnd_sz.x, ti->l.wnd_sz.y));

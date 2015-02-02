@@ -33,27 +33,27 @@ void scrollbars_create()
 
 	if (settings.scrollbars_mode & SB_MODE_VERT) {
 		tray_data.scrollbars_data.scrollbar[SB_WND_TOP] = XCreateSimpleWindow(
-						tray_data.dpy, 
+						tray_data.dpy,
 						tray_data.tray,
 						0, 0, 1, 1,
-						0, 
+						0,
 #ifdef DEBUG_SCROLLBAR_POSITIONS
 						0xff00ff,
 						0xff00ff);
 #else
-						settings.bg_color.pixel, 
+						settings.bg_color.pixel,
 						settings.bg_color.pixel);
 #endif
 		tray_data.scrollbars_data.scrollbar[SB_WND_BOT] = XCreateSimpleWindow(
-						tray_data.dpy, 
+						tray_data.dpy,
 						tray_data.tray,
 						0, 0, 1, 1,
-						0, 
+						0,
 #ifdef DEBUG_SCROLLBAR_POSITIONS
 						0xffff00,
 						0xffff00);
 #else
-						settings.bg_color.pixel, 
+						settings.bg_color.pixel,
 						settings.bg_color.pixel);
 #endif
 	} else {
@@ -62,27 +62,27 @@ void scrollbars_create()
 	}
 	if (settings.scrollbars_mode & SB_MODE_HORZ) {
 		tray_data.scrollbars_data.scrollbar[SB_WND_LFT] = XCreateSimpleWindow(
-						tray_data.dpy, 
+						tray_data.dpy,
 						tray_data.tray,
 						0, 0, 1, 1,
-						0, 
+						0,
 #ifdef DEBUG_SCROLLBAR_POSITIONS
 						0x00ff00,
 						0x00ff00);
 #else
-						settings.bg_color.pixel, 
+						settings.bg_color.pixel,
 						settings.bg_color.pixel);
 #endif
 		tray_data.scrollbars_data.scrollbar[SB_WND_RHT] = XCreateSimpleWindow(
-						tray_data.dpy, 
+						tray_data.dpy,
 						tray_data.tray,
 						0, 0, 1, 1,
-						0, 
+						0,
 #ifdef DEBUG_SCROLLBAR_POSITIONS
 						0x00ffff,
 						0x00ffff);
 #else
-						settings.bg_color.pixel, 
+						settings.bg_color.pixel,
 						settings.bg_color.pixel);
 #endif
 	} else {
@@ -96,8 +96,8 @@ void scrollbars_create()
 			XSetWindowBackgroundPixmap(tray_data.dpy, tray_data.scrollbars_data.scrollbar[i], ParentRelative);
 #endif
 			XMapRaised(tray_data.dpy, tray_data.scrollbars_data.scrollbar[i]);
-			XSelectInput(tray_data.dpy, 
-					tray_data.scrollbars_data.scrollbar[i], 
+			XSelectInput(tray_data.dpy,
+					tray_data.scrollbars_data.scrollbar[i],
 					ButtonPressMask | ButtonReleaseMask | ButtonMotionMask | EnterWindowMask | LeaveWindowMask );
 		}
 }
@@ -107,10 +107,10 @@ int scrollbars_refresh(int exposures)
 	int i;
 	for (i = 0; i < SB_WND_MAX; i++)
 		if (tray_data.scrollbars_data.scrollbar[i] != None)
-			x11_refresh_window(tray_data.dpy, 
-					tray_data.scrollbars_data.scrollbar[i], 
-					tray_data.scrollbars_data.scrollbar_xsh[i].width, 
-					tray_data.scrollbars_data.scrollbar_xsh[i].height, 
+			x11_refresh_window(tray_data.dpy,
+					tray_data.scrollbars_data.scrollbar[i],
+					tray_data.scrollbars_data.scrollbar_xsh[i].width,
+					tray_data.scrollbars_data.scrollbar_xsh[i].height,
 					exposures);
 	return SUCCESS;
 }
@@ -146,14 +146,14 @@ int scrollbars_update()
 	}
 
 	for (i = 0; i < SB_WND_MAX; i++)
-		if (tray_data.scrollbars_data.scrollbar[i] != None && 
+		if (tray_data.scrollbars_data.scrollbar[i] != None &&
 				(!initialized ||
 				 (scrollbar_xsh_local[i].x != tray_data.scrollbars_data.scrollbar_xsh[i].x ||
 				  scrollbar_xsh_local[i].y != tray_data.scrollbars_data.scrollbar_xsh[i].y ||
 				  scrollbar_xsh_local[i].width != tray_data.scrollbars_data.scrollbar_xsh[i].width ||
 				  scrollbar_xsh_local[i].height != tray_data.scrollbars_data.scrollbar_xsh[i].height)))
 		{
-			XMoveResizeWindow(tray_data.dpy, tray_data.scrollbars_data.scrollbar[i], 
+			XMoveResizeWindow(tray_data.dpy, tray_data.scrollbars_data.scrollbar[i],
 					scrollbar_xsh_local[i].x, scrollbar_xsh_local[i].y,
 					scrollbar_xsh_local[i].width, scrollbar_xsh_local[i].height);
 			tray_data.scrollbars_data.scrollbar_xsh[i] = scrollbar_xsh_local[i];
@@ -166,11 +166,11 @@ int scrollbars_update()
 int scrollbars_get_id(Window wid, int x, int y)
 {
 	int i;
-	for (i = 0; i < SB_WND_MAX; i++) 
+	for (i = 0; i < SB_WND_MAX; i++)
 		if (wid == tray_data.scrollbars_data.scrollbar[i] &&
-			0 <= x && 
-			0 <= y && 
-			x < tray_data.scrollbars_data.scrollbar_xsh[i].width && 
+			0 <= x &&
+			0 <= y &&
+			x < tray_data.scrollbars_data.scrollbar_xsh[i].width &&
 			y < tray_data.scrollbars_data.scrollbar_xsh[i].height)
 		{
 			return i;
@@ -210,9 +210,9 @@ int scrollbars_click(int id)
 		{0, -1}, {0, 1}, {-1, 0}, {1, 0}, {0, 0}
 	};
 
-	tray_data.scrollbars_data.scroll_pos.x += (settings.icon_gravity & GRAV_W ? 1 : -1) * 
+	tray_data.scrollbars_data.scroll_pos.x += (settings.icon_gravity & GRAV_W ? 1 : -1) *
 		scrollbars_deltas[id].x * settings.scrollbars_inc;
-	tray_data.scrollbars_data.scroll_pos.y += (settings.icon_gravity & GRAV_N ? 1 : -1) * 
+	tray_data.scrollbars_data.scroll_pos.y += (settings.icon_gravity & GRAV_N ? 1 : -1) *
 		scrollbars_deltas[id].y * settings.scrollbars_inc;
 
 	scrollbars_validate_scroll_pos();
@@ -229,7 +229,7 @@ void scrollbars_handle_event(XEvent ev)
 	switch (ev.type) {
 	case EnterNotify:
 	case LeaveNotify:
-		LOG_TRACE(("EnterNotify, wid=0x%x x=%d y=%d\n", ev.type == EnterNotify ? "EnterNotify" : "LeaveNotify", 
+		LOG_TRACE(("EnterNotify, wid=0x%x x=%d y=%d\n", ev.type == EnterNotify ? "EnterNotify" : "LeaveNotify",
 					ev.xcrossing.window, ev.xcrossing.x, ev.xcrossing.y));
 		if (settings.scrollbars_highlight_color_str != NULL && (id = scrollbars_get_id(ev.xcrossing.window, 0, 0)) != -1) {
 			if (ev.type == EnterNotify)
@@ -240,8 +240,8 @@ void scrollbars_handle_event(XEvent ev)
 		break;
 	case ButtonPress:
 		LOG_TRACE(("ButtonPress, state=0x%x\n", ev.xbutton.state));
-		if (ev.xbutton.button == Button1 && 
-				(id = scrollbars_get_id(ev.xbutton.window, ev.xbutton.x, ev.xbutton.y)) != -1) 
+		if (ev.xbutton.button == Button1 &&
+				(id = scrollbars_get_id(ev.xbutton.window, ev.xbutton.x, ev.xbutton.y)) != -1)
 		{
 				tray_data.scrollbars_data.scrollbar_down = id;
 				tray_data.scrollbars_data.scrollbar_repeat_active = 1;
@@ -251,8 +251,8 @@ void scrollbars_handle_event(XEvent ev)
 		break;
 	case MotionNotify:
 		LOG_TRACE(("MotionNotify, state=0x%x\n", ev.xbutton.state));
-		tray_data.scrollbars_data.scrollbar_repeat_active = 
-			(tray_data.scrollbars_data.scrollbar_down != -1 && 
+		tray_data.scrollbars_data.scrollbar_repeat_active =
+			(tray_data.scrollbars_data.scrollbar_down != -1 &&
 			 scrollbars_get_id(ev.xmotion.window, ev.xmotion.x, ev.xmotion.y) == tray_data.scrollbars_data.scrollbar_down);
 		break;
 	case ButtonRelease:
@@ -263,7 +263,7 @@ void scrollbars_handle_event(XEvent ev)
 #if 0
 				/* If no repeats were done, advance scroll position */
 				if ((scrollbars_get_id(ev.xbutton.window, ev.xbutton.x, ev.xbutton.y) != -1) &&
-					(tray_data.scrollbars_data.scrollbar_repeats_done == 0)) 
+					(tray_data.scrollbars_data.scrollbar_repeats_done == 0))
 				{
 					scrollbars_click(tray_data.scrollbars_data.scrollbar_down);
 				}
@@ -273,20 +273,20 @@ void scrollbars_handle_event(XEvent ev)
 			}
 			break;
 		case Button4:
-			if (settings.vertical && settings.scrollbars_mode & SB_MODE_VERT) 
-				scrollbars_click(SB_WND_TOP); 
-			else if (settings.scrollbars_mode & SB_MODE_HORZ) 
+			if (settings.vertical && settings.scrollbars_mode & SB_MODE_VERT)
+				scrollbars_click(SB_WND_TOP);
+			else if (settings.scrollbars_mode & SB_MODE_HORZ)
 				scrollbars_click(SB_WND_LFT);
 			break;
 		case Button5:
-			if (settings.vertical && settings.scrollbars_mode & SB_MODE_VERT) 
-				scrollbars_click(SB_WND_BOT); 
-			else if (settings.scrollbars_mode & SB_MODE_HORZ) 
+			if (settings.vertical && settings.scrollbars_mode & SB_MODE_VERT)
+				scrollbars_click(SB_WND_BOT);
+			else if (settings.scrollbars_mode & SB_MODE_HORZ)
 				scrollbars_click(SB_WND_RHT);
 			break;
 		default:
 			break;
-		} 
+		}
 		break;
 	}
 }
@@ -294,7 +294,7 @@ void scrollbars_handle_event(XEvent ev)
 void scrollbars_periodic_tasks()
 {
 	if (tray_data.scrollbars_data.scrollbar_down != -1 &&
-			tray_data.scrollbars_data.scrollbar_repeat_active) 
+			tray_data.scrollbars_data.scrollbar_repeat_active)
 	{
 		scrollbars_click(tray_data.scrollbars_data.scrollbar_down);
 	}
@@ -305,7 +305,7 @@ int scrollbars_scroll_to(struct TrayIcon *ti)
 	struct Rect tray_viewport_rect;
 	tray_viewport_rect.x = tray_data.scrollbars_data.scroll_base.x,
 	tray_viewport_rect.y = tray_data.scrollbars_data.scroll_base.y,
-	tray_calc_tray_area_size(tray_data.xsh.width, tray_data.xsh.height, 
+	tray_calc_tray_area_size(tray_data.xsh.width, tray_data.xsh.height,
 			&tray_viewport_rect.w, &tray_viewport_rect.h);
 	/* Check if icon is already visible. If so, nothing needs to be done */
 	if (RECTS_ISECT(tray_viewport_rect, ti->l.icn_rect)) return SUCCESS;

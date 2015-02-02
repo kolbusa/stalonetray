@@ -3,7 +3,7 @@
  * image.c
  * Fri, 22 Jun 2007 23:32:27 +0700
  * -------------------------------
- * Simple XImage manipulation 
+ * Simple XImage manipulation
  * interface
  * -------------------------------*/
 
@@ -181,9 +181,9 @@ int image_tint_16(CARD16 *data, size_t len, CARD32 pixel, CARD8 alpha)
 	CARD8 ralpha;
 
 	ralpha = 255 - alpha;
-	tr = sr16(pixel, alpha); 
-	tg = sg16(pixel, alpha); 
-	tb = sb16(pixel, alpha); 
+	tr = sr16(pixel, alpha);
+	tg = sg16(pixel, alpha);
+	tb = sb16(pixel, alpha);
 
 	/* traverse data by 2 bytes starting from the end */
 	for (p = data + len - 1; p >= data; p--) {
@@ -204,9 +204,9 @@ int image_tint_15(CARD16 *data, size_t len, CARD32 pixel, CARD8 alpha)
 	CARD8 ralpha;
 
 	ralpha = 255 - alpha;
-	tr = sr15(pixel, alpha); 
-	tg = sg15(pixel, alpha); 
-	tb = sb15(pixel, alpha); 
+	tr = sr15(pixel, alpha);
+	tg = sg15(pixel, alpha);
+	tb = sb15(pixel, alpha);
 
 	/* traverse data by 2 bytes starting from the end */
 	for (p = data + len - 1; p >= data; p--) {
@@ -229,7 +229,7 @@ int image_compose_32(CARD8 *data, CARD8 *bg, CARD8 *mask, size_t len)
 	     p != data - 4;
 	     p -= 4, b -= 4, m--)
 	{
-		a = *m; ra = 255 - a;	
+		a = *m; ra = 255 - a;
 		p[0] = (p[0] * a + b[0] * ra) >> 8;
 		p[1] = (p[1] * a + b[1] * ra) >> 8;
 		p[2] = (p[2] * a + b[2] * ra) >> 8;
@@ -248,7 +248,7 @@ int image_compose_24(CARD8 *data, CARD8 *bg, CARD8 *mask, size_t len)
 	     p != data - 3;
 	     p -= 3, b -= 3, m--)
 	{
-		a = *m; ra = 255 - a;	
+		a = *m; ra = 255 - a;
 		p[0] = (p[0] * a + b[0] * ra) >> 8;
 		p[1] = (p[1] * a + b[1] * ra) >> 8;
 		p[2] = (p[2] * a + b[2] * ra) >> 8;
@@ -264,9 +264,9 @@ int image_compose_16(CARD16 *data, CARD16 *bg, CARD8 *mask, size_t len)
 	CARD8 a, ra, *m;
 
 	/* traverse data by 2 bytes starting from the end */
-	for (p = data + len - 1, pb = bg + len - 1, m = mask + len - 1; 
-			p != data; 
-			p--, pb--, m--) 
+	for (p = data + len - 1, pb = bg + len - 1, m = mask + len - 1;
+			p != data;
+			p--, pb--, m--)
 	{
 		a = *m; ra = 255 - a;
 		r = sr16(*p, a) + sr16(*pb, ra);
@@ -285,9 +285,9 @@ int image_compose_15(CARD16 *data, CARD16 *bg, CARD8 *mask, size_t len)
 	CARD8 a, ra, *m;
 
 	/* traverse data by 2 bytes starting from the end */
-	for (p = data + len - 1, pb = bg + len - 1, m = mask + len - 1; 
-			p != data; 
-			p--, pb--, m--) 
+	for (p = data + len - 1, pb = bg + len - 1, m = mask + len - 1;
+			p != data;
+			p--, pb--, m--)
 	{
 		a = *mask; ra = 255 - a;
 		r = sr15(*p, a) + sr15(*pb, ra);

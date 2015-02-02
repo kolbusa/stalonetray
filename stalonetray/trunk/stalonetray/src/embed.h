@@ -22,7 +22,7 @@ int embedder_embed(struct TrayIcon *ti);
 /* Unembed an icon */
 int embedder_unembed(struct TrayIcon *ti);
 
-/* If (forced) 
+/* If (forced)
  * 		recalculate and update positions of all icons;
  * else
  * 		recalculate and update positions of all icons that have requested an update; */

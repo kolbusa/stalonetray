@@ -1,8 +1,8 @@
 /* -------------------------------
  * vim:tabstop=4:shiftwidth=4
- * main.c 
+ * main.c
  * Tue, 24 Aug 2004 12:00:24 +0700
- * ------------------------------- 
+ * -------------------------------
  * main is main
  * ------------------------------- */
 
@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-/* from System Tray Protocol Specification 
+/* from System Tray Protocol Specification
  * http://freedesktop.org/Standards/systemtray-spec/systemtray-spec-0.1.html */
 #define SYSTEM_TRAY_REQUEST_DOCK    0
 #define SYSTEM_TRAY_BEGIN_MESSAGE   1
@@ -71,7 +71,7 @@ int main(int argc, char** argv)
 		icon_x: 0,
 		icon_y: 0,
 		icon_mask: None,
-		window_group: 0 
+		window_group: 0
 	};
 	
 	char *wnd_name = "test_tray_icon";
@@ -210,7 +210,7 @@ int main(int argc, char** argv)
 		XReparentWindow(dpy, wnd, DefaultRootWindow(dpy), 100, 100);
 	}
 	
-	for(;;) { 
+	for(;;) {
 		while(XPending(dpy)) {
 			XNextEvent(dpy, &ev);
 			switch(ev.type) {

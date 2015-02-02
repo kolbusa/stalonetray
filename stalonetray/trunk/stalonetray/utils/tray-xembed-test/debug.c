@@ -3,7 +3,7 @@
 * debug.c
 * Mon, 01 May 2006 01:44:42 +0700
 * -------------------------------
-* Debugging code/utilities 
+* Debugging code/utilities
 * -------------------------------*/
 
 #include <stdio.h>

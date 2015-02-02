@@ -34,7 +34,7 @@
 /* Here we keep our filthy settings */
 struct Settings settings;
 /* Initialize data */
-void init_default_settings() 
+void init_default_settings()
 {
 	settings.bg_color_str		= "gray";
 	settings.tint_color_str		= "white";
@@ -93,7 +93,7 @@ void init_default_settings()
 /* Parse highlight color */
 int parse_scrollbars_highlight_color(char *str, char ***tgt, int silent)
 {
-	if (!strcasecmp(str, "disable")) 
+	if (!strcasecmp(str, "disable"))
 		**tgt = NULL;
 	else {
 		**tgt = strdup(str);
@@ -152,7 +152,7 @@ int parse_gravity(char *str, int **tgt, int silent)
 			case 'e': r |= GRAV_E; break;
 			default: goto fail;
 		}
-	if ((r & GRAV_N && r & GRAV_S) || (r & GRAV_E && r & GRAV_W)) 
+	if ((r & GRAV_N && r & GRAV_S) || (r & GRAV_E && r & GRAV_W))
 		goto fail;
 	**tgt = r;
 	return SUCCESS;
@@ -241,7 +241,7 @@ int parse_bool_rev(char *str, int **tgt, int silent)
 	if (parse_bool(str, tgt, silent)) {
 		**tgt = !**tgt;
 		return SUCCESS;
-	}	
+	}
 		return FAILURE;
 }
 
@@ -428,7 +428,7 @@ struct Param params[] = {
 	{"-geometry", "--geometry", "geometry", {&settings.geometry_str}, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
 	{NULL, "--grow-gravity", "grow_gravity", {&settings.grow_gravity}, (param_parser_t) &parse_gravity, 1, 1, 0, NULL},
 	{NULL, "--icon-gravity", "icon_gravity", {&settings.icon_gravity}, (param_parser_t) &parse_gravity, 1, 1, 0, NULL},
-	{ "-i", "--icon-size", "icon_size", {&settings.icon_size}, (param_parser_t) &parse_int, 1, 1, 0, NULL}, 
+	{ "-i", "--icon-size", "icon_size", {&settings.icon_size}, (param_parser_t) &parse_int, 1, 1, 0, NULL},
 	{"-h", "--help", NULL, {&settings.need_help}, (param_parser_t) &parse_bool, 0, 0, 0, "true" },
 	{NULL, "--kludges", "kludges", {&settings.kludge_flags}, (param_parser_t) &parse_kludges, 1, 1, 0, NULL},
 	{NULL, "--max-geometry", "max_geometry", {&settings.max_geometry_str}, (param_parser_t) &parse_copystr, 1, 1, 0, NULL},
@@ -460,7 +460,7 @@ struct Param params[] = {
 	{NULL, NULL, NULL, {NULL}}
 };
 
-void usage(char *progname) 
+void usage(char *progname)
 {
 	printf(	"\nstalonetray "VERSION" [ " FEATURE_LIST " ]\n");
 	printf( "\nUsage: %s [options...]\n", progname);
@@ -573,7 +573,7 @@ int parse_cmdline(int argc, char **argv, int pass)
 						arg = *argv + strlen(p->long_name) + 1;
 					else if ((*argv)[strlen(p->long_name)] == '\0') { /* accept arguments in the from ---abcd 5 */
 						if (argc > 1 && argv[1][0] != '-' ) { /* arguments cannot start with the dash */
-							arg = *(++argv); 
+							arg = *(++argv);
 							argc--;
 						} else if (!p->optional_arg) { /*argument is missing */
 							LOG_ERROR(("%s expects an argument\n", p->long_name));
@@ -650,7 +650,7 @@ int get_args(char *line, int *argc, char ***argv)
 		return SUCCESS;
 	}
 	line--;
-	/* 3. Strip trailing spaces */	
+	/* 3. Strip trailing spaces */
 	for (; line != arg_start && isspace((int) *line); line--);
 	if (arg_start == line) { /* meaningless line */
 		return FAILURE;
@@ -661,7 +661,7 @@ int get_args(char *line, int *argc, char ***argv)
 	do {
 		(*argc)++;
 		/* Add space to store one more argument */
-		if (NULL == (*argv = realloc(*argv, *argc * sizeof(char *)))) 
+		if (NULL == (*argv = realloc(*argv, *argc * sizeof(char *))))
 			DIE_OOM(("Could not allocate memory to parse parameters\n"));
 		if (*arg_start == '"') { /* 4.1. argument is quoted: find matching quote */
 			arg_start++;
@@ -738,13 +738,13 @@ void parse_rc()
 		match = NULL;
 		for (p = params; p->parser != NULL; p++) {
 			if (p->rc_name != NULL && strcmp(argv[0], p->rc_name) == 0) {
-				if (argc - 1 > (p->takes_arg ? 1 : 0) || (!p->optional_arg && argc - 1 < 1)) 
-					DIE(("Configuration file parse error at %s:%d:" 
-								"invalid number of args for \"%s\" (%s required)\n", 
-								settings.config_fname, 
-								lnum, 
-								argv[0], 
-								p->optional_arg ? "0/1" : "1" )); 
+				if (argc - 1 > (p->takes_arg ? 1 : 0) || (!p->optional_arg && argc - 1 < 1))
+					DIE(("Configuration file parse error at %s:%d:"
+								"invalid number of args for \"%s\" (%s required)\n",
+								settings.config_fname,
+								lnum,
+								argv[0],
+								p->optional_arg ? "0/1" : "1" ));
 				match = p;
 				arg = (!p->takes_arg || (p->optional_arg && argc == 1)) ? p->default_arg_val : argv[1];
 				break;
@@ -766,7 +766,7 @@ void parse_rc()
 void interpret_settings()
 {
 	static int gravity_matrix[11] = {
-		ForgetGravity, 
+		ForgetGravity,
 		EastGravity,
 		WestGravity,
 		ForgetGravity,
@@ -778,7 +778,7 @@ void interpret_settings()
 		NorthEastGravity,
 		NorthWestGravity
 	};
-	int geom_flags; 
+	int geom_flags;
 	int rc;
 	int dummy;
 	XWindowAttributes root_wa;
@@ -850,24 +850,24 @@ void interpret_settings()
 	tray_data.xsh.min_height = tray_data.xsh.height;
 	tray_data.xsh.max_width = tray_data.xsh.width;
 	tray_data.xsh.min_height = tray_data.xsh.height;
-	tray_data.xsh.flags = PResizeInc | PBaseSize | PMinSize | PMaxSize | PWinGravity; 
-	tray_calc_tray_area_size(tray_data.xsh.width, tray_data.xsh.height, 
+	tray_data.xsh.flags = PResizeInc | PBaseSize | PMinSize | PMaxSize | PWinGravity;
+	tray_calc_tray_area_size(tray_data.xsh.width, tray_data.xsh.height,
 			&settings.orig_tray_dims.x, &settings.orig_tray_dims.y);
 	/* Dockapp mode */
-	if (settings.dockapp_mode == DOCKAPP_WMAKER) 
-		tray_data.xsh.flags |= USPosition; 
+	if (settings.dockapp_mode == DOCKAPP_WMAKER)
+		tray_data.xsh.flags |= USPosition;
 	else {
 		if (geom_flags & (XValue | YValue)) tray_data.xsh.flags |= USPosition; else tray_data.xsh.flags |= PPosition;
 		if (geom_flags & (WidthValue | HeightValue)) tray_data.xsh.flags |= USSize; else tray_data.xsh.flags |= PSize;
 	}
-	LOG_TRACE(("final geometry: %dx%d at (%d,%d)\n", 
+	LOG_TRACE(("final geometry: %dx%d at (%d,%d)\n",
 			tray_data.xsh.width, tray_data.xsh.height,
 			tray_data.xsh.x, tray_data.xsh.y));
-	if ((geom_flags & XNegative) && (geom_flags & YNegative)) 
+	if ((geom_flags & XNegative) && (geom_flags & YNegative))
 		settings.geom_gravity = SouthEastGravity;
-	else if (geom_flags & YNegative) 
+	else if (geom_flags & YNegative)
 		settings.geom_gravity = SouthWestGravity;
-	else if (geom_flags & XNegative) 
+	else if (geom_flags & XNegative)
 		settings.geom_gravity = NorthEastGravity;
 	else
 		settings.geom_gravity = NorthWestGravity;
@@ -886,7 +886,7 @@ void interpret_settings()
 		val_range(settings.max_tray_dims.x, settings.orig_tray_dims.x, INT_MAX);
 	}
 	if (!settings.max_tray_dims.y)
-		settings.max_tray_dims.y = root_wa.height; 
+		settings.max_tray_dims.y = root_wa.height;
 	else {
 		settings.max_tray_dims.y *= settings.slot_size;
 		val_range(settings.max_tray_dims.y, settings.orig_tray_dims.y, INT_MAX);
@@ -894,7 +894,7 @@ void interpret_settings()
 	LOG_TRACE(("max geometry after normalization: %dx%d\n",
 					settings.max_tray_dims.x,
 					settings.max_tray_dims.y));
-	/* XXX: this assumes certain degree of symmetry and in some point 
+	/* XXX: this assumes certain degree of symmetry and in some point
 	 * in the future this may not be the case... */
 	tray_calc_window_size(0, 0, &tray_data.scrollbars_data.scroll_base.x, &tray_data.scrollbars_data.scroll_base.y);
 	tray_data.scrollbars_data.scroll_base.x /= 2;
@@ -902,7 +902,7 @@ void interpret_settings()
 }
 
 /************** "main" ***********/
-int read_settings(int argc, char **argv) 
+int read_settings(int argc, char **argv)
 {
 	init_default_settings();
 	/* Parse 0th pass command line args */

@@ -10,9 +10,9 @@ It is well-commented and should suffice for a quick start. Since 0.3 we have a
 pretty manpage. In case of problems, do not hesitate to contact the author
 directly.
 
-BUILD-DEPS: Xlib, libc, cc. 
+BUILD-DEPS: Xlib, libc, cc.
 
-LICENSE: GPL (see COPYING). 
+LICENSE: GPL (see COPYING).
 
 REPORTING BUGS: If you have found a bug, try to reproduce it with debug level
 set to 8 (see the manpage) and send the log file to the e-mail listed in

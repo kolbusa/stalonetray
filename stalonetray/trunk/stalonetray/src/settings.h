@@ -33,7 +33,7 @@ struct Settings {
     int shrink_back_mode;      /* Keep tray's window size minimal */
 	int dockapp_mode;          /* Activate dockapp mode */
 	int kludge_flags;          /* What kludges to activate */
-    
+
     int need_help;             /* Print usage and exit */
 
     /* Strings */
@@ -63,7 +63,7 @@ struct Settings {
 	int scrollbars_mode;       /* SB_MODE_NONE | SB_MODE_VERT | SB_MODE_HORZ */
 	int scrollbars_size;       /* Size of scrollbar windows in pixels */
 	int scrollbars_inc;        /* Step of scrollbar */
-	int wm_strut_mode;         /* WM strut mode */  
+	int wm_strut_mode;         /* WM strut mode */
 	struct Point max_tray_dims;/* Maximal tray dimensions */
 	struct Point max_layout_dims; /* Maximal layout dimensions */
 	struct Point orig_tray_dims; /* Original tray dimensions */
@@ -85,8 +85,8 @@ struct Settings {
 extern struct Settings settings;
 
 /* Read settings from cmd line and configuration file */
-int read_settings(int argc, char **argv); 
-/* Interpret all settings that either need an 
+int read_settings(int argc, char **argv);
+/* Interpret all settings that either need an
  * open display or are interpreted from other
  * settings */
 void interpret_settings();

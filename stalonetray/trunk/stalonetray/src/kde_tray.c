@@ -15,7 +15,7 @@
 #include "kde_tray.h"
 
 /* This list holds "old" KDE icons, e.g. the icons that are (likely) to be
- * already embedded into some system tray and, therefore, are to be ignored. The 
+ * already embedded into some system tray and, therefore, are to be ignored. The
  * list is empty initially */
 Window *old_kde_icons = NULL;
 unsigned long n_old_kde_icons = -1;
@@ -27,8 +27,8 @@ int kde_tray_update_fallback_mode(Display *dpy)
 	 * i.e. icons that are to be ignored on the tray startup.
 	 * If the property does not exist, fall back to old mode */
 	if (tray_data.xa_kde_net_system_tray_windows == None ||
-	    !x11_get_root_winlist_prop(dpy, tray_data.xa_kde_net_system_tray_windows, 
-				(unsigned char **) &old_kde_icons, &n_old_kde_icons)) 
+	    !x11_get_root_winlist_prop(dpy, tray_data.xa_kde_net_system_tray_windows,
+				(unsigned char **) &old_kde_icons, &n_old_kde_icons))
 	{
 		LOG_INFO(("WM does not support KDE_NET_SYSTEM_TRAY_WINDOWS, will use legacy scheme\n"));
 		x11_extend_root_event_mask(tray_data.dpy, SubstructureNotifyMask);
@@ -58,8 +58,8 @@ void kde_tray_init(Display *dpy)
 	/* 2.a. First, we remove all icons that are listed in _NET_CLIENT_LIST property,
 	 * since this means that they are not embedded in any kind of tray */
 	xa_net_client_list = XInternAtom(dpy, "_NET_CLIENT_LIST", True);
-	if (x11_get_root_winlist_prop(dpy, xa_net_client_list, 
-				(unsigned char **) &client_windows, &n_client_windows)) 
+	if (x11_get_root_winlist_prop(dpy, xa_net_client_list,
+				(unsigned char **) &client_windows, &n_client_windows))
 	{
 		for (i = 0; i < n_client_windows; i++)
 			kde_tray_old_icons_remove(client_windows[i]);
@@ -151,8 +151,8 @@ Window kde_tray_find_icon(Display *dpy, Window w)
 	if (kde_tray_check_for_icon(dpy, w)) return w;
 	XQueryTree(dpy, w, &root, &parent, &children, &nchildren);
 	if (!x11_ok()) goto bailout;
-	for (i = 0; i < nchildren; i++) 
-		if ((r = kde_tray_find_icon(dpy, children[i])) != None) 
+	for (i = 0; i < nchildren; i++)
+		if ((r = kde_tray_find_icon(dpy, children[i])) != None)
 			goto bailout;
 bailout:
 	if (children != NULL && nchildren > 0) XFree(children);

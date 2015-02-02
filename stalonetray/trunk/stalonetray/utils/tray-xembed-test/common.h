@@ -38,7 +38,7 @@
 /* Print a message and... DIE */
 #define DIE(message)		do { ERR(message); exit(-1); } while(0)
 
-/* WARNING: feed following macro only with 
+/* WARNING: feed following macro only with
  * side-effects-free expressions */
 
 /* Get a value within target interval */
