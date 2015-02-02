@@ -912,6 +912,7 @@ int read_settings(int argc, char **argv)
 	/* Parse 1st pass command line args */
 	parse_cmdline(argc, argv, 1);
 	/* Display some settings */
+	LOG_TRACE(("stalonetray "VERSION" [ " FEATURE_LIST " ]\n"));
 	LOG_TRACE(("bg_color_str = \"%s\"\n", settings.bg_color_str));
 	LOG_TRACE(("config_fname = \"%s\"\n", settings.config_fname));
 	LOG_TRACE(("deco_flags = 0x%x\n", settings.deco_flags));
