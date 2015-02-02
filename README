@@ -15,7 +15,7 @@ BUILD-DEPS: Xlib, libc, cc.
 LICENSE: GPL (see COPYING).
 
 REPORTING BUGS: If you have found a bug, try to reproduce it with debug level
-set to 8 (see the manpage) and send the log file to the e-mail listed in
+set to trace (see the manpage) and send the log file to the e-mail listed in
 AUTHORS file.
 
 HOW TO HELP: See TODO file and TODOs, XXXs and FIXMEs in sources if you want to.
