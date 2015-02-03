@@ -1,10 +1,9 @@
 # $Id$
 
-AC_INIT
-
-AM_CONFIG_HEADER(src/config.h)
+AC_INIT(stalonetray, 0.8.1)
 AC_CONFIG_SRCDIR(src/main.c)
-AM_INIT_AUTOMAKE(stalonetray, 0.8.1)
+AM_CONFIG_HEADER(src/config.h)
+AM_INIT_AUTOMAKE
 
 dnl ============ General =============
 

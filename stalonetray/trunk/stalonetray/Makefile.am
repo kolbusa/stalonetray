@@ -10,9 +10,9 @@ MAINTAINERCLEANFILES=stalonetray.1 stalonetray.html stalonetray.spec stalonetray
 
 dist_hook: stalonetray.1 stalonetray.html
 
-stalonetray.xml: stalonetray.xml.in configure.in
-stalonetrayrc.sample: stalonetrayrc.sample.in configure.in
-stalonetray.spec: stalonetray.spec.in configure.in
+stalonetray.xml: stalonetray.xml.in configure.ac
+stalonetrayrc.sample: stalonetrayrc.sample.in configure.ac
+stalonetray.spec: stalonetray.spec.in configure.ac
 
 stalonetray.xml \
 stalonetrayrc.sample \
