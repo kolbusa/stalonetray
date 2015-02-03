@@ -5,5 +5,5 @@ stalonetray_SOURCES = main.c icons.c icons.h xembed.c xembed.h layout.c layout.h
 					  scrollbars.c scrollbars.h
 EXTRA_stalonetray_SOURCES = kde_tray.c kde_tray.h
 stalonetray_DEPENDENCIES = @kde_tray_support@
-INCLUDES = @X_CFLAGS@
+AM_CFLAGS = @X_CFLAGS@
 stalonetray_LDADD = @kde_tray_support@ @X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@
