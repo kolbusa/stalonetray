@@ -10,6 +10,16 @@
 
 <refentry id="stalonetray">
 
+<info>
+    <author>
+        <personname>
+            <firstname>Roman</firstname>
+            <surname>Dubtsov</surname>
+        </personname>
+        <personblurb></personblurb>
+    </author>
+</info>
+
 <refmeta>
   <refentrytitle>stalonetray</refentrytitle>
   <manvolnum>1</manvolnum>
