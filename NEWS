@@ -26,11 +26,11 @@ Notable fixes:
 - fix NetBSD build bug
 - fix EWMH window type support
 
-Some command line and configuration file options were depricated, see DEPRICATIONS section of manpage for more info.
+Some command line and configuration file options were deprecated, see DEPRECATIONS section of manpage for more info.
 
 0.7.6 news
 - fix bug with sticky mode under Openbox
-- fix bug with dissappearing window under WindowMaker (sf.net bug #1858069)
+- fix bug with disappearing window under WindowMaker (sf.net bug #1858069)
 - fix layout bug which prevented tray to shrink properly
 - fix resizing bug when grow gravity seemed to be ignored
 - fix regression: KDE icons are collected at startup again
@@ -56,10 +56,10 @@ Some command line and configuration file options were depricated, see DEPRICATIO
 
 0.7.1 news:
 - fix crash on invalid rc file (Debian bug #443543)
-- fix occasional KDE icons dissapearance (sf.net bug #1676375)
+- fix occasional KDE icons disappearance (sf.net bug #1676375)
 
 0.7 release highlights:
 - tinting and fuzzy edges
 - layout improvements
-- XEMBED imlementation fixes
+- XEMBED implementation fixes
 - massive code cleanup
