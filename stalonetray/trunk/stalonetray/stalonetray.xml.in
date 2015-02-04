@@ -434,9 +434,9 @@
 </refsect1>
 
 <refsect1>
-  <title>DEPRICATIONS</title>
+  <title>DEPRECATIONS</title>
   <para>As of stalonetray 0.8, the following command line and configuration file
-  parameters are depricated:
+  parameters are deprecated:
   </para>
 
   <variablelist>
