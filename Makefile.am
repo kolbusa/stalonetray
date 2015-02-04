@@ -28,7 +28,7 @@ stalonetray.html: stalonetray.xml
 #     xsltproc /usr/share/xml/docbook/stylesheet/nwalsh/xhtml/docbook.xsl stalonetray.xml > stalonetray.html
 	xsltproc /usr/share/sgml/docbook/xsl-stylesheets/xhtml/docbook.xsl stalonetray.xml > stalonetray.html
 
-ChangeLog: .svn/entries src/.svn/entries
+ChangeLog:
 	svn update
 	svn2cl --linelen=90 --break-before-msg=2
 
