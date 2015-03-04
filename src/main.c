@@ -443,7 +443,7 @@ void client_message(XClientMessageEvent ev)
 		LOG_TRACE(("got WM_PING message, sending it back\n"));
 		XEvent reply;
 		reply.xclient = ev;
-		reply.xclient.window = tray_data.tray;
+		reply.xclient.window = DefaultRootWindow(tray_data.dpy);
 		XSendEvent(tray_data.dpy, DefaultRootWindow(tray_data.dpy), False,
 				(SubstructureNotifyMask|SubstructureRedirectMask), &reply);
 	}
