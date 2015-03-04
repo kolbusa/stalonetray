@@ -1,6 +1,6 @@
 # $Id$
 
-AC_INIT(stalonetray, 0.8.2)
+AC_INIT(stalonetray, 0.8.3)
 AC_CONFIG_SRCDIR(src/main.c)
 AM_CONFIG_HEADER(src/config.h)
 AM_INIT_AUTOMAKE
