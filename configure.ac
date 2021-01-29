@@ -171,6 +171,43 @@ esac
 feature_list="$feature_list KDE:$ac_cv_no_native_kde"
 CPPFLAGS="$CPPFLAGS -DFEATURE_LIST='\"$feature_list\"'"
 
+dnl ============ DocBook ============
+dnl https://movementarian.org/docs/docbook-autotools/configure.html
+
+AC_DEFUN([AX_CHECK_DOCBOOK], [
+    XSLTPROC_FLAGS=--nonet
+    DOCBOOK_ROOT=
+    for i in /usr/share/sgml/docbook/stylesheet/xsl/nwalsh /usr/share/xml/docbook/stylesheet/docbook-xs /usr/share/sgml/docbook/xsl-stylesheets/;
+    do
+        if test -d "$i"; then
+            DOCBOOK_ROOT=$i
+        fi
+    done
+    AC_SUBST(DOCBOOK_ROOT)
+
+    AC_CHECK_PROG(XSLTPROC,xsltproc,xsltproc,)
+    XSLTPROC_WORKS=no
+    if test -n "$XSLTPROC"; then
+        AC_MSG_CHECKING([whether xsltproc works])
+        DB_FILE="$DOCBOOK_ROOT/xhtml/docbook.xsl"
+
+        $XSLTPROC $XSLTPROC_FLAGS $DB_FILE >/dev/null 2>&1 << END
+<?xml version="1.0" encoding='ISO-8859-1'?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<book id="test">
+</book>
+END
+        if test "$?" = 0; then
+            XSLTPROC_WORKS=yes
+        fi
+        AC_MSG_RESULT($XSLTPROC_WORKS)
+    fi
+    AM_CONDITIONAL(have_xsltproc, test "$XSLTPROC_WORKS" = "yes")
+    AC_SUBST(XSLTPROC_FLAGS)
+])
+
+AX_CHECK_DOCBOOK
+
 dnl ============ Features ============
 
 AC_OUTPUT([

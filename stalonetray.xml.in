@@ -5,7 +5,7 @@
 
 <!DOCTYPE refentry PUBLIC
   "-//OASIS//DTD DocBook V4.4//EN"
-  "/usr/share/sgml/docbook/xml-dtd-4.4/docbookx.dtd"
+  "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd"
 >
 
 <refentry id="stalonetray">
