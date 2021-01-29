@@ -6,7 +6,7 @@ doc_DIST=stalonetrayrc.sample stalonetray.1 stalonetray.xml stalonetray.html
 
 EXTRA_DIST=$(doc_DIST) stalonetray.spec stalonetray.xml.in stalonetrayrc.sample.in # $(debian_DIST)
 
-MAINTAINERCLEANFILES=stalonetray.1 stalonetray.html stalonetray.spec stalonetray.xml stalonetrayrc.sample ChangeLog
+MAINTAINERCLEANFILES=stalonetray.1 stalonetray.html stalonetray.spec stalonetray.xml stalonetrayrc.sample
 
 dist_hook: stalonetray.1 stalonetray.html
 
@@ -27,10 +27,6 @@ stalonetray.1: stalonetray.xml
 stalonetray.html: stalonetray.xml
 #     xsltproc /usr/share/xml/docbook/stylesheet/nwalsh/xhtml/docbook.xsl stalonetray.xml > stalonetray.html
 	xsltproc /usr/share/sgml/docbook/xsl-stylesheets/xhtml/docbook.xsl stalonetray.xml > stalonetray.html
-
-ChangeLog:
-	svn update
-	svn2cl --linelen=90 --break-before-msg=2
 
 #docdir=$(datadir)/doc/$(PACKAGE)/
 #install-data-local:

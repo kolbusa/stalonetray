@@ -36,7 +36,6 @@ rm -rf ${RPM_BUILD_ROOT}
 %doc NEWS
 %doc COPYING
 %doc AUTHORS
-%doc ChangeLog
 %doc stalonetrayrc.sample
 %doc stalonetray.html
 %doc stalonetray.xml
