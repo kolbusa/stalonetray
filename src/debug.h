@@ -1,10 +1,10 @@
 /* -------------------------------
-* vim:tabstop=4:shiftwidth=4
-* debug.h
-* Tue, 24 Aug 2004 12:05:38 +0700
-* -------------------------------
-* Debugging code/utilities
-* -------------------------------*/
+ * vim:tabstop=4:shiftwidth=4
+ * debug.h
+ * Tue, 24 Aug 2004 12:05:38 +0700
+ * -------------------------------
+ * Debugging code/utilities
+ * -------------------------------*/
 
 #ifndef _DEBUG_H_
 #define _DEBUG_H_
@@ -12,25 +12,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "common.h"
 #include "config.h"
 #include "settings.h"
 #include "tray.h"
-#include "common.h"
 
 #include <string.h>
 #include <time.h>
 
-#define LOG_LEVEL_ERR	0
-#define LOG_LEVEL_INFO	1
-#define LOG_LEVEL_TRACE	2
+#define LOG_LEVEL_ERR 0
+#define LOG_LEVEL_INFO 1
+#define LOG_LEVEL_TRACE 2
 
 extern int debug_output_disabled;
 
 /* Disables all output from debugging macros */
 void debug_disable_output();
 
-/* Print the message to STDERR (in the sake of portability, we do not use varadic macros) */
-void print_message_to_stderr(const char *fmt,...);
+/* Print the message to STDERR (in the sake of portability, we do not use
+ * varadic macros) */
+void print_message_to_stderr(const char *fmt, ...);
 
 #ifdef DEBUG
 /* The following defines control what is printed in each logged line */
@@ -44,37 +45,49 @@ void print_message_to_stderr(const char *fmt,...);
 #define TRACE_TIMESTAMP
 /* Print name of a function, file and line which outputs the message */
 /* Othewise, only function name is printed */
-#undef  TRACE_VERBOSE_LOCATION
+#undef TRACE_VERBOSE_LOCATION
 /* Print the debug header as specified by defines below */
-void print_trace_header(const char *funcname, const char *fname, const int line);
-#define PRINT_TRACE_HEADER() do { \
-	print_trace_header(__FUNC__, __FILE__, __LINE__); \
-} while(0)
+void print_trace_header(
+    const char *funcname, const char *fname, const int line);
+#define PRINT_TRACE_HEADER() \
+    do { \
+        print_trace_header(__FUNC__, __FILE__, __LINE__); \
+    } while (0)
 /* Print the debug message of specified level */
-#define LOG_TRACE(message)	do { \
-	if (!debug_output_disabled && settings.log_level >= LOG_LEVEL_TRACE) { \
-		PRINT_TRACE_HEADER(); \
-		print_message_to_stderr message; \
-		}; \
-} while (0)
+#define LOG_TRACE(message) \
+    do { \
+        if (!debug_output_disabled \
+            && settings.log_level >= LOG_LEVEL_TRACE) { \
+            PRINT_TRACE_HEADER(); \
+            print_message_to_stderr message; \
+        }; \
+    } while (0)
 #else
-#define PRINT_TRACE_HEADER() do {} while(0)
-#define LOG_TRACE(message) do {} while(0)
+#define PRINT_TRACE_HEADER() \
+    do { \
+    } while (0)
+#define LOG_TRACE(message) \
+    do { \
+    } while (0)
 #endif
 
-#define LOG_ERROR(message) do { \
-	if (!debug_output_disabled) { \
-		if (settings.log_level >= LOG_LEVEL_TRACE) PRINT_TRACE_HEADER(); \
-		if (settings.log_level >= LOG_LEVEL_ERR) print_message_to_stderr message; \
-	} \
-} while(0)
+#define LOG_ERROR(message) \
+    do { \
+        if (!debug_output_disabled) { \
+            if (settings.log_level >= LOG_LEVEL_TRACE) PRINT_TRACE_HEADER(); \
+            if (settings.log_level >= LOG_LEVEL_ERR) \
+                print_message_to_stderr message; \
+        } \
+    } while (0)
 
-#define LOG_INFO(message) do { \
-	if (!debug_output_disabled) { \
-		if (settings.log_level >= LOG_LEVEL_TRACE) PRINT_TRACE_HEADER(); \
-		if (settings.log_level >= LOG_LEVEL_INFO) print_message_to_stderr message; \
-	} \
-} while(0)
+#define LOG_INFO(message) \
+    do { \
+        if (!debug_output_disabled) { \
+            if (settings.log_level >= LOG_LEVEL_TRACE) PRINT_TRACE_HEADER(); \
+            if (settings.log_level >= LOG_LEVEL_INFO) \
+                print_message_to_stderr message; \
+        } \
+    } while (0)
 
 /* Print the summary of icon data */
 int print_icon_data(struct TrayIcon *ti);
@@ -82,4 +95,3 @@ int print_icon_data(struct TrayIcon *ti);
 void dump_icon_list();
 
 #endif
-

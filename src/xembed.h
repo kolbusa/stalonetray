@@ -1,10 +1,10 @@
 /* -------------------------------
-* vim:tabstop=4:shiftwidth=4
-* icons.h
-* Tue, 24 Aug 2004 12:05:38 +0700
-* -------------------------------
-* XEMBED protocol implementation
-* -------------------------------*/
+ * vim:tabstop=4:shiftwidth=4
+ * icons.h
+ * Tue, 24 Aug 2004 12:05:38 +0700
+ * -------------------------------
+ * XEMBED protocol implementation
+ * -------------------------------*/
 
 #ifndef _XEMBED_H_
 #define _XEMBED_H_
@@ -15,14 +15,14 @@
 
 /* Data structure for all XEMBED-related data for the tray */
 struct XEMBEDData {
-	struct 	TrayIcon *current;		/* Pointer to the currently focused icon */
-	struct 	XEMBEDAccel *accels;	/* List of registered XEMBED accelerators */
-	int 	window_has_focus;		/* Flag: does tray's window have focus */
-	int		focus_requested;		/* Flag: if there is not completed focus request */
-	Window 	focus_proxy;			/* Window ID of XEMBED focus proxy */
-	long 	timestamp;				/* Timestamp of current processed message */
-	Atom 	xa_xembed_info;			/* Atom: XEMBED_INFO */
-	Atom 	xa_xembed;				/* Atom: XEMBED */
+    struct TrayIcon *current; /* Pointer to the currently focused icon */
+    struct XEMBEDAccel *accels; /* List of registered XEMBED accelerators */
+    int window_has_focus; /* Flag: does tray's window have focus */
+    int focus_requested; /* Flag: if there is not completed focus request */
+    Window focus_proxy; /* Window ID of XEMBED focus proxy */
+    long timestamp; /* Timestamp of current processed message */
+    Atom xa_xembed_info; /* Atom: XEMBED_INFO */
+    Atom xa_xembed; /* Atom: XEMBED */
 };
 
 /* Initialize XEMBED data structures */

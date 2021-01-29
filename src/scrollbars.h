@@ -13,11 +13,11 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
-#define SB_WND_TOP	0
-#define SB_WND_BOT	1
-#define SB_WND_LFT	2
-#define SB_WND_RHT	3
-#define SB_WND_MAX	4
+#define SB_WND_TOP 0
+#define SB_WND_BOT 1
+#define SB_WND_LFT 2
+#define SB_WND_RHT 3
+#define SB_WND_MAX 4
 
 #define SB_MODE_NONE 0
 #define SB_MODE_VERT 1
@@ -28,15 +28,16 @@
 
 /* Scrollbar data */
 struct ScrollbarsData {
-	struct Point scroll_base;				/* Base scroll position */
-	struct Point scroll_pos;                /* Current scroll position */
-	Window scrollbar[SB_WND_MAX];           /* Window IDs of scrollbars */
-	XSizeHints scrollbar_xsh[SB_WND_MAX];	/* Cached window sizes for scrollbars */
-	int scrollbar_down;						/* Click state */
-	int scrollbar_highlighted;				/* Highlight state */
-	int scrollbar_repeat_active;			/* If repeat is active */
-	int scrollbar_repeat_counter;			/* Countown for repeat action */
-	int scrollbar_repeats_done;				/* Numberf of executed repeat actions */
+    struct Point scroll_base; /* Base scroll position */
+    struct Point scroll_pos; /* Current scroll position */
+    Window scrollbar[SB_WND_MAX]; /* Window IDs of scrollbars */
+    XSizeHints
+        scrollbar_xsh[SB_WND_MAX]; /* Cached window sizes for scrollbars */
+    int scrollbar_down; /* Click state */
+    int scrollbar_highlighted; /* Highlight state */
+    int scrollbar_repeat_active; /* If repeat is active */
+    int scrollbar_repeat_counter; /* Countown for repeat action */
+    int scrollbar_repeats_done; /* Numberf of executed repeat actions */
 };
 
 /* Initialize data structures */

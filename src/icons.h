@@ -15,44 +15,49 @@
 #include <X11/Xmd.h>
 
 /* Simple point & rect data structures */
-struct Point { int x, y; };
-struct Rect { int x, y, w, h; };
+struct Point {
+    int x, y;
+};
+struct Rect {
+    int x, y, w, h;
+};
 
 /* Tray icon layout data structure */
 struct Layout {
-	struct Rect grd_rect;		/* The rect in the grid */
-	struct Rect icn_rect;		/* Real position inside the tray */
-	struct Point wnd_sz;		/* Size of the window of the icon */
+    struct Rect grd_rect; /* The rect in the grid */
+    struct Rect icn_rect; /* Real position inside the tray */
+    struct Point wnd_sz; /* Size of the window of the icon */
 };
 
 /* Tray icon data structure */
 struct TrayIcon {
-	struct TrayIcon *next;
-	struct TrayIcon *prev;
-	Window wid; 				/* Window ID */
-	Window mid_parent; 			/* Mid-parent ID */
-	int cmode; 					/* Compatibility mode: CM_FDO/CM_KDE (see embed.h) */
-	int is_embedded;			/* Flag: is the icon succesfully embedded ? */
-	int is_invalid;				/* Flag: is the icon invalid ? */
-	int is_visible;    			/* Flag: is the icon hidden ? */
-	int is_resized;				/* Flag: the icon has recently resized itself */
-	int is_layed_out;			/* Flag: the icon is succesfully layed out */
-	int is_updated;				/* Flag: the position of the icon needs to be updated */
-	int is_xembed_supported;	/* Flag: does the icon support xembed */
-	unsigned long xembed_data[2];/* XEMBED data */
-	int num_size_resets;        /* How many times size was reset */
-	int is_size_set;			/* Flag: has the size for the icon been set */
-	int is_xembed_accepts_focus;/* Flag: does the icon want focus */
-	long xembed_last_timestamp; /* The timestamp of last processed xembed message */
-	long xembed_last_msgid; 	/* ID of the last processed xembed message */
-	struct Layout l;	 		/* Layout info */
+    struct TrayIcon *next;
+    struct TrayIcon *prev;
+    Window wid; /* Window ID */
+    Window mid_parent; /* Mid-parent ID */
+    int cmode; /* Compatibility mode: CM_FDO/CM_KDE (see embed.h) */
+    int is_embedded; /* Flag: is the icon succesfully embedded ? */
+    int is_invalid; /* Flag: is the icon invalid ? */
+    int is_visible; /* Flag: is the icon hidden ? */
+    int is_resized; /* Flag: the icon has recently resized itself */
+    int is_layed_out; /* Flag: the icon is succesfully layed out */
+    int is_updated; /* Flag: the position of the icon needs to be updated */
+    int is_xembed_supported; /* Flag: does the icon support xembed */
+    unsigned long xembed_data[2]; /* XEMBED data */
+    int num_size_resets; /* How many times size was reset */
+    int is_size_set; /* Flag: has the size for the icon been set */
+    int is_xembed_accepts_focus; /* Flag: does the icon want focus */
+    long xembed_last_timestamp; /* The timestamp of last processed xembed
+                                   message */
+    long xembed_last_msgid; /* ID of the last processed xembed message */
+    struct Layout l; /* Layout info */
 };
 
 /* Typedef for comparison function */
-typedef int (*IconCmpFunc) (struct TrayIcon *, struct TrayIcon *);
+typedef int (*IconCmpFunc)(struct TrayIcon *, struct TrayIcon *);
 
 /* Typedef for callback function */
-typedef int (*IconCallbackFunc) (struct TrayIcon *);
+typedef int (*IconCallbackFunc)(struct TrayIcon *);
 
 /* Add the new icon to the list */
 struct TrayIcon *icon_list_new(Window w, int cmode);
@@ -88,7 +93,8 @@ struct TrayIcon *icon_list_forall(IconCallbackFunc cbk);
 #define icon_list_advanced_find icon_list_forall
 
 /* Same as above, but start traversal from the icon specified by tgt */
-struct TrayIcon *icon_list_forall_from(struct TrayIcon *tgt, IconCallbackFunc cbk);
+struct TrayIcon *icon_list_forall_from(
+    struct TrayIcon *tgt, IconCallbackFunc cbk);
 
 /* Clear the whole list */
 int icon_list_clean();

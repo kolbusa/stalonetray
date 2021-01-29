@@ -1,10 +1,10 @@
 /* -------------------------------
-* vim:tabstop=4:shiftwidth=4
-* embed.h
-* Fri, 03 Sep 2004 20:38:55 +0700
-* -------------------------------
-* embedding cycle implementation
-* -------------------------------*/
+ * vim:tabstop=4:shiftwidth=4
+ * embed.h
+ * Fri, 03 Sep 2004 20:38:55 +0700
+ * -------------------------------
+ * embedding cycle implementation
+ * -------------------------------*/
 
 #ifndef _EMBED_H_
 
@@ -12,9 +12,9 @@
 
 /* Constants for compatibility modes */
 /* KDE */
-#define CM_KDE	1
+#define CM_KDE 1
 /* Generic, freedesktop.org */
-#define CM_FDO	2
+#define CM_FDO 2
 
 /* Embed an icon */
 int embedder_embed(struct TrayIcon *ti);
@@ -25,7 +25,8 @@ int embedder_unembed(struct TrayIcon *ti);
 /* If (forced)
  * 		recalculate and update positions of all icons;
  * else
- * 		recalculate and update positions of all icons that have requested an update; */
+ * 		recalculate and update positions of all icons that have requested an
+ * update; */
 int embedder_update_positions(int force);
 
 /* Show the icon */

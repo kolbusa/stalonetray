@@ -10,8 +10,8 @@
 #ifndef _IMAGE_H_
 #define _IMAGE_H_
 
-#include <X11/Xmd.h>
 #include <X11/Xlib.h>
+#include <X11/Xmd.h>
 
 /* outstanding TODO (for 0.8): use Xrender when available */
 
