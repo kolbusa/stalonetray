@@ -27,7 +27,7 @@ only. Stalonetray works with virtually any EWMH-compliant window manager.
 If you have any question or suggestion, do not hesitate to <a
 href="mailto:busa_ru@users.sourceforge.net">contact</a> me. If you have found
 a bug, reproduce it with log level set to <code>trace</code> (see <a href="manpage.html">manpage</a>) and attach
-resulting log file to a <a href="https://github.com/kolbusa/stalonetray-test/issues/new">github issue</a>.
+resulting log file to a <a href="https://github.com/kolbusa/stalonetray/issues/new">github issue</a>.
 </p>
 
 <h4>Installation/download instructions</h4>
