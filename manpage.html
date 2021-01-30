@@ -55,6 +55,158 @@ TODO: link colors
 </div>
 <div class="content_entry">
 <div class="content_color1">
+<div class="refentry"><a id="stalonetray"></a><div class="titlepage"></div><div class="refnamediv"><h2>Name</h2><p>stalonetray — <span class="emphasis"><em>sta</em></span>nd-<span class="emphasis"><em>alone</em></span>
+  system tray (notification area) implementation. This document covers
+  0.8.3 version of stalonetray.</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><div class="cmdsynopsis"><p><code class="command">stalonetray</code>  [<em class="replaceable"><code>option</code></em>...]</p></div></div><div class="refsect1"><a id="idm25"></a><h2>DESCRIPTION</h2><p>Stalonetray is a stand-alone system tray (notification area)
+  for X Window System/X11 (e.g. XOrg or XFree86). It has minimal build
+  and run-time dependencies: an X11 lib only. Complete
+  <abbr class="abbrev">XEMBED</abbr> support is under development. Stalonetray
+  works with virtually any <abbr class="abbrev">EWMH</abbr>-compliant window
+  manager.</p><p>The behaviour and the look of stalonetray can be configured either via
+  command line options or via configuration file. As usual, command-line options
+  have precedence over options that are specified in the configuration
+  file.</p><p>Names of command line parameter may have two variants: short
+  (<code class="option">-o</code>) and long (<code class="option">--option</code>).
+  Write <code class="option">-o</code><em class="replaceable"><code>value</code></em> or
+  <code class="option">-o</code> <em class="replaceable"><code>value</code></em> to pass a value
+  using the short name of a parameter; to pass a value using a long name, write
+  <code class="option">--option</code> <em class="replaceable"><code>value</code></em> or
+  <code class="option">--option</code>=<em class="replaceable"><code>value</code></em>. All
+  flag-like parameters have optional boolean value that when ommited is assumed
+  to be "true". Write "true", "yes", "1", for positive boolean values, and
+  "false", "no", "0" for negative ones.</p><p>Default configuration file is <code class="filename">$HOME/.stalonetrayrc</code>.
+  A configuration file contains case-insensetive keyword-argument pairs, one per
+  line. Lines starting with '#' and empty lines are ignored.  Alternatively,
+  confiuration file can specified via <code class="option">-c</code> or
+  <code class="option">--config</code> command-line options.</p><p>Below is the list of possible command line/configuration file options.
+  Options starting with hyphens are command-line parameters others are
+  configuration file keywords.  Options that are new in 0.8.3 version
+  are marked with "NEW in 0.8.3". </p></div><div class="refsect1"><a id="opt"></a><h2>OPTIONS</h2><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="option">-bg</code> <em class="replaceable"><code>color</code></em>, </span><span class="term"><code class="option">--background</code> <em class="replaceable"><code>color</code></em>, </span><span class="term"><code class="option">background</code> <em class="replaceable"><code>color</code></em></span></dt><dd><p>Use <em class="replaceable"><code>color</code></em> for tray`s background.
+  <em class="replaceable"><code>color</code></em> can be specified as an <abbr class="abbrev">HTML</abbr> hex triplet or
+  as a name from rgb.txt (note that '#' must be quoted). Default value: <strong class="userinput"><code>#777777</code></strong>.
+  </p></dd><dt><span class="term"><code class="option">-c</code> <em class="replaceable"><code>filename</code></em>, </span><span class="term"><code class="option">--config</code> <em class="replaceable"><code>filename</code></em></span></dt><dd><p>Read configuration from
+  <em class="replaceable"><code>filename</code></em> instead of default
+  <code class="filename">$HOME/.stalonetrayrc</code>.</p></dd><dt><span class="term"><code class="option">-d</code> <em class="replaceable"><code>decspec</code></em>, </span><span class="term"><code class="option">--decorations</code> <em class="replaceable"><code>decspec</code></em>, </span><span class="term"><code class="option">decorations</code> <em class="replaceable"><code>decspec</code></em></span></dt><dd><p>Specify visiblie tray window decorations. Possible values for
+  <em class="replaceable"><code>decspec</code></em> are: <strong class="userinput"><code>all</code></strong>,
+  <strong class="userinput"><code>title</code></strong>, <strong class="userinput"><code>border</code></strong>,
+  <strong class="userinput"><code>none</code></strong> (default).
+  </p></dd><dt><span class="term"><code class="option">-display</code> <em class="replaceable"><code>display</code></em>, </span><span class="term"><code class="option">display</code> <em class="replaceable"><code>display</code></em>
+  </span></dt><dd><p>Use X display <em class="replaceable"><code>display</code></em>.</p></dd><dt><span class="term"><code class="option">--dockapp-mode</code>
+  [<span class="optional"><em class="replaceable"><code>mode</code></em></span>], </span><span class="term"><code class="option">dockapp_mode</code>
+  [<span class="optional"><em class="replaceable"><code>mode</code></em></span>]</span></dt><dd><p>Set dockapp mode, which can be either
+  <strong class="userinput"><code>simple</code></strong> for e.g. OpenBox, <strong class="userinput"><code>wmaker</code></strong>
+  for WindowMaker, or <strong class="userinput"><code>none</code></strong> (default).
+  </p></dd><dt><span class="term"><code class="option">-f</code> [<span class="optional"><em class="replaceable"><code>level</code></em></span>], </span><span class="term"><code class="option">--fuzzy-edges</code> [<span class="optional"><em class="replaceable"><code>level</code></em></span>], </span><span class="term"><code class="option">fuzzy_edges</code> [<span class="optional"><em class="replaceable"><code>level</code></em></span>]</span></dt><dd><p>Enable fuzzy edges of tray window and set fuzziness level
+  which can range from <strong class="userinput"><code>0</code></strong> (disabled, default) to <strong class="userinput"><code>3</code></strong>.
+  When ommited, the value of <em class="replaceable"><code>level</code></em> defaults to 2.
+  </p></dd><dt><span class="term"><code class="option">--geometry</code> <em class="replaceable"><code>geometry_spec</code></em>, </span><span class="term"><code class="option">geometry</code> <em class="replaceable"><code>geometry_spec</code></em></span></dt><dd><p>Set tray`s initial geometry to <em class="replaceable"><code>geometry_spec</code></em>,
+  specified in standard X notation:
+  <em class="replaceable"><code>width</code></em>x<em class="replaceable"><code>height</code></em>[+<em class="replaceable"><code>x</code></em>[+<em class="replaceable"><code>y</code></em>]],
+  where width and height are specified in icon slot multiples.  Default value: <strong class="userinput"><code>1x1+0-0</code></strong>.
+  </p></dd><dt><span class="term"><code class="option">--grow-gravity</code>
+  <em class="replaceable"><code>gravity</code></em>, </span><span class="term"><code class="option">grow_gravity</code>
+  <em class="replaceable"><code>gravity</code></em></span></dt><dd><p>Specify icon
+  positioning gravity (eigher <strong class="userinput"><code>N</code></strong>,
+  <strong class="userinput"><code>S</code></strong>, <strong class="userinput"><code>W</code></strong>, <strong class="userinput"><code>E</code></strong>,
+  <strong class="userinput"><code>NW</code></strong>, <strong class="userinput"><code>NE</code></strong>,
+  <strong class="userinput"><code>SW</code></strong>, <strong class="userinput"><code>SE</code></strong>). Grow gravity specifies
+  directions in which the tray's window may grow. For instance, if you specify
+  <strong class="userinput"><code>NW</code></strong> the tray's window will grow down vertically and to
+  the right horizontally (these are sides that are opposite to upper-left or
+  North-West corner of the window); with <strong class="userinput"><code>W</code></strong> the tray's
+  window will grow horizontally to the left side only, and it will vertically
+  grow both upwards and downwards maintaining position of its center. Please
+  note that the latter behaviour is new in 0.8. Default value:
+  <strong class="userinput"><code>NW</code></strong>.  </p></dd><dt><span class="term"><code class="option">--icon-gravity</code> <em class="replaceable"><code>gravity</code></em>, </span><span class="term"><code class="option">icon_gravity</code> <em class="replaceable"><code>gravity</code></em></span></dt><dd><p>Specify icon positioning gravity (either
+  <strong class="userinput"><code>NW</code></strong>, <strong class="userinput"><code>NE</code></strong>,
+  <strong class="userinput"><code>SW</code></strong>, <strong class="userinput"><code>SE</code></strong>). If you specify, e.g
+  <strong class="userinput"><code>SW</code></strong>, then icons will appear starting from the lower-left
+  corner of the tray's window. Default value: <strong class="userinput"><code>NW</code></strong>.
+  </p></dd><dt><span class="term"><code class="option">-i</code> <em class="replaceable"><code>n</code></em>, </span><span class="term"><code class="option">--icon-size</code> <em class="replaceable"><code>n</code></em>, </span><span class="term"><code class="option">icon_size</code> <em class="replaceable"><code>n</code></em></span></dt><dd><p>Set default icon size to <em class="replaceable"><code>n</code></em>. Default
+  value: <strong class="userinput"><code>24</code></strong>. Minimum: <strong class="userinput"><code>16</code></strong>.
+  </p></dd><dt><span class="term"><code class="option">-h</code>, </span><span class="term"><code class="option">--help</code></span></dt><dd><p>Show help message.</p></dd><dt><span class="term"><code class="option">--log-level</code> <em class="replaceable"><code>level</code></em>, </span><span class="term"><code class="option">log_level</code> <em class="replaceable"><code>level</code></em></span></dt><dd><p>Set the amount of info to be output by stalonetray. Possible
+  values for <em class="replaceable"><code>level</code></em>: <strong class="userinput"><code>err</code></strong>
+  (default), <strong class="userinput"><code>info</code></strong>, and <strong class="userinput"><code>trace</code></strong>.  For
+  the <strong class="userinput"><code>trace</code></strong> option to be available, stalonetray must be
+  configured with <code class="option">--enable-debug</code> at build-time.
+  </p></dd><dt><span class="term"><code class="option">--kludges</code>
+  <em class="replaceable"><code>kludge</code></em> [,<em class="replaceable"><code>kludge</code></em>...]</span></dt><dd><p>
+  Enable specific kludges to work around non-conforming WMs and/or stalonetray
+  bugs. Argument is a comma-separated list of:</p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><strong class="userinput"><code>fix_window_pos</code></strong> — fix tray window
+  position on erroneous moves by WM</p></li><li class="listitem"><p><strong class="userinput"><code>force_icons_size</code></strong> — ignore resize
+  events on all icons; force their size to be equal to
+  <code class="option">icon_size</code></p></li><li class="listitem"><p><strong class="userinput"><code>use_icons_hints</code></strong> — use icon window
+  hints to determine icon size</p></li></ul></div></dd><dt><span class="term"><code class="option">--max-geometry</code>
+  <em class="replaceable"><code>geometry_spec</code></em>, </span><span class="term"><code class="option">max_geometry</code> <em class="replaceable"><code>geometry_spec</code></em></span></dt><dd><p>Set tray`s maximal geometry to <em class="replaceable"><code>geometry_spec</code></em>
+  Default value: <strong class="userinput"><code>0x0</code></strong>, no limit.
+  </p></dd><dt><span class="term"><code class="option">--no-shrink</code>, </span><span class="term"><code class="option">no_shrink</code> [<span class="optional"><em class="replaceable"><code>bool</code></em></span>]</span></dt><dd><p>Do not shrink tray window back after icon removal. Useful when
+  tray is swallowed by another window like FvwmButtons. Default value: <strong class="userinput"><code>false</code></strong>.
+  </p></dd><dt><span class="term"><code class="option">-p</code>, </span><span class="term"><code class="option">--parent-bg</code>, </span><span class="term"><code class="option">parent_bg</code> [<span class="optional"><em class="replaceable"><code>bool</code></em></span>]</span></dt><dd><p>Use the parent's window as a background of the tray's window.
+  Default value: <strong class="userinput"><code>false</code></strong>.
+  </p></dd><dt><span class="term"><code class="option">--pixmap-bg <em class="replaceable"><code>path_to_xpm</code></em></code>, </span><span class="term"><code class="option">pixmap_bg</code> <em class="replaceable"><code>path_to_xpm</code></em></span></dt><dd><p>Use the pixmap from an XPM file specified by
+  <em class="replaceable"><code>path_to_xpm</code></em> for the tray`s window background (pixmap will be
+  tiled to fill the entire window).
+  </p></dd><dt><span class="term"><code class="option">-r</code> <em class="replaceable"><code>name</code></em>, </span><span class="term"><code class="option">--remote-click-icon</code> <em class="replaceable"><code>name</code></em></span></dt><dd><p>
+  Remote control/click. When this option is specified, stalonetray sends a fake
+  click to the icon with a window named <em class="replaceable"><code>name</code></em> and
+  exits.  The icon is searched for in the currently active tray for the current
+  screen. By default, stalonetray sends a single click with the 1st mouse button
+  to the center of the icon. See the options below for additional information on
+  how to alter the defaults.
+  </p></dd><dt><span class="term"><code class="option">--remote-click-button</code> <em class="replaceable"><code>n</code></em></span></dt><dd><p>
+  Sets the remote click's button number to <em class="replaceable"><code>n</code></em> (in the
+  X11 numbering order).
+  </p></dd><dt><span class="term"><code class="option">--remote-click-position</code> <em class="replaceable"><code>x</code></em>x<em class="replaceable"><code>y</code></em></span></dt><dd><p>
+  Sets the remote click's position.
+  </p></dd><dt><span class="term"><code class="option">--remote-click-type</code> <em class="replaceable"><code>type</code></em></span></dt><dd><p>
+  Sets the remote click's type. Possible values: <strong class="userinput"><code>single</code></strong>
+  and <strong class="userinput"><code>double</code></strong>.
+  </p></dd><dt><span class="term"><code class="option">-s</code> <em class="replaceable"><code>n</code></em>, </span><span class="term"><code class="option">--slot-size</code> <em class="replaceable"><code>n</code></em>, </span><span class="term"><code class="option">slot_size</code> <em class="replaceable"><code>n</code></em></span></dt><dd><p>Set grid slot size to <em class="replaceable"><code>n</code></em>, which
+  cannot be less then <code class="option">icon_size</code>. By default, the slot size is
+  the same as the icon size.
+  </p></dd><dt><span class="term"><code class="option">--scrollbars</code> <em class="replaceable"><code>mode</code></em>, </span><span class="term"><code class="option">scrollbars</code> <em class="replaceable"><code>mode</code></em></span></dt><dd><p>Set scrollbar mode. Possible values:
+  <strong class="userinput"><code>vertical</code></strong>, <strong class="userinput"><code>horizontal</code></strong>,
+  <strong class="userinput"><code>all</code></strong>, or <strong class="userinput"><code>none</code></strong> (default).
+  Scrollbars appear as additional space at tray borders that can be clicked to
+  scroll icon area. Mouse wheel also
+  works.
+  </p></dd><dt><span class="term"><code class="option">--scrollbars-highlight</code> <em class="replaceable"><code>mode</code></em>, </span><span class="term"><code class="option">scrollbars_highlight</code> <em class="replaceable"><code>mode</code></em></span></dt><dd><p>Set scrollbars highlight mode. Possible values: a color spec,
+  or <strong class="userinput"><code>disable</code></strong>.
+  </p></dd><dt><span class="term"><code class="option">--scrollbars-size</code> <em class="replaceable"><code>n</code></em>, </span><span class="term"><code class="option">scrollbars_size</code> <em class="replaceable"><code>n</code></em></span></dt><dd><p>Set scrollbar size to <strong class="userinput"><code>n</code></strong> pixels.
+  By default, the size is 1/4 of <code class="option">slot_size</code>.
+  </p></dd><dt><span class="term"><code class="option">--scrollbars-step</code> <em class="replaceable"><code>n</code></em>, </span><span class="term"><code class="option">scrollbars_step</code> <em class="replaceable"><code>n</code></em></span></dt><dd><p>Set scrollbar step to <strong class="userinput"><code>n</code></strong> pixels.
+  Default is 1/2 of <code class="option">slot_size</code>.
+  </p></dd><dt><span class="term"><code class="option">--skip-taskbar</code>, </span><span class="term"><code class="option">skip_taskbar</code> [<span class="optional"><em class="replaceable"><code>bool</code></em></span>]</span></dt><dd><p>Hide tray`s window from the taskbar. Default value:
+  <strong class="userinput"><code>false</code></strong>.
+  </p></dd><dt><span class="term"><code class="option">--sticky</code>, </span><span class="term"><code class="option">sticky</code> [<span class="optional"><em class="replaceable"><code>bool</code></em></span>]</span></dt><dd><p>Make tray`s window sticky across multiple desktops/pages.
+  Default value: <strong class="userinput"><code>false</code></strong>.
+  </p></dd><dt><span class="term"><code class="option">--tint-color</code>, </span><span class="term"><code class="option">tint_color</code> [<span class="optional"><em class="replaceable"><code>bool</code></em></span>]</span></dt><dd><p>Set tinting color. Default value:
+  <strong class="userinput"><code>white</code></strong>.
+  </p></dd><dt><span class="term"><code class="option">--tint-level</code>, </span><span class="term"><code class="option">tint_level</code> [<span class="optional"><em class="replaceable"><code>level</code></em></span>]</span></dt><dd><p>Set tinting level. Default value: <strong class="userinput"><code>0</code></strong>
+  (tinting disabled).
+  </p></dd><dt><span class="term"><code class="option">-t</code>, </span><span class="term"><code class="option">--transparent</code>, </span><span class="term"><code class="option">transparent</code> [<span class="optional"><em class="replaceable"><code>bool</code></em></span>]</span></dt><dd><p>Enable root transparency. Default value:
+  <strong class="userinput"><code>false</code></strong>.
+  </p></dd><dt><span class="term"><code class="option">-v</code>, </span><span class="term"><code class="option">--vertical</code>, </span><span class="term"><code class="option">vertical</code> [<span class="optional"><em class="replaceable"><code>bool</code></em></span>]</span></dt><dd><p>Use vertical layout of icons (horizontal is used by default).</p></dd><dt><span class="term"><code class="option">--window-layer</code> <em class="replaceable"><code>layer</code></em>, </span><span class="term"><code class="option">window_layer</code> <em class="replaceable"><code>layer</code></em></span></dt><dd><p>Sets the <abbr class="abbrev">EWMH</abbr>-compliant layer of tray`s window. Possible values for <em class="replaceable"><code>layer</code></em>:
+  <strong class="userinput"><code>bottom</code></strong>, <strong class="userinput"><code>normal</code></strong>, <strong class="userinput"><code>top</code></strong>. Default value: <strong class="userinput"><code>normal</code></strong>.
+  </p></dd><dt><span class="term"><code class="option">--window-strut</code> <em class="replaceable"><code>mode</code></em>, </span><span class="term"><code class="option">window_strut</code> <em class="replaceable"><code>mode</code></em></span></dt><dd><p>Enable window struts for tray window (to avoid covering of tray window by
+  maximized windows). Mode defines to which screen border tray window will be
+  attached. It can be either <strong class="userinput"><code>top</code></strong>,
+  <strong class="userinput"><code>bottom</code></strong>, <strong class="userinput"><code>left</code></strong>,
+  <strong class="userinput"><code>right</code></strong>, <strong class="userinput"><code>none</code></strong>, or
+  <strong class="userinput"><code>auto</code></strong> (default).
+  </p></dd><dt><span class="term"><code class="option">--window-type</code> <em class="replaceable"><code>type</code></em>, </span><span class="term"><code class="option">window_type</code> <em class="replaceable"><code>type</code></em></span></dt><dd><p>Sets the <abbr class="abbrev">EWMH</abbr>-compliant type of tray`s window. Possible values for <em class="replaceable"><code>type</code></em>:
+  <strong class="userinput"><code>desktop</code></strong>, <strong class="userinput"><code>dock</code></strong>, <strong class="userinput"><code>normal</code></strong>, <strong class="userinput"><code>toolbar</code></strong>,
+  <strong class="userinput"><code>utility</code></strong>. Default value: <strong class="userinput"><code>dock</code></strong>.</p></dd><dt><span class="term"><code class="option">--xsync</code>, </span><span class="term"><code class="option">xsync</code> [<span class="optional"><em class="replaceable"><code>bool</code></em></span>]</span></dt><dd><p>Operate on X server synchronously (<span class="emphasis"><em>SLOW</em></span>, turned off by default).
+  </p></dd></dl></div></div><div class="refsect1"><a id="idm496"></a><h2>DEPRECATIONS</h2><p>As of stalonetray 0.8, the following command line and configuration file
+  parameters are deprecated:
+  </p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="option">--dbg-level</code>, </span><span class="term"><code class="option">dbg_level</code></span></dt><dd><p>Please use <code class="option">--log-level</code>
+  instead.</p></dd><dt><span class="term"><code class="option">--max-tray-width</code>, </span><span class="term"><code class="option">--max-tray-height</code>, </span><span class="term"><code class="option">max_tray_width</code>, </span><span class="term"><code class="option">max_tray_height</code></span></dt><dd><p>Please use <code class="option">--max-geometry</code> instead.</p></dd><dt><span class="term"><code class="option">-w</code>, </span><span class="term"><code class="option">--withdrawn</code>, </span><span class="term"><code class="option">withdrawn</code></span></dt><dd><p>Please use <code class="option">--dockapp-mode</code> instead.</p></dd><dt><span class="term"><code class="option">--respect-icon-hints</code>, </span><span class="term"><code class="option">respect_icon_hints</code></span></dt><dd><p>Please use <code class="option">--kludges</code> with
+  <strong class="userinput"><code>use_icon_hints</code></strong> parameter instead.</p></dd></dl></div></div><div class="refsect1"><a id="idm539"></a><h2>FILES</h2><p><code class="filename">$HOME/.stalonetrayrc</code> — default configuration file.</p></div><div class="refsect1"><a id="idm543"></a><h2>BUGS</h2><p>There are some, definetly.</p><p>If you have found a bug, please try to reproduce it with the log level set
+to <strong class="userinput"><code>trace</code></strong> and send the log file to me:
+<code class="email">&lt;<a class="email" href="mailto:busa_ru@users.sourceforge.net">busa_ru@users.sourceforge.net</a>&gt;</code>. If you need support, the best way
+to get it is also to e-mail me directly. If you have installed stalonetray from
+a distribution repository, you can also file a bug in the respective bug
+tracking database.</p></div></div>
 </div>
 </div>
 <div class="color1"><b class="border5l"></b><b class="border3l"></b><b class="border2l"></b><b class="border1l"></b></div>
@@ -69,7 +221,7 @@ TODO: link colors
 <div class="content_entry">
 <div class="content_color2">
   <ul class="navlist">
-    <li><a href="about.html">About</a></li>
+    <li><a href="index.html">About</a></li>
     <li><a href="news.html">News</a></li>
     <li>Documentation
       <ul class="navlist">

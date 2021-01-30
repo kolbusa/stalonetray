@@ -1,5 +1,5 @@
 VERSION = 0.8.3
-PAGES_IN = about news wmhints manpage
+PAGES_IN = index news wmhints manpage
 PAGES_OUT = $(PAGES_IN:=.html)
 
 all: generate
