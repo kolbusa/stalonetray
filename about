@@ -1,0 +1,49 @@
+<!--
+	vim:ft=html:et:sw=2:ts=2
+-->
+<div class="color1">
+<b class="border1l"></b><b class="border2l"></b><b class="border3l"></b><b class="border4l"></b>
+<div class="box_content"><h3 class="boxhead">General information</h3></div>
+</div>
+<div class="content_entry">
+<div class="content_color1">
+<p>
+Stalonetray is a <strong>sta</strong>nd-a<strong>lone</strong> freedesktop.org and KDE
+system <strong>tray</strong> (notification area) for X Window System/X11 (e.g. X.Org or
+XFree86). It has full XEMBED support and minimal dependencies: an X11 lib
+only. Stalonetray works with virtually any EWMH-compliant window manager.
+</p>
+<p>Window managers that are <strong>reported</strong> to work well with stalonetray:</p>
+<ul style="list-style-type: circle;">
+<li>FVWM</li>
+<li>OpenBox</li>
+<li>Enlightenment</li>
+<li>ion3</li>
+<li>Compiz</li>
+<li>Xmonad</li>
+</ul>
+<p><a href="wmhints.html">Here</a> you can find some usage hints</p>
+<p>
+If you have any question or suggestion, do not hesitate to <a
+href="mailto:busa_ru@users.sourceforge.net">contact</a> me. If you have found
+a bug, reproduce it with log level set to <code>trace</code> (see <a href="manpage.html">manpage</a>) and attach
+resulting log file to an <s>angry</s>polite e-mail.
+</p>
+
+<h4>Installation/download instructions</h4>
+<p>
+Stalonetray is available from package repositories for Ubuntu, Fedora, Arch
+Linux, Debian, Gentoo, and maybe more. This is the preferred way to install it.
+If you are installing from sources read INSTALL for more info.
+</p>
+
+<p>
+License: GPL
+</p>
+<p>
+Author: <a href="mailto:busa_ru@users.sourceforge.net">Roman Dubtsov</a>
+</p>
+</div>
+</div>
+<div class="color1"><b class="border5l"></b><b class="border3l"></b><b class="border2l"></b><b class="border1l"></b></div>
+<p></p>

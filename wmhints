@@ -1,0 +1,132 @@
+<!--
+	vim:ft=html:et:sw=2:ts=2:spell:spelllang=en
+-->
+<div class="color1">
+<b class="border1l"></b><b class="border2l"></b><b class="border3l"></b><b class="border4l"></b>
+<div class="box_content"><h3 class="boxhead">WM Hints</h3></div>
+</div>
+<div class="content_entry">
+<div class="content_color1">
+
+<p>On this page you can find a set of simple hints &amp; recommendations on how to configure
+stalonetray under certain WMs. If your WM is not listed here and you have
+some hints to share please send them to me and I will post them here (or, you can
+help me to set up a wiki :).</p>
+
+<ul>
+<li><a href="#fvwm">FVWM</a></li>
+<li><a href="#ion3">ion3</a></li>
+<li><a href="#wmaker">WindowMaker</a></li>
+<li><a href="#openbox">OpenBox</a></li>
+<li><a href="#enlightenment">Enlightenment (E17)</a></li>
+</ul>
+
+<div id="fvwm">
+<h4>FVWM</h4>
+
+<p>To run stalonetray swallowed by FvwmButtons, add the following snippet to
+<code>~/.fvwm/config</code> (or <code>~/.fvwm/.fvwm2rc</code>). </p>
+
+<pre class="code">
+<span style="background-color: #fffdfa"><font style="color: #558811;"><b>*FvwmButtons</b></font></span>: (16x32, Frame 0, Swallow (NoClose,UseOld) <span style="background-color: #fffdfa"><font style="color: #003399;"><i>&quot;stalonetray&quot;</i></font></span><span style="background-color: #fffdfa"><font style="color: #000000;"></font></span>&nbsp;<span style="background-color: #fffdfa"><font style="color: #003399;"><i>`/home/busa/bin/systemtray`</i></font></span><span style="background-color: #fffdfa"><font style="color: #000000;"></font></span>)
+</pre>
+
+<p>Be sure to add <code>no_shrink true</code> to your
+<code>~/.stalonetrayrc</code> (or specify
+<code>--no-shrink</code> on the command line) to tell
+stalonetray not to change its geometry. Starting from version 0.8 stalonetray
+can manage more icons than fits in its window if scrollbars are enabled (see
+documentation for more info).
+</p>
+
+<p>If you run stalonetray without FvwmButtons, <code>decorations all</code> is
+required for FVWM to control the decorations of stalonetray with the Style
+command. Without this, FVWM will use the default style for stalonetray and will
+not apply any <code>Style stalonetray</code> commands. Kudos to Leeman Strout
+for pointing this out. Also, you may need to instruct Fvwm to honor extended
+window manager hints for window stacking order by adding
+<code>EWMHUseStackingOrderHints</code> to Fvwm configuration file. Without this
+<code>--window-layer</code> command may not work.</p>
+
+</div>
+
+<div id="ion3">
+<h4>ion3</h4>
+
+<p>ion3 manages KDE icons by itself (and does not support
+<code>_KDE_NET_SYSTEM_TRAY_WINDOWS</code> property), so under ion3 stalonetray
+will only manage freedesktop.org icons. If you want ion3 to treat stalonetray
+as a dockapp, run stalonetray in withdrawn mode (<code>&ndash;w</code>) and
+enable ion3 dock module with <code>is_auto=true</code>. However, this means
+that ion3 will do funny things with stalonetray window geometry. To avoid this,
+add the following code snippet (thanks to Sergej Pupykin) to
+<code>~/.ion/cfg_dock.lua</code> (here <code>*dock*</code> is the name of the
+dock).</p>
+
+<pre class="code">
+defwinprop<span style="background-color: #fffdfa"><font style="color: #007700;"><b>{</b></font></span>class=<span style="background-color: #fffdfa"><font style="color: #003399;"><i>&quot;stalonetray&quot;</i></font></span>,instance=<span style="background-color: #fffdfa"><font style="color: #003399;"><i>&quot;stalonetray&quot;</i></font></span>,target=<span style="background-color: #fffdfa"><font style="color: #003399;"><i>&quot;*dock*&quot;</i></font></span><span style="background-color: #fffdfa"><font style="color: #007700;"><b>}</b></font></span>
+defwinprop<span style="background-color: #fffdfa"><font style="color: #007700;"><b>{</b></font></span>instance=<span style="background-color: #fffdfa"><font style="color: #003399;"><i>&quot;stalonetray&quot;</i></font></span>,target=<span style="background-color: #fffdfa"><font style="color: #003399;"><i>&quot;*dock*&quot;</i></font></span><span style="background-color: #fffdfa"><font style="color: #007700;"><b>}</b></font></span>
+defwinprop<span style="background-color: #fffdfa"><font style="color: #007700;"><b>{</b></font></span>class=<span style="background-color: #fffdfa"><font style="color: #003399;"><i>&quot;stalonetray&quot;</i></font></span>,target=<span style="background-color: #fffdfa"><font style="color: #003399;"><i>&quot;*dock*&quot;</i></font></span><span style="background-color: #fffdfa"><font style="color: #007700;"><b>}</b></font></span>
+defwinprop<span style="background-color: #fffdfa"><font style="color: #007700;"><b>{</b></font></span>is_dockapp=<span style="background-color: #fffdfa"><font style="color: #003399;"><b>true</b></font></span>,target=<span style="background-color: #fffdfa"><font style="color: #003399;"><i>&quot;*dock*&quot;</i></font></span><span style="background-color: #fffdfa"><font style="color: #007700;"><b>}</b></font></span></font>
+</pre>
+
+<p>Another suggestion from Herman Fries: append to cfg_ion.lua:</p>
+
+<pre class=code>
+defwinprop <font style="color: #007700;"><b>{</b></font>class=<font style="color: #003399;"><i>&quot;stalonetray&quot;</i></font>, statusbar=<font style="color: #003399;"><i>&quot;dock&quot;</i></font><font style="color: #007700;"><b>}</b></font>
+</pre>
+
+<p> In the file cfg_statusbar.lua add (or replace <code>%systray</code> with) <code>%systray_dock</code> to the template, where you want it to appear:
+
+<pre class=code>
+template=<font style="color: #003399;"><i>&quot; .... %systray_dock  .... &quot;</i></font>
+                +++++++++++++
+</pre>
+
+<p>Just call the app like <code>stalonetray -p</code> and it should look like
+it is a native tray of the ion3.</p>
+
+</div>
+
+<div id="wmaker">
+<h4>WindowMaker</h4>
+
+<p>Prior to version 0.8, stalonetray does not work as a dockapp in WindowMaker, use <a
+href="http://icculus.org/openbox/2/docker/">Docker</a> instead. Moreover,
+<code>NW</code> is the only grow gravity that works reliably in
+WindowMaker for those versions.</p>
+
+<p>Starting from version 0.8, there is very basic support for WindowMaker
+dockapp mode which can be enabled via <code>--dockapp-mode wmaker</code>.
+Following options are also required: <code>--slot-size 32 --geometry 2x2
+--parent-bg --scrollbars none</code>. If WindowMaker dockapp mode does not work
+for you, please drop me an e-mail.</p>
+
+</div>
+
+<div id="openbox">
+<h4>Openbox</h4>
+
+<p> To run stalonetray as dockapp, use withdrawn mode (<code>&ndash;w</code>).
+When background mode is set to parent (<code>&ndash;p</code>), this looks
+particularly nice. Dock position can be configured using obconf (see
+screenshot below, click for larger version).</p>
+
+<div class="center"><p><a href="images/obconf.jpg"><img src="images/obconf_small.jpg" alt="ObConf screenshot"/></a></p></div>
+
+</div>
+
+<div id="enlightenment">
+<h4>Enlightenment (E17)</h4>
+
+<p>E17 does not set root pixmap property, but you can emulate root transparency
+using parent background. If you want fuzzy edges or tinting which do not work
+with parent background, you need to set wallpaper using some external tool like
+Esetroot.</p>
+
+</div>
+
+</div>
+</div>
+<div class="color1"><b class="border5l"></b><b class="border3l"></b><b class="border2l"></b><b class="border1l"></b></div>
+<p></p>

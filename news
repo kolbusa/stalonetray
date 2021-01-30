@@ -1,0 +1,185 @@
+<!--
+	vim:ft=html:et:sw=2:ts=2
+-->
+<div id="news"></div>
+<div class="color1">
+<b class="border1l"></b><b class="border2l"></b><b class="border3l"></b><b class="border4l"></b>
+<div class="box_content"><h3 class="boxhead">News</h3></div>
+</div>
+<div class="content_entry">
+<div class="content_color1">
+<ul style="list-style-type: none;">
+  <li> <b>March 4, 2015</b>
+  <p>New bugfix release 0.8.3. Changes:</p>
+  <ul>
+    <li>fix high CPU usage under E19 caused by support for _NET_WM_PING</li>
+  </ul>
+  <p/>
+  </li>
+  <li> <b>February 5, 2015</b>
+  <p>New bugfix release 0.8.2 (aka "It ain't dead. It's restin'"). Changes:</p>
+  <ul>
+    <li>several fixes in command line and config file parser</li>
+    <li>fixed _NET_WM_STRUTS_PARTIAL support for multiple screens (kudos to Mario Pilz for a patch)</li>
+    <li>fixed _NET_WM_DESKTOP support (thanks to Sasha Vasko for a report)</li>
+    <li>added support for _NET_WM_PING</li>
+  </ul>
+  <p/>
+  </li>
+  <li> <b>November 5, 2010</b>
+  <p>New bugfix release 0.8.1. Fixes:</p>
+  <ul>
+    <li>fix build failure for non-debug configurations</li>
+    <li>several manpage updates</li>
+    <li>fix SEGFAULT while parsing command line</li>
+    <li>icon layout fixes</li>
+  </ul>
+  <p><strong>Known issues:</strong> some Gnome icons that are "hidden"
+  actually create a window that is detected and embedded by stalonetray. Such
+  icons appear as empty spaces in the tray. Applications that are known to
+  behave this way are <code>gnome-power-manager</code> and
+  <code>gpk-update-icon</code>.
+  </li>
+  <li> <b>October 21, 2009</b>
+  <p>New major release 0.8.0. New features/notable changes:</p>
+  <ul>
+
+    <li>Remote control. Now it is possible to execute clicks on icons windows
+    from command line. See documentation on <code>--remote-click</code> option
+    for more info</li>
+
+    <li>Support for window struts EWMH property: now maximized windows do not
+    cover stalonetray window. See documentation on <code>--window-strut</code>
+    option for more info.</li>
+
+    <li>In addition to <code>--icon-size</code> which defines default icon
+    size, now there is also a <code>--slot-size</code> which defines size of
+    <em>slot</em> containing an icon.</li>
+
+    <li>Initial and maximal tray window dimensions are now specified in
+    <code>slot_size</code> multiples</li>
+
+    <li>Scrollbars: now tray window has extra border, which user can click on
+    to scroll icon area. This means that one can have fixed-size tray window
+    (useful when it is swallowed by FvwmButtons). See documentation on
+    <code>--scrollbars</code> option for more info. This feature is
+    experimental.</li>
+
+    <li>Semi-ugly support for WindowMaker dockapp mode. See documentation on
+    <code>--dockapp-mode</code> option for more info.</li>
+
+  </ul>
+  <p>Notable fixes:</p>
+  <ul>
+    <li>Build fix for NetBSD.</li>
+    <li>Fix EWMH window type support.</li>
+  </ul>
+  <p>Some command line and configuration file options were deprecated, see DEPRECATIONS section of <a href="manpage.html">manpage</a> for more info.</p>
+  <p></p>
+  </li>
+  <li> <b>January 7, 2008</b>
+  <p>New bugfix release 0.7.6. Fixes:</p>
+  <ul>
+    <li>fix bug with sticky mode under Openbox</li>
+    <li>fix bug with disappearing window under WindowMaker (sf.net bug #1858069)</li>
+    <li>fix layout bug which prevented tray to shrink properly</li>
+    <li>fix resizing bug when grow gravity seemed to be ignored</li>
+    <li>fix regression: KDE icons are collected at startup again</li>
+    <li>fix focus model so that it (more-or-less) matches ICCM</li>
+  </ul>
+  <p></p>
+  </li>
+  <li> <b>November 28, 2007</b>
+  <p>New bugfix release 0.7.5. Fixes:</p>
+  <ul>
+    <li>silly bug with window states (sticky works now, Debian bug #451800)</li>
+    <li>code cleanup in XEMBED implementation</li>
+  </ul>
+  <p></p>
+  </li>
+  <li> <b>November 3, 2007</b>
+  <p>New bugfix release 0.7.4. Fixes:</p>
+  <ul>
+    <li>sample rc file typos (Debian bug #446899)</li>
+    <li>fallback support mode for KDE icons (now KDE icons work in Xmonad)</li>
+    <li>detect if stalonetrays` window is no longer toplevel and do not try to fix geometry (fixes excessive CPU usage as reported in Debian bug #444748)</li>
+  </ul>
+  <p></p>
+  </li>
+  <li> <b>October 4, 2007</b>
+  <p>New bugfix version 0.7.3 is out. Fixes:</p>
+  <ul>
+    <li>freedesktop.org icons support on amd64 (Debian bug #445056)</li>
+  </ul>
+  <p></p>
+  </li>
+  <li> <b>October 1, 2007</b>
+  <p>New bugfix version 0.7.2 is out. Fixes:</p>
+  <ul>
+    <li>typo in parameter name for maximal tray height (Debian bug #444717)</li>
+  </ul>
+  <p></p>
+  </li>
+  <li> <b>September 27, 2007</b>
+  <p>New bugfix version 0.7.1 is out. Fixes:</p>
+  <ul>
+    <li>crash on an invalid rc file (Debian bug #443543)</li>
+    <li>occasional KDE icons disappearance (sf.net bug #1676375)</li>
+  </ul>
+  <p></p>
+  </li>
+  <li> <b>September 15, 2007</b>
+  <p>New version 0.7 is out. Release highlights:</p>
+  <ul>
+    <li>background tinting and fuzzy edges</li>
+    <li>layout improvements</li>
+    <li>XEMBED implementation fixes</li>
+    <li>massive code cleanup</li>
+  </ul>
+  <p></p>
+  </li>
+  <li> <b>May 31, 2007</b>
+  <p>New version 0.6.5 is out.</p>
+  </li>
+  <li> <b>April 18, 2007</b>
+  <p>New version 0.6.4, which fixes memory leak and KDE icons and MWM hints issues on x86_64.</p>
+  </li>
+  <li> <b>April 06, 2007</b>
+  <p> New version 0.6.3, which fixes layout engine bug and provides new options
+  to tune handling of unusually-sized icons:</p>
+  <ul>
+    <li><code>respect_size_hints</code>: do respect min_width/min_height icon window hints,</li>
+    <li><code>ignore_icon_resize</code>: force all icons dimensions to be <code>icon_size</code>x<code>icon_size.</code></li>
+  </ul>
+  <p></p>
+  </li>
+  <li> <b>February 06, 2007</b>
+  <p>Version 0.6.2, which fixes some issues with KDE icons was released.</p>
+  </li>
+  <li> <b>January 05, 2007</b>
+  <p>Version 0.6.1, which fixes some issues with unusually-sized icons was released.</p>
+  </li>
+  <li> <b>December 29, 2006</b>
+  <p>Version 0.5 was never released. Instead, lo and behold: 0.6. Release highlights:</p>
+  <ul>
+    <li>new layout engine: must be faster and less buggier</li>
+    <li>some portability improvements</li>
+    <li>"gravity" rc file directive is obsolete; use "icon_gravity" instead</li>
+    <li>MUCH better XEMBED interop</li>
+    <li>better handling of KDE icons</li>
+    <li>docbook documentation</li>
+    <li>boolean arguments are now optional in rc file</li>
+  </ul>
+  <p></p>
+  </li>
+  <li> <b>May 19, 2006</b>
+  <p>Stalonetray 0.4 was released some time ago and now the site is open.</p>
+  </li>
+</ul>
+<p>
+</p>
+</div>
+</div>
+<div class="color1"><b class="border5l"></b><b class="border3l"></b><b class="border2l"></b><b class="border1l"></b></div>
+<p></p>
+

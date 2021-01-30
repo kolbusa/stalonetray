@@ -1,0 +1,236 @@
+body {
+	width: 95%;
+	font-family: Verdana, sans-serif;
+	color: #101010;
+	background: url("images/bg.png") repeat;
+}
+
+/**************************************************
+ *                                                *
+ *                  borders                       *
+ *                                                *
+ **************************************************/
+
+div.color2,
+div.color1,
+div.color2 *,
+div.color1 * {
+	display: block;
+	overflow: hidden;
+}
+
+div.color2 * {
+	background: #79b05b;
+}
+
+div.color1 * {
+	background: #435d7c;
+}
+
+b.border1 {
+	padding: 0px;
+	margin: 0px 4px;
+	height: 1px;
+}
+
+b.border2 {
+	padding: 0px;
+	margin: 0px 2px;
+	height: 1px;
+}
+
+b.border3 {
+	padding: 0px;
+	margin: 0px 1px;
+	height: 2px;
+}
+
+b.border1l {
+	padding: 0px;
+	margin: 0px 0px 0px 4px;
+	height: 1px;
+}
+
+b.border2l {
+	padding: 0px;
+	margin: 0px 0px 0px 2px;
+	height: 1px;
+}
+
+b.border3l {
+	padding: 0px;
+	margin: 0px 0px 0px 1px;
+	height: 2px;
+}
+
+b.border1r {
+	padding: 0px;
+	margin: 0px 4px 0px 0px;
+	height: 1px;
+}
+
+b.border2r {
+	padding: 0px;
+	margin: 0px 2px 0px 0px;
+	height: 1px;
+}
+
+b.border3r {
+	padding: 0px;
+	margin: 0px 1px 0px 0px;
+	height: 2px;
+}
+
+b.border4,
+b.border4l,
+b.border4r {
+	padding: 0px;
+	margin: 0px;
+	height: 1px;
+}
+
+b.border5,
+b.border5l,
+b.border5r {
+	padding: 0px;
+	margin: 0px;
+	height: 10px;
+}
+
+div.box_content {
+	padding: 0.1em 6px;
+}
+
+/**************************************************
+ *                                                *
+ *               content layout                   *
+ *                                                *
+ **************************************************/
+
+table.layout {
+	table-layout: fixed;
+	width: 100%;
+	border: 0px;
+	border-collapse: separate;
+	border-spacing: 2px;
+	border-width: 0px;
+}
+
+td.layout {
+	border: 0px;
+	vertical-align: top;
+	height: 100%;
+}
+
+div.center {
+	text-align: center;
+}
+
+p {
+	padding: 0em 0.2em;
+}
+
+img.screenshot {
+	display: inline;
+	padding: 0.1em;
+	border: 1px solid #777;
+}
+
+img.logo {
+	display: inline;
+	border: none;
+	padding: 0.03em;
+}
+
+p.logo {
+	padding: 0em;
+	margin: 0em;
+}
+
+ul.navlist {
+	margin: 0em;
+	padding-left: 0.5em;
+	list-style-type: none;
+	font-size: 90%;
+}
+
+/**************************************************
+ *                                                *
+ *                decorations                     *
+ *                                                *
+ **************************************************/
+
+div.site_logo {
+	padding: 0.4em 0.4em;
+	font-weight: bold;
+	font-size: 150%;
+	text-align: center;
+	color: white;
+}
+
+div.sscomment {
+	font-size: 60%;
+	color: #aaa;
+	text-align: center;
+	padding: 0.3em;
+	padding-bottom: 1em;
+}
+
+div.refentry,
+div.content_entry {
+	width: 100%;
+	background: white;
+	text-align: justify;
+}
+
+div.content_color1,
+div.content_color2 {
+	padding: 1em;
+	background: white;
+	border-left: 1px solid;
+	border-right: 1px solid;
+}
+
+div.content_color1 {
+	border-color: #435d7c;
+}
+
+div.content_color2 {
+	border-color:  #79b05b;
+}
+
+h3.boxhead {
+	color: white;
+	text-align: center;
+	padding: 0.1em 0em;
+	margin: 0em;
+}
+
+a, a.navlink {
+	color: #41639f;
+}
+
+a:hover, a.navlink:hover {
+	color: #517cc7;
+}
+
+a:visited, a.navlink:visited {
+	color: #375588
+}
+
+a.navlink {
+	font-size: 90%;
+}
+
+pre.code {
+	border-top: 1px dashed #435d7c;
+	border-bottom: 1px dashed #435d7c;
+	border-right: 1px dashed #435d7c;
+	border-left: 3px solid #435d7c;
+	background: #fffdfa;
+	width: auto;
+	overflow: auto;
+	padding: 0.5em 0.5em 0.5em 1em;
+	margin-left: 3em;
+}
+

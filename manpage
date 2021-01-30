@@ -1,0 +1,14 @@
+<!--
+	vim:ft=html:et:sw=2:ts=2
+-->
+<div class="color1">
+<b class="border1l"></b><b class="border2l"></b><b class="border3l"></b><b class="border4l"></b>
+<div class="box_content"><h3 class="boxhead">Manpage</h3></div>
+</div>
+<div class="content_entry">
+<div class="content_color1">
+#include "manpage_data"
+</div>
+</div>
+<div class="color1"><b class="border5l"></b><b class="border3l"></b><b class="border2l"></b><b class="border1l"></b></div>
+<p></p>
