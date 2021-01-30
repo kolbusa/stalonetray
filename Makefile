@@ -18,7 +18,7 @@ dist:
 manpage: manpage_data
 
 manpage_data: stalonetray.xml
-	xslt /usr/share/xml/docbook/stylesheet/docbook-xsl/xhtml/docbook.xsl $< \
+	xsltproc /usr/share/xml/docbook/stylesheet/docbook-xsl/xhtml/docbook.xsl $< \
 		| sed -e '1d;2s|^.*<body>||;$$s|</body>.*$$||' > manpage_data
 
 stalonetray.xml: stalonetray.xml.in
