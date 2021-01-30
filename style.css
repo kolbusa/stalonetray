@@ -1,6 +1,7 @@
 body {
 	width: 95%;
-	font-family: Verdana, sans-serif;
+    max-width: 1200px;
+	font-family: Arial, sans-serif;
 	color: #101010;
 	background: url("images/bg.png") repeat;
 }
