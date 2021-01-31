@@ -397,12 +397,15 @@ void x11_dump_win_info(Display *dpy, Window wid)
 #if defined(DEBUG) && defined(ENABLE_DUMP_WIN_INFO)
     if (settings.log_level >= LOG_LEVEL_TRACE) {
         char cmd[PATH_MAX];
+        int rc;
         snprintf(cmd, PATH_MAX,
             "xwininfo -tree -size -bits -stats -id 0x%x 1>&2\n",
             (unsigned int)wid);
-        system(cmd);
+        rc = system(cmd);
+        if (rc != 0) LOG_ERROR(("command failed: '%s'\n", cmd));
         snprintf(cmd, PATH_MAX, "xprop -id 0x%x 1>&2\n", (unsigned int)wid);
-        system(cmd);
+        rc = system(cmd);
+        if (rc != 0) LOG_ERROR(("command failed: '%s'\n", cmd));
     }
 #endif
 }
