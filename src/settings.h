@@ -16,7 +16,7 @@
 #include "layout.h"
 
 /* Default name of configuration file */
-#define STALONETRAY_RC ".stalonetrayrc"
+#define STALONETRAY_RC "stalonetrayrc"
 
 struct Settings {
     /* Flags */

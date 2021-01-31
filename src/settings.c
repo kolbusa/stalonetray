@@ -18,6 +18,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "config.h"
 
@@ -796,13 +799,35 @@ int get_args(char *line, int *argc, char ***argv)
     return SUCCESS;
 }
 
+char *find_rc(const char *path_part1, const char *path_part2, const char *rc)
+{
+    static char full_path[PATH_MAX];
+    int len;
+    struct stat statbuf;
+
+    if (path_part1 == NULL) return NULL;
+    if (path_part2 == NULL) {
+        LOG_TRACE(("looking for config file in '%s/%s'\n", path_part1, rc));
+        len = snprintf(full_path, sizeof(full_path), "%s/%s", path_part1, rc);
+    } else {
+        LOG_TRACE(("looking for config file in '%s/%s/%s'\n", path_part1,
+            path_part2, rc));
+        len = snprintf(full_path, sizeof(full_path), "%s/%s/%s", path_part1,
+            path_part2, rc);
+    }
+
+    if (len < 0 || len >= sizeof(full_path)) return NULL;
+    if (stat(full_path, &statbuf) != 0) return NULL;
+
+    return full_path;
+}
+
 #define READ_BUF_SZ 512
 /* Parses rc file (path is either taken from settings.config_fname
  * or ~/.stalonetrayrc is used) */
 void parse_rc()
 {
     char *home_dir;
-    static char config_fname[PATH_MAX];
     FILE *cfg;
 
     char buf[READ_BUF_SZ + 1];
@@ -814,14 +839,18 @@ void parse_rc()
     struct Param *p, *match;
 
     /* 1. Setup file name */
+    if (settings.config_fname == NULL)
+        settings.config_fname =
+            find_rc(getenv("HOME"), NULL, "." STALONETRAY_RC);
+    if (settings.config_fname == NULL)
+        settings.config_fname =
+            find_rc(getenv("XDG_CONFIG_HOME"), NULL, STALONETRAY_RC);
+    if (settings.config_fname == NULL)
+        settings.config_fname =
+            find_rc(getenv("HOME"), ".config", STALONETRAY_RC);
     if (settings.config_fname == NULL) {
-        if ((home_dir = getenv("HOME")) == NULL) {
-            LOG_ERROR(("You have no $HOME. I'm sorry for you.\n"));
-            return;
-        }
-        snprintf(
-            config_fname, PATH_MAX - 1, "%s/%s", home_dir, STALONETRAY_RC);
-        settings.config_fname = config_fname;
+        LOG_INFO(("could not find any config files.\n"));
+        return;
     }
 
     LOG_INFO(("using config file \"%s\"\n", settings.config_fname));

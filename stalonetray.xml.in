@@ -69,10 +69,11 @@
   "false", "no", "0" for negative ones.</para>
 
   <para>Default configuration file is <filename>$HOME/.stalonetrayrc</filename>.
-  A configuration file contains case-insensetive keyword-argument pairs, one per
-  line. Lines starting with '#' and empty lines are ignored.  Alternatively,
-  confiuration file can specified via <option>-c</option> or
-  <option>--config</option> command-line options.</para>
+  If it is not found, then <filename>$XDG_CONFIG_HOME/stalonetrayrc</filename>
+  is checked for. A configuration file contains case-insensetive
+  keyword-argument pairs, one per line. Lines starting with '#' and empty
+  lines are ignored. Alternatively, confiuration file can specified via
+  <option>-c</option> or <option>--config</option> command-line options.</para>
 
   <para>Below is the list of possible command line/configuration file options.
   Options starting with hyphens are command-line parameters others are
