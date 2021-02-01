@@ -35,7 +35,7 @@ sudo apt install autoconf automake docbook-xsl libxpm-dev libx11-dev xsltproc
 After that run:
 
 ```sh
-aclocal && autoconf && automake --add-missing
+aclocal && autoheader && autoconf && automake --add-missing
 ./configure
 ```
 
