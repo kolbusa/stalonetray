@@ -1,0 +1,26 @@
+build_x86_64_task:
+    container:
+        dockerfile: ci/Dockerfile
+    autotools_script:
+        - aclocal
+        - autoconf
+        - autoheader
+        - automake --add-missing
+    configure_script:
+        - ./configure
+    make_script:
+        - make
+
+build_i386_task:
+    container:
+        dockerfile: ci/Dockerfile
+    autotools_script:
+        - aclocal
+        - autoconf
+        - autoheader
+        - automake --add-missing
+    configure_script:
+        - CFLAGS="-m32" ./configure
+    make_script:
+        - make
+
