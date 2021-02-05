@@ -1,5 +1,6 @@
-# STAnd aLONE TRAY
+[![Build Status](https://api.cirrus-ci.com/github/kolbusa/stalonetray.svg)](https://cirrus-ci.com/github/kolbusa/stalonetray)
 
+# STAnd aLONE TRAY
 
 ## Description
 
