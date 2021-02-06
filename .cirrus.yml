@@ -1,4 +1,4 @@
-build_x86_64_task:
+build_linux_x86_64_task:
     container:
         dockerfile: ci/Dockerfile
     autotools_script:
@@ -11,7 +11,7 @@ build_x86_64_task:
     make_script:
         - make
 
-build_i386_task:
+build_linux_i386_task:
     container:
         dockerfile: ci/Dockerfile
     autotools_script:
@@ -23,4 +23,19 @@ build_i386_task:
         - CFLAGS="-m32" ./configure
     make_script:
         - make
+
+build_freebsd_x86_64_task:
+    freebsd_instance:
+        image_family: freebsd-13-0
+    install_script:
+        - pkg install -y autoconf automake gmake libX11 libXpm docbook-xsl libxslt
+    autotools_script:
+        - aclocal
+        - autoconf
+        - autoheader
+        - automake --add-missing
+    configure_script:
+        - ./configure
+    make_script:
+        - gmake
 
