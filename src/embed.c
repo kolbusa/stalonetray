@@ -272,7 +272,7 @@ int embedder_reset_size(struct TrayIcon *ti)
     /* Do not reset size for non-KDE icons with size set if icon_resizes
      * are handled */
     if (ti->is_size_set && ti->cmode != CM_KDE
-        && !settings.kludge_flags & KLUDGE_FORCE_ICONS_SIZE)
+        && !(settings.kludge_flags & KLUDGE_FORCE_ICONS_SIZE))
         return SUCCESS;
     /* Increase counter of size resets for given icon. If this number
      * exeeds the threshold, do nothing. This should work around the icons

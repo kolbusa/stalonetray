@@ -337,6 +337,7 @@ int scrollbars_highlight_on(int id)
         XSetWindowBackground(
             tray_data.dpy, sb_wid, settings.scrollbars_highlight_color.pixel);
     scrollbars_refresh(1);
+    return SUCCESS;
 }
 
 int scrollbars_highlight_off(int id)
@@ -347,4 +348,5 @@ int scrollbars_highlight_off(int id)
     if (sb_wid != None)
         XSetWindowBackgroundPixmap(tray_data.dpy, sb_wid, ParentRelative);
     scrollbars_refresh(1);
+    return SUCCESS;
 }
