@@ -35,7 +35,7 @@ TODO: link colors
 <div class="color2"><b class="border1r"></b><b class="border2r"></b><b class="border3r"></b><b class="border4r"></b>
 
 <div class="box_content"><div class="site_logo">
-  0.8.3
+  0.8.4
 </div></div>
 <b class="border4r"></b><b class="border3r"></b><b class="border2r"></b><b class="border1r"></b></div>
 </td>
@@ -60,7 +60,7 @@ TODO: link colors
 <div class="content_color1">
 <div class="refentry"><a id="stalonetray"></a><div class="titlepage"></div><div class="refnamediv"><h2>Name</h2><p>stalonetray — <span class="emphasis"><em>sta</em></span>nd-<span class="emphasis"><em>alone</em></span>
   system tray (notification area) implementation. This document covers
-  0.8.3 version of stalonetray.</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><div class="cmdsynopsis"><p><code class="command">stalonetray</code>  [<em class="replaceable"><code>option</code></em>...]</p></div></div><div class="refsect1"><a id="idm25"></a><h2>DESCRIPTION</h2><p>Stalonetray is a stand-alone system tray (notification area)
+  0.8.4 version of stalonetray.</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><div class="cmdsynopsis"><p><code class="command">stalonetray</code>  [<em class="replaceable"><code>option</code></em>...]</p></div></div><div class="refsect1"><a id="idm25"></a><h2>DESCRIPTION</h2><p>Stalonetray is a stand-alone system tray (notification area)
   for X Window System/X11 (e.g. XOrg or XFree86). It has minimal build
   and run-time dependencies: an X11 lib only. Complete
   <abbr class="abbrev">XEMBED</abbr> support is under development. Stalonetray
@@ -78,13 +78,14 @@ TODO: link colors
   flag-like parameters have optional boolean value that when ommited is assumed
   to be "true". Write "true", "yes", "1", for positive boolean values, and
   "false", "no", "0" for negative ones.</p><p>Default configuration file is <code class="filename">$HOME/.stalonetrayrc</code>.
-  A configuration file contains case-insensetive keyword-argument pairs, one per
-  line. Lines starting with '#' and empty lines are ignored.  Alternatively,
-  confiuration file can specified via <code class="option">-c</code> or
-  <code class="option">--config</code> command-line options.</p><p>Below is the list of possible command line/configuration file options.
+  If it is not found, then <code class="filename">$XDG_CONFIG_HOME/stalonetrayrc</code>
+  is checked for. A configuration file contains case-insensetive
+  keyword-argument pairs, one per line. Lines starting with '#' and empty
+  lines are ignored. Alternatively, confiuration file can specified via
+  <code class="option">-c</code> or <code class="option">--config</code> command-line options.</p><p>Below is the list of possible command line/configuration file options.
   Options starting with hyphens are command-line parameters others are
-  configuration file keywords.  Options that are new in 0.8.3 version
-  are marked with "NEW in 0.8.3". </p></div><div class="refsect1"><a id="opt"></a><h2>OPTIONS</h2><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="option">-bg</code> <em class="replaceable"><code>color</code></em>, </span><span class="term"><code class="option">--background</code> <em class="replaceable"><code>color</code></em>, </span><span class="term"><code class="option">background</code> <em class="replaceable"><code>color</code></em></span></dt><dd><p>Use <em class="replaceable"><code>color</code></em> for tray`s background.
+  configuration file keywords.  Options that are new in 0.8.4 version
+  are marked with "NEW in 0.8.4". </p></div><div class="refsect1"><a id="opt"></a><h2>OPTIONS</h2><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="option">-bg</code> <em class="replaceable"><code>color</code></em>, </span><span class="term"><code class="option">--background</code> <em class="replaceable"><code>color</code></em>, </span><span class="term"><code class="option">background</code> <em class="replaceable"><code>color</code></em></span></dt><dd><p>Use <em class="replaceable"><code>color</code></em> for tray`s background.
   <em class="replaceable"><code>color</code></em> can be specified as an <abbr class="abbrev">HTML</abbr> hex triplet or
   as a name from rgb.txt (note that '#' must be quoted). Default value: <strong class="userinput"><code>#777777</code></strong>.
   </p></dd><dt><span class="term"><code class="option">-c</code> <em class="replaceable"><code>filename</code></em>, </span><span class="term"><code class="option">--config</code> <em class="replaceable"><code>filename</code></em></span></dt><dd><p>Read configuration from
@@ -200,11 +201,11 @@ TODO: link colors
   </p></dd><dt><span class="term"><code class="option">--window-type</code> <em class="replaceable"><code>type</code></em>, </span><span class="term"><code class="option">window_type</code> <em class="replaceable"><code>type</code></em></span></dt><dd><p>Sets the <abbr class="abbrev">EWMH</abbr>-compliant type of tray`s window. Possible values for <em class="replaceable"><code>type</code></em>:
   <strong class="userinput"><code>desktop</code></strong>, <strong class="userinput"><code>dock</code></strong>, <strong class="userinput"><code>normal</code></strong>, <strong class="userinput"><code>toolbar</code></strong>,
   <strong class="userinput"><code>utility</code></strong>. Default value: <strong class="userinput"><code>dock</code></strong>.</p></dd><dt><span class="term"><code class="option">--xsync</code>, </span><span class="term"><code class="option">xsync</code> [<span class="optional"><em class="replaceable"><code>bool</code></em></span>]</span></dt><dd><p>Operate on X server synchronously (<span class="emphasis"><em>SLOW</em></span>, turned off by default).
-  </p></dd></dl></div></div><div class="refsect1"><a id="idm496"></a><h2>DEPRECATIONS</h2><p>As of stalonetray 0.8, the following command line and configuration file
+  </p></dd></dl></div></div><div class="refsect1"><a id="idm497"></a><h2>DEPRECATIONS</h2><p>As of stalonetray 0.8, the following command line and configuration file
   parameters are deprecated:
   </p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="option">--dbg-level</code>, </span><span class="term"><code class="option">dbg_level</code></span></dt><dd><p>Please use <code class="option">--log-level</code>
   instead.</p></dd><dt><span class="term"><code class="option">--max-tray-width</code>, </span><span class="term"><code class="option">--max-tray-height</code>, </span><span class="term"><code class="option">max_tray_width</code>, </span><span class="term"><code class="option">max_tray_height</code></span></dt><dd><p>Please use <code class="option">--max-geometry</code> instead.</p></dd><dt><span class="term"><code class="option">-w</code>, </span><span class="term"><code class="option">--withdrawn</code>, </span><span class="term"><code class="option">withdrawn</code></span></dt><dd><p>Please use <code class="option">--dockapp-mode</code> instead.</p></dd><dt><span class="term"><code class="option">--respect-icon-hints</code>, </span><span class="term"><code class="option">respect_icon_hints</code></span></dt><dd><p>Please use <code class="option">--kludges</code> with
-  <strong class="userinput"><code>use_icon_hints</code></strong> parameter instead.</p></dd></dl></div></div><div class="refsect1"><a id="idm539"></a><h2>FILES</h2><p><code class="filename">$HOME/.stalonetrayrc</code> — default configuration file.</p></div><div class="refsect1"><a id="idm543"></a><h2>BUGS</h2><p>There are some, definetly.</p><p>If you have found a bug, please try to reproduce it with the log level set
+  <strong class="userinput"><code>use_icon_hints</code></strong> parameter instead.</p></dd></dl></div></div><div class="refsect1"><a id="idm540"></a><h2>FILES</h2><p><code class="filename">$HOME/.stalonetrayrc</code> — default configuration file.</p></div><div class="refsect1"><a id="idm544"></a><h2>BUGS</h2><p>There are some, definetly.</p><p>If you have found a bug, please try to reproduce it with the log level set
 to <strong class="userinput"><code>trace</code></strong> and send the log file to me:
 <code class="email">&lt;<a class="email" href="mailto:busa_ru@users.sourceforge.net">busa_ru@users.sourceforge.net</a>&gt;</code>. If you need support, the best way
 to get it is also to e-mail me directly. If you have installed stalonetray from

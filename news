@@ -9,6 +9,14 @@
 <div class="content_entry">
 <div class="content_color1">
 <ul style="list-style-type: none;">
+  <li> <b>February 7, 2021</b>
+  <p>New bugfix release 0.8.4. Changes:</p>
+  <ul>
+    <li>Fixed several bugs and compiler warnings related to FreeBSD builds</li>
+    <li>Fixed configure to better locate docbook needed for the manpage</li>
+    <li>Added support for storing stalonetray config under <code>$XDG_CONFIG_HOME</code></li>
+  </ul>
+  <p></p>
   <li> <b>January 30, 2021</b>
   <p>Still not completely dead. Development moved to github.</p>
   <li> <b>March 4, 2015</b>
@@ -16,7 +24,7 @@
   <ul>
     <li>fix high CPU usage under E19 caused by support for _NET_WM_PING</li>
   </ul>
-  <p/>
+  <p></p>
   </li>
   <li> <b>February 5, 2015</b>
   <p>New bugfix release 0.8.2 (aka "It ain't dead. It's restin'"). Changes:</p>
@@ -26,7 +34,7 @@
     <li>fixed _NET_WM_DESKTOP support (thanks to Sasha Vasko for a report)</li>
     <li>added support for _NET_WM_PING</li>
   </ul>
-  <p/>
+  <p></p>
   </li>
   <li> <b>November 5, 2010</b>
   <p>New bugfix release 0.8.1. Fixes:</p>
@@ -40,7 +48,7 @@
   actually create a window that is detected and embedded by stalonetray. Such
   icons appear as empty spaces in the tray. Applications that are known to
   behave this way are <code>gnome-power-manager</code> and
-  <code>gpk-update-icon</code>.
+  <code>gpk-update-icon</code>.</p>
   </li>
   <li> <b>October 21, 2009</b>
   <p>New major release 0.8.0. New features/notable changes:</p>

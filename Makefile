@@ -1,4 +1,4 @@
-VERSION = 0.8.3
+VERSION = 0.8.4
 PAGES_IN = index news wmhints manpage
 PAGES_OUT = $(PAGES_IN:=.html)
 
