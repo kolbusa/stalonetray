@@ -281,6 +281,51 @@ void kde_icons_update()
 }
 #endif
 
+void find_unmanaged_chromium_icons()
+{
+    unsigned int n;
+    Window *topwins, dummy;
+    XQueryTree(tray_data.dpy, DefaultRootWindow(tray_data.dpy), &dummy, &dummy, &topwins, &n);
+    if (topwins == NULL) return;
+
+    //Find toplevel windows (unmanaged) that have:
+    //_NET_WM_WINDOW_TYPE(ATOM) == _NET_WM_WINDOW_TYPE_NOTIFICATION
+    //CHROMIUM_COMPOSITE_WINDOW(CARDINAL) == 1
+    Atom win_type        = XInternAtom(tray_data.dpy, "_NET_WM_WINDOW_TYPE", False);
+    Atom win_type_notif  = XInternAtom(tray_data.dpy, "_NET_WM_WINDOW_TYPE_NOTIFICATION", False);
+    Atom chrom_composite = XInternAtom(tray_data.dpy, "CHROMIUM_COMPOSITE_WINDOW", False);
+    for (unsigned int i=0; i<n; i++) {
+        Atom *aitem;
+        unsigned int *citem;
+        unsigned long nitems;
+        int rc = False;
+        Bool ok = True;
+        LOG_TRACE(("Chromium hack - checking window 0x%x\n", topwins[i]));
+
+        rc = x11_get_window_prop32(tray_data.dpy, topwins[i], win_type, XA_ATOM, (unsigned char **)&aitem, &nitems);
+        LOG_TRACE(("Chromium hack, ret: %x %x=%x %x\n", x11_ok(), rc, Success, nitems));
+        if (!(x11_ok() && rc == SUCCESS && nitems == 1)) continue;
+        LOG_TRACE(("Chromium hack, comp: %x=%x\n", aitem[0], win_type_notif));
+        ok = aitem[0] == win_type_notif;
+        XFree(aitem);
+        if (!ok) continue;
+        LOG_TRACE(("Found toplevel notification window 0x%x\n", topwins[i]));
+
+        rc = x11_get_window_prop32(tray_data.dpy, topwins[i], chrom_composite, XA_CARDINAL, (unsigned char **)&citem, &nitems);
+        LOG_TRACE(("Chromium hack, ret: %x %x=%x %x\n", x11_ok(), rc, Success, nitems));
+        if (!(x11_ok() && rc == SUCCESS && nitems == 1)) continue;
+        LOG_TRACE(("Chromium hack, comp: %x=%x\n", aitem[0], win_type_notif));
+        ok = citem[0] == 1;
+        XFree(citem);
+        if (!ok) continue;
+        LOG_TRACE(("Found chromium composite window 0x%d\n", topwins[i]));
+
+        add_icon(topwins[i], CM_FDO);
+    }
+
+    XFree(topwins);
+}
+
 #define PT_MASK_SB (1L << 0)
 #define PT_MASK_ALL PT_MASK_SB
 
@@ -712,6 +757,7 @@ int tray_main(int argc, char **argv)
 #ifndef NO_NATIVE_KDE
     kde_icons_update();
 #endif
+    find_unmanaged_chromium_icons();
     /* Main event loop */
     while ("my guitar gently wheeps") {
         /* This is ugly and extra dependency. But who cares?
