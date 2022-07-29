@@ -102,10 +102,10 @@ AC_ARG_ENABLE(events-trace,
     [ac_cv_events_trace="yes"])
 AC_ARG_ENABLE(embedding-confirmation-delay,
     [  --enable-embedding-confirmation-delay  delay sending of embedding confirmation (debug)],
-    [
+    [AS_IF([test "x$enableval" != xno],
         AC_DEFINE(DELAY_EMBEDDING_CONFIRMATION, 1, [delay sending of embedding confirmation])
         LDFLAGS="$LDFLAGS -lpthread"
-    ],
+    )],
     [])
 AC_ARG_ENABLE(dump-win-info,
     [  --enable-dump-win-info  use xprop/xwininfo to dump icon window info],
