@@ -2,10 +2,15 @@ SUBDIRS=src
 
 man_MANS=stalonetray.1
 
+doc_DIST=stalonetrayrc.sample
 if have_xsltproc
-doc_DIST=stalonetrayrc.sample stalonetray.1 stalonetray.xml stalonetray.html
+doc_DIST+=stalonetray.1 stalonetray.xml stalonetray.html
 dist_hook: stalonetray.1 stalonetray.html
 endif
+all-local: $(doc_DIST)
+clean-local:
+	rm -f $(doc_DIST)
+
 EXTRA_DIST=$(doc_DIST) stalonetray.spec stalonetray.xml.in stalonetrayrc.sample.in # $(debian_DIST)
 MAINTAINERCLEANFILES=stalonetray.1 stalonetray.html stalonetray.spec stalonetray.xml stalonetrayrc.sample
 
