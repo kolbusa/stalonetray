@@ -8,136 +8,136 @@
 
 /* TODO: XEMBED Implementation wanted */
 
+#include <X11/Xatom.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#include <X11/Xatom.h>
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 int trapped_error_code = 0;
-static int (*old_error_handler) (Display *, XErrorEvent *);
+static int (*old_error_handler)(Display *, XErrorEvent *);
 
 static int error_handler(Display *display, XErrorEvent *error)
 {
-	trapped_error_code = error->error_code;
-	return 0;
+    trapped_error_code = error->error_code;
+    return 0;
 }
 
 void trap_errors()
 {
-	trapped_error_code = 0;
-	old_error_handler = XSetErrorHandler(error_handler);
+    trapped_error_code = 0;
+    old_error_handler = XSetErrorHandler(error_handler);
 }
 
 int untrap_errors()
 {
-	XSetErrorHandler(old_error_handler);
-	return trapped_error_code;
+    XSetErrorHandler(old_error_handler);
+    return trapped_error_code;
 }
-
-
 
 void die(char *msg)
 {
-	fprintf(stderr, "%s", msg);
-	exit(1);
+    fprintf(stderr, "%s", msg);
+    exit(1);
 }
 
-int main(int argc, char** argv)
-{	
-	Display	*dpy;
-	Window wid;
-	XClassHint xch;
+int main(int argc, char **argv)
+{
+    Display *dpy;
+    Window wid;
+    XClassHint xch;
 
-	unsigned long flags;
+    unsigned long flags;
 
-	char *tmp;
-	
-	Atom *atoms;
-	int nprops, i;
+    char *tmp;
 
-	wid = strtol(argv[1], &tmp, 0);
+    Atom *atoms;
+    int nprops, i;
 
-	if ((dpy = XOpenDisplay(NULL)) == NULL) {
-		die("Error: could not open display\n");
-	}
+    wid = strtol(argv[1], &tmp, 0);
 
-	XSynchronize(dpy, True);
-	
-	atoms = XListProperties(dpy, wid, &nprops);
-	
-	fprintf(stdout, "ATOMS ----------------------------\n");
+    if ((dpy = XOpenDisplay(NULL)) == NULL) {
+        die("Error: could not open display\n");
+    }
 
-	for (i = 0; i < nprops; i++) {
-		Atom act_type, *atom_list;
-		int act_fmt, j;
-		short *sints;
-		long *lints;
-		unsigned long prop_len, bytes_after;
-		unsigned char *prop, *aname;
-		
-		tmp = XGetAtomName(dpy, atoms[i]);
-		fprintf(stdout, "Atom #%d\n  name: '%s'\n", i, tmp);
+    XSynchronize(dpy, True);
 
-		XGetWindowProperty(dpy, wid, atoms[i], 0L, 0L, False, AnyPropertyType,
-				&act_type, &act_fmt, &prop_len, &bytes_after, &prop);
+    atoms = XListProperties(dpy, wid, &nprops);
 
-		prop_len = bytes_after / (act_fmt == 8 ? 1 : (act_fmt == 16 ? 2 : 4));
+    fprintf(stdout, "ATOMS ----------------------------\n");
 
-		XGetWindowProperty(dpy, wid, atoms[i], 0L, prop_len, False, act_type,
-				&act_type, &act_fmt, &prop_len, &bytes_after, &prop);
+    for (i = 0; i < nprops; i++) {
+        Atom act_type, *atom_list;
+        int act_fmt, j;
+        short *sints;
+        long *lints;
+        unsigned long prop_len, bytes_after;
+        unsigned char *prop, *aname;
 
-		fprintf(stdout, "  size: %u\n", prop_len);
-		
-		switch (act_fmt) {
-			case 8:
-				fprintf(stdout, "  possible content type is string: %s\n", prop);
-				break;
-			case 16:
-				fprintf(stdout, "  possible content type is list of short ints:\n");
-				sints = prop;
-				for (j = 0; j < prop_len; j++)
-					fprintf(stdout, "    %s[%i] = %d\n", tmp, j, sints[j]);
-				break;
-			case 32:
-				fprintf(stdout, "  possible content type is list of long ints:\n");
-				lints = prop;
-				for (j = 0; j < prop_len; j++)
-					fprintf(stdout, "    %s[%i] = %ld\n", tmp, j, lints[j]);
-				
-				fprintf(stdout, "  possible content type is list atoms:\n");
-				atom_list = prop;
-				for (j = 0; j < prop_len; j++) {
-					trap_errors();
-					aname = (unsigned char*)XGetAtomName(dpy, atom_list[j]);
-					if (!untrap_errors(dpy) && aname != NULL) {
-						fprintf(stdout, "    %s[%i] = %s\n", tmp, j, aname);
-						XFree(aname);
-					}
-				}
+        tmp = XGetAtomName(dpy, atoms[i]);
+        fprintf(stdout, "Atom #%d\n  name: '%s'\n", i, tmp);
 
-				break;
-			default:
-				fprintf(stdout, "  WOW: unknown format: %u\n", act_fmt);
-				break;
-		}
+        XGetWindowProperty(dpy, wid, atoms[i], 0L, 0L, False, AnyPropertyType,
+            &act_type, &act_fmt, &prop_len, &bytes_after, &prop);
 
-		XFree(prop);
-		XFree(tmp);
-	}
+        prop_len = bytes_after / (act_fmt == 8 ? 1 : (act_fmt == 16 ? 2 : 4));
 
-	fprintf(stdout, "NAMES ----------------------------\n");
+        XGetWindowProperty(dpy, wid, atoms[i], 0L, prop_len, False, act_type,
+            &act_type, &act_fmt, &prop_len, &bytes_after, &prop);
 
-	XGetClassHint(dpy, wid, &xch);
+        fprintf(stdout, "  size: %lu\n", prop_len);
 
-	fprintf(stdout, "res_class: %s\nres_name: %s\n", xch.res_class, xch.res_name);
+        switch (act_fmt) {
+        case 8:
+            fprintf(stdout, "  possible content type is string: %s\n", prop);
+            break;
+        case 16:
+            fprintf(
+                stdout, "  possible content type is list of short ints:\n");
+            sints = (short *)prop;
+            for (j = 0; j < prop_len; j++)
+                fprintf(stdout, "    %s[%i] = %d\n", tmp, j, sints[j]);
+            break;
+        case 32:
+            fprintf(stdout, "  possible content type is list of long ints:\n");
+            lints = (long *)prop;
+            for (j = 0; j < prop_len; j++)
+                fprintf(stdout, "    %s[%i] = %ld\n", tmp, j, lints[j]);
 
-	fprintf(stdout, "HINTS ----------------------------\n");
-	{
-		XSizeHints xsh;
-		XGetWMNormalHints(dpy, wid, &xsh, &flags);
-	}
+            fprintf(stdout, "  possible content type is list atoms:\n");
+            atom_list = (Atom *)prop;
+            for (j = 0; j < prop_len; j++) {
+                trap_errors();
+                aname = (unsigned char *)XGetAtomName(dpy, atom_list[j]);
+                if (!untrap_errors() && aname != NULL) {
+                    fprintf(stdout, "    %s[%i] = %s\n", tmp, j, aname);
+                    XFree(aname);
+                }
+            }
 
-	return 0;
+            break;
+        default:
+            fprintf(stdout, "  WOW: unknown format: %u\n", act_fmt);
+            break;
+        }
+
+        XFree(prop);
+        XFree(tmp);
+    }
+
+    fprintf(stdout, "NAMES ----------------------------\n");
+
+    XGetClassHint(dpy, wid, &xch);
+
+    fprintf(
+        stdout, "res_class: %s\nres_name: %s\n", xch.res_class, xch.res_name);
+
+    fprintf(stdout, "HINTS ----------------------------\n");
+    {
+        XSizeHints xsh;
+        XGetWMNormalHints(dpy, wid, &xsh, &flags);
+    }
+
+    return 0;
 }
