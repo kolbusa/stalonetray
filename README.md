@@ -7,8 +7,8 @@
 Stalonetray is a STAnd-aLONE system TRAY (notification area).x  It has minimal build and run-time dependencies: the Xlib
 only. Stalonetray runs under virtually any window manager.
 
-To start using stalonetray, just copy stalonetrayrc.sample to ~/.stalonetrayrc. It is well-commented and should suffice
-for a quick start.
+To start using stalonetray, just copy `stalonetrayrc.sample` to `~/.stalonetrayrc` or to
+`$XDG_CONFIG_HOME/stalonetrayrc`. It is well-commented and should suffice for a quick start.
 
 ## Installation
 
