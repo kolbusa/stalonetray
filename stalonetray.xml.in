@@ -75,6 +75,9 @@
   lines are ignored. Alternatively, confiuration file can specified via
   <option>-c</option> or <option>--config</option> command-line options.</para>
 
+  <para>Stalonetray can be configured to write diagnostic log messages to the
+  sandard error stream.</para>
+
   <para>Below is the list of possible command line/configuration file options.
   Options starting with hyphens are command-line parameters others are
   configuration file keywords.  Options that are new in @VERSION_STR@ version
@@ -149,7 +152,7 @@
   <listitem><para>Set tray`s initial geometry to <replaceable>geometry_spec</replaceable>,
   specified in standard X notation:
   <replaceable>width</replaceable>x<replaceable>height</replaceable>[+<replaceable>x</replaceable>[+<replaceable>y</replaceable>]],
-  where width and height are specified in icon slot multiples.  Default value: <userinput>1x1+0-0</userinput>.
+  where width and height are specified in icon slot multiples. Default value: <userinput>1x1+0-0</userinput>.
   </para></listitem>
   </varlistentry>
 
@@ -168,7 +171,7 @@
   window will grow horizontally to the left side only, and it will vertically
   grow both upwards and downwards maintaining position of its center. Please
   note that the latter behaviour is new in 0.8. Default value:
-  <userinput>NW</userinput>.  </para></listitem> </varlistentry>
+  <userinput>NW</userinput>. </para></listitem> </varlistentry>
 
   <varlistentry>
   <term><option>--icon-gravity</option> <replaceable>gravity</replaceable></term>
@@ -199,12 +202,12 @@
   <varlistentry>
   <term><option>--log-level</option> <replaceable>level</replaceable></term>
   <term><option>log_level</option> <replaceable>level</replaceable></term>
-  <listitem><para>Set the amount of info to be output by stalonetray. Possible
-  values for <replaceable>level</replaceable>: <userinput>err</userinput>
-  (default), <userinput>info</userinput>, and <userinput>trace</userinput>.  For
-  the <userinput>trace</userinput> option to be available, stalonetray must be
-  configured with <option>--enable-debug</option> at build-time.
-  </para></listitem>
+  <listitem><para>Set the amount of info to be output by stalonetray to the
+  standard output. Possible values for <replaceable>level</replaceable>:
+  <userinput>err</userinput> (default), <userinput>info</userinput>,
+  and <userinput>trace</userinput>. For the <userinput>trace</userinput>
+  option to be available, stalonetray must be configured with
+  <option>--enable-debug</option> at build-time.</para></listitem>
   </varlistentry>
 
   <varlistentry>
@@ -266,7 +269,7 @@
   <listitem><para>
   Remote control/click. When this option is specified, stalonetray sends a fake
   click to the icon with a window named <replaceable>name</replaceable> and
-  exits.  The icon is searched for in the currently active tray for the current
+  exits. The icon is searched for in the currently active tray for the current
   screen. By default, stalonetray sends a single click with the 1st mouse button
   to the center of the icon. See the options below for additional information on
   how to alter the defaults.
@@ -484,11 +487,17 @@
 <title>BUGS</title>
 <para>There are some, definetly.</para>
 
+<para>If you need support, the best way to get it is open an issue at the
+stalonetray <ulink url="https://github.com/kolbusa/stalonetray">github
+page</ulink> or to e-mail me directly at
+<email>busa_ru@users.sourceforge.net</email>.</para>
+
 <para>If you have found a bug, please try to reproduce it with the log level set
-to <userinput>trace</userinput> and send the log file to me:
-<email>busa_ru@users.sourceforge.net</email>. If you need support, the best way
-to get it is also to e-mail me directly. If you have installed stalonetray from
-a distribution repository, you can also file a bug in the respective bug
-tracking database.</para>
+to <userinput>trace</userinput> and redirect standard error stream to a file.
+Then attach the file to a github issue or to an e-mail. If the issue is
+intermittent, attach two log files -- one with the good and one with the bad
+behavior. If you have installed stalonetray from a package repository, you
+can also file a bug in the respective bug tracking system.</para>
+
 </refsect1>
 </refentry>
