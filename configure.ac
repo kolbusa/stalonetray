@@ -171,8 +171,14 @@ dnl https://movementarian.org/docs/docbook-autotools/configure.html
 AC_DEFUN([AX_CHECK_DOCBOOK], [
     XSLTPROC_FLAGS=--nonet
     DOCBOOK_ROOT=
-    for i in /usr/share/sgml/docbook/stylesheet/xsl/nwalsh /usr/share/xml/docbook/stylesheet/docbook-xs /usr/share/sgml/docbook/xsl-stylesheets/ /usr/local/share/xsl/docbook;
-    do
+    for i in \
+        /usr/share/xml/docbook/stylesheet/docbook-xsl-nons \
+        /usr/share/xml/docbook/xsl-stylesheets-*-nons/ \
+        /usr/share/sgml/docbook/stylesheet/xsl/nwalsh \
+        /usr/share/xml/docbook/stylesheet/docbook-xs \
+        /usr/share/sgml/docbook/xsl-stylesheets/ \
+        /usr/local/share/xsl/docbook \
+    ; do
         if test -d "$i"; then
             DOCBOOK_ROOT=$i
         fi
