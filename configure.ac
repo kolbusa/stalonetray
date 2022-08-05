@@ -1,15 +1,15 @@
 # $Id$
 # vim:ft=m4
 
-AC_INIT(stalonetray, 0.8.4)
+AC_INIT([stalonetray],[0.8.4])
 AC_CONFIG_SRCDIR(src/main.c)
-AM_CONFIG_HEADER(src/config.h)
+AC_CONFIG_HEADERS(src/config.h)
 AM_INIT_AUTOMAKE([foreign])
 
 dnl ============ General =============
 
 AC_PROG_CC
-AC_GNU_SOURCE
+AC_USE_SYSTEM_EXTENSIONS
 
 AC_CHECK_HEADERS([ctype.h],,[AC_MSG_FAILURE([ctype.h is not found.])])
 AC_CHECK_HEADERS([errno.h],,[AC_MSG_FAILURE([errno.h is not found.])])
@@ -25,24 +25,18 @@ dnl ============ General =============
 
 dnl ========== Backtrace =============
 
-AC_TRY_LINK([#include <execinfo.h>
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <execinfo.h>
              #include <sys/types.h>
-            ],
-            [void *array[10];
+            ]], [[void *array[10];
              size_t size;
              size = backtrace(array, 10);
              backtrace_symbols_fd(array, size, 0);
-            ],
-            [ac_cv_var_backtrace=yes],
-            [ac_cv_var_backtrace=no])
+            ]])],[ac_cv_var_backtrace=yes],[ac_cv_var_backtrace=no])
 
 if test x$ac_cv_var_backtrace = xyes; then
     AC_DEFINE(HAVE_BACKTRACE, 1, [System has usable backtrace implementation.])
 else
-    AC_TRY_LINK([#include <ucontext.h>],
-                [printstack(0);],
-                [ac_cv_var_printstack=yes],
-                [ac_cv_var_printstack=no])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <ucontext.h>]], [[printstack(0);]])],[ac_cv_var_printstack=yes],[ac_cv_var_printstack=no])
     if test x$ac_cv_var_printstack = xyes; then
         AC_DEFINE(HAVE_PRINTSTACK, 1, [System has usable printstack implementation.])
     fi
@@ -210,10 +204,11 @@ AX_CHECK_DOCBOOK
 
 dnl ============ Features ============
 
-AC_OUTPUT([
+AC_CONFIG_FILES([
 Makefile
 src/Makefile
 ])
+AC_OUTPUT
 
 echo "*"
 echo "* Debug                  : $ac_cv_debug"
