@@ -301,11 +301,12 @@
 
   <varlistentry>
   <term><option>-s</option> <replaceable>n</replaceable></term>
-  <term><option>--slot-size</option> <replaceable>n</replaceable></term>
-  <term><option>slot_size</option> <replaceable>n</replaceable></term>
-  <listitem><para>Set grid slot size to <replaceable>n</replaceable>, which
-  cannot be less then <option>icon_size</option>. By default, the slot size is
-  the same as the icon size.
+  <term><option>--slot-size</option> <replaceable>w</replaceable><optional>x<replaceable>w</replaceable></optional></term>
+  <term><option>slot_size</option> <replaceable>w</replaceable><optional>x<replaceable>w</replaceable></optional></term>
+  <listitem><para>Set grid slot width to <replaceable>w</replaceable> and height
+  to <replaceable>b</replaceable>, both of which cannot be less then
+  <option>icon_size</option>. By default, the slot size is the same as the icon
+  size. If omitted, height is set to be same as width.
   </para></listitem>
   </varlistentry>
 

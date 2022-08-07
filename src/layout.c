@@ -132,8 +132,8 @@ int layout_handle_icon_resize(struct TrayIcon *ti)
 
 void layout_get_size(int *width, int *height)
 {
-    *width = grid_sz.x * settings.slot_size;
-    *height = grid_sz.y * settings.slot_size;
+    *width = grid_sz.x * settings.slot_size.x;
+    *height = grid_sz.y * settings.slot_size.y;
     if (settings.vertical) swap((*width), (*height));
 }
 
@@ -176,10 +176,10 @@ int grid_recalc_size(struct TrayIcon *ti);
 /* A. Coords translations */
 int grid_translate_from_window(struct TrayIcon *ti)
 {
-    ti->l.grd_rect.w = ti->l.wnd_sz.x / settings.slot_size
-        + (ti->l.wnd_sz.x % settings.slot_size != 0);
-    ti->l.grd_rect.h = ti->l.wnd_sz.y / settings.slot_size
-        + (ti->l.wnd_sz.y % settings.slot_size != 0);
+    ti->l.grd_rect.w = ti->l.wnd_sz.x / settings.slot_size.x
+        + (ti->l.wnd_sz.x % settings.slot_size.x != 0);
+    ti->l.grd_rect.h = ti->l.wnd_sz.y / settings.slot_size.y
+        + (ti->l.wnd_sz.y % settings.slot_size.y != 0);
     if (settings.vertical) swap(ti->l.grd_rect.w, ti->l.grd_rect.h);
     return NO_MATCH;
 }
@@ -195,17 +195,17 @@ int layout_translate_to_window(struct TrayIcon *ti)
     }
     /* Compute icon position and dimensions */
     if (settings.icon_gravity & GRAV_W)
-        ti->l.icn_rect.x = ti->l.grd_rect.x * settings.slot_size;
+        ti->l.icn_rect.x = ti->l.grd_rect.x * settings.slot_size.x;
     else
         ti->l.icn_rect.x = tray_data.xsh.width
-            - (ti->l.grd_rect.x + ti->l.grd_rect.w) * settings.slot_size;
+            - (ti->l.grd_rect.x + ti->l.grd_rect.w) * settings.slot_size.x;
     if (settings.icon_gravity & GRAV_N)
-        ti->l.icn_rect.y = ti->l.grd_rect.y * settings.slot_size;
+        ti->l.icn_rect.y = ti->l.grd_rect.y * settings.slot_size.y;
     else
         ti->l.icn_rect.y = tray_data.xsh.height
-            - (ti->l.grd_rect.y + ti->l.grd_rect.h) * settings.slot_size;
-    ti->l.icn_rect.w = ti->l.grd_rect.w * settings.slot_size;
-    ti->l.icn_rect.h = ti->l.grd_rect.h * settings.slot_size;
+            - (ti->l.grd_rect.y + ti->l.grd_rect.h) * settings.slot_size.y;
+    ti->l.icn_rect.w = ti->l.grd_rect.w * settings.slot_size.y;
+    ti->l.icn_rect.h = ti->l.grd_rect.h * settings.slot_size.y;
     /* Swap vert & horz dimentions back */
     if (settings.vertical) {
         swap(ti->l.grd_rect.w, ti->l.grd_rect.h);
@@ -358,13 +358,13 @@ int icon_placement_create(
             ? INT_MAX \
             : ((settings.vertical ? settings.max_tray_dims.y \
                                   : settings.max_tray_dims.x) \
-                / settings.slot_size))
+                / settings.slot_size.x))
 #define max_layout_height \
     (settings.scrollbars_mode & SB_MODE_VERT \
             ? INT_MAX \
             : ((settings.vertical ? settings.max_tray_dims.x \
                                   : settings.max_tray_dims.y) \
-                / settings.slot_size))
+                / settings.slot_size.y))
     ip->valid = 0;
     ip->pos.x = x;
     ip->pos.y = y;
@@ -404,12 +404,12 @@ void icon_placement_choose_best(
 /* I whish there were nested functions in C standard */
 #define calc_wnd_sz_delta(delta, pmt) \
     do { \
-        delta.x = cutoff((grid_sz.x + pmt->sz_delta.x) * settings.slot_size \
+        delta.x = cutoff((grid_sz.x + pmt->sz_delta.x) * settings.slot_size.x \
                 - tray_data.xsh.width, \
-            0, pmt->sz_delta.x * settings.slot_size); \
-        delta.y = cutoff((grid_sz.y + pmt->sz_delta.y) * settings.slot_size \
+            0, pmt->sz_delta.x * settings.slot_size.x); \
+        delta.y = cutoff((grid_sz.y + pmt->sz_delta.y) * settings.slot_size.y \
                 - tray_data.xsh.height, \
-            0, pmt->sz_delta.y * settings.slot_size); \
+            0, pmt->sz_delta.y * settings.slot_size.y); \
     } while (0)
     /* If tray is vertically oriented, swap width <-> height
      * (just for readability sake) */
@@ -423,13 +423,13 @@ void icon_placement_choose_best(
      * understand this (I definetly don't). The basic idea is that sometimes
      * layout resize means window resize. Sometimes it does not. */
     if (settings.shrink_back_mode) {
-        if (grid_sz.x >= settings.orig_tray_dims.x / settings.slot_size) {
-            old_wnd_sz_delta.x = old->sz_delta.x * settings.slot_size;
-            new_wnd_sz_delta.x = new->sz_delta.x *settings.slot_size;
+        if (grid_sz.x >= settings.orig_tray_dims.x / settings.slot_size.x) {
+            old_wnd_sz_delta.x = old->sz_delta.x * settings.slot_size.x;
+            new_wnd_sz_delta.x = new->sz_delta.x *settings.slot_size.x;
         }
-        if (grid_sz.y >= settings.orig_tray_dims.y / settings.slot_size) {
-            old_wnd_sz_delta.y = old->sz_delta.y * settings.slot_size;
-            new_wnd_sz_delta.y = new->sz_delta.y *settings.slot_size;
+        if (grid_sz.y >= settings.orig_tray_dims.y / settings.slot_size.y) {
+            old_wnd_sz_delta.y = old->sz_delta.y * settings.slot_size.y;
+            new_wnd_sz_delta.y = new->sz_delta.y *settings.slot_size.y;
         }
     }
     /* Restore values */

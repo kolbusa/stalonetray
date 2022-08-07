@@ -451,8 +451,8 @@ int tray_update_window_props()
     xsh.min_height = new_height;
     xsh.max_width = new_width;
     xsh.max_height = new_height;
-    xsh.width_inc = settings.slot_size;
-    xsh.height_inc = settings.slot_size;
+    xsh.width_inc = settings.slot_size.x;
+    xsh.height_inc = settings.slot_size.y;
     tray_calc_window_size(0, 0, &xsh.base_width, &xsh.base_height);
     xsh.win_gravity = NorthWestGravity;
     xsh.flags = tray_data.xsh.flags;

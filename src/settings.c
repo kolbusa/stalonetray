@@ -49,7 +49,8 @@ void init_default_settings()
     settings.geometry_str = NULL;
     settings.max_geometry_str = "0x0";
     settings.icon_size = FALLBACK_ICON_SIZE;
-    settings.slot_size = -1;
+    settings.slot_size.x = -1;
+    settings.slot_size.y = -1;
     settings.deco_flags = DECO_NONE;
     settings.max_tray_dims.x = 0;
     settings.max_tray_dims.y = 0;
@@ -399,6 +400,23 @@ int parse_pos(char *str, void **tgt, int silent)
     return SUCCESS;
 }
 
+int parse_size(char *str, void **tgt, int silent)
+{
+    struct Point *size = (struct Point *)tgt[0];
+    int dummy;
+    unsigned w, h;
+    int rc = XParseGeometry(str, &dummy, &dummy, &w, &h);
+    if (rc == 0 || rc & ~(WidthValue | HeightValue))
+        return FAILURE;
+    if ((rc & HeightValue) == 0)
+        h = w;
+    val_range(w, 0, INT_MAX);
+    val_range(h, 0, INT_MAX);
+    size->x = w;
+    size->y = h;
+    return SUCCESS;
+}
+
 /************ CLI **************/
 
 #define MAX_TARGETS 10
@@ -482,7 +500,7 @@ struct Param params[] = {{"-display", NULL, "display", {&settings.display_str},
     {NULL, "--skip-taskbar", "skip_taskbar", {&settings.skip_taskbar},
         (param_parser_t)&parse_bool, 1, 1, 1, "true"},
     {"-s", "--slot-size", "slot_size", {&settings.slot_size},
-        (param_parser_t)&parse_int, 1, 1, 0, NULL},
+        (param_parser_t)&parse_size, 1, 1, 0, NULL},
     {NULL, "--sticky", "sticky", {&settings.sticky},
         (param_parser_t)&parse_bool, 1, 1, 1, "true"},
     {NULL, "--tint-color", "tint_color", {&settings.tint_color_str},
@@ -605,7 +623,8 @@ void usage(char *progname)
         "                                or disable\n"
         "    --scrollbars-step <n>       set scrollbar step to n pixels\n"
         "    --scrollbars-size <n>       set scrollbar size to n pixels\n"
-        "    --slot-size <n>             set icon slot size to n\n"
+        "    --slot-size <w>[x<h>]       set icon slot size in pixels\n"
+        "                                if omitted, hight is set equal to width\n"
         "    --skip-taskbar              hide tray`s window from the taskbar\n"
         "    --sticky                    make tray`s window sticky across "
         "multiple\n"
@@ -925,13 +944,15 @@ void interpret_settings()
     XWindowAttributes root_wa;
     /* Sanitize icon size */
     val_range(settings.icon_size, MIN_ICON_SIZE, INT_MAX);
-    if (settings.slot_size < settings.icon_size)
-        settings.slot_size = settings.icon_size;
+    if (settings.slot_size.x < settings.icon_size)
+        settings.slot_size.x = settings.icon_size;
+    if (settings.slot_size.y < settings.icon_size)
+        settings.slot_size.y = settings.icon_size;
     /* Sanitize scrollbar settings */
     if (settings.scrollbars_mode != SB_MODE_NONE) {
-        val_range(settings.scrollbars_inc, settings.slot_size / 2, INT_MAX);
+        val_range(settings.scrollbars_inc, settings.slot_size.x / 2, INT_MAX);
         if (settings.scrollbars_size < 0)
-            settings.scrollbars_size = settings.slot_size / 4;
+            settings.scrollbars_size = settings.slot_size.x / 4;
     }
     /* Sanitize all gravity strings */
     settings.icon_gravity |= ((settings.icon_gravity & GRAV_V) ? 0 : GRAV_N);
@@ -984,8 +1005,8 @@ void interpret_settings()
     tray_data.xsh.flags = PResizeInc | PBaseSize;
     tray_data.xsh.x = 0;
     tray_data.xsh.y = 0;
-    tray_data.xsh.width_inc = settings.slot_size;
-    tray_data.xsh.height_inc = settings.slot_size;
+    tray_data.xsh.width_inc = settings.slot_size.x;
+    tray_data.xsh.height_inc = settings.slot_size.y;
     tray_data.xsh.base_width = 0;
     tray_data.xsh.base_height = 0;
     tray_calc_window_size(
@@ -1035,14 +1056,14 @@ void interpret_settings()
     if (!settings.max_tray_dims.x)
         settings.max_tray_dims.x = root_wa.width;
     else {
-        settings.max_tray_dims.x *= settings.slot_size;
+        settings.max_tray_dims.x *= settings.slot_size.x;
         val_range(
             settings.max_tray_dims.x, settings.orig_tray_dims.x, INT_MAX);
     }
     if (!settings.max_tray_dims.y)
         settings.max_tray_dims.y = root_wa.height;
     else {
-        settings.max_tray_dims.y *= settings.slot_size;
+        settings.max_tray_dims.y *= settings.slot_size.y;
         val_range(
             settings.max_tray_dims.y, settings.orig_tray_dims.y, INT_MAX);
     }
@@ -1092,7 +1113,8 @@ int read_settings(int argc, char **argv)
     LOG_TRACE(("scrollbars_mode = %d\n", settings.scrollbars_mode));
     LOG_TRACE(("scrollbars_size = %d\n", settings.scrollbars_size));
     LOG_TRACE(("shrink_back_mode = %d\n", settings.shrink_back_mode));
-    LOG_TRACE(("slot_size = %d\n", settings.slot_size));
+    LOG_TRACE(("slot_size.x = %d\n", settings.slot_size.x));
+    LOG_TRACE(("slot_size.y = %d\n", settings.slot_size.y));
     LOG_TRACE(("vertical = %d\n", settings.vertical));
     LOG_TRACE(("xsync = %d\n", settings.xsync));
     return SUCCESS;

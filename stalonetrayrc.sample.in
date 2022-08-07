@@ -46,8 +46,14 @@ grow_gravity NW
 # icon_gravity <gravity>     # icon placement gravity, one of NW, NE, SW, SE
 icon_gravity NW
 
-# icon_size <int>            # specifies dimensions of typical icon slot
+# icon_size <int>            # specifies dimensions of an icon
 icon_size 24
+
+# slot_size <w>[x<h>]        # specifies width and hight of an icon slot that
+                             # contains icon; must be larger than icon size;
+                             # height is set to width if it is omitted;
+                             # defaults to icon size
+slot_size 32x64
 
 # log_level <level>          # controls the amount of logging output, level can
                              # be err (default), info, or trace (enabled only
