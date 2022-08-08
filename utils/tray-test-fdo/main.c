@@ -14,6 +14,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 /* from System Tray Protocol Specification
  * http://freedesktop.org/Standards/systemtray-spec/systemtray-spec-0.1.html */
@@ -30,6 +32,7 @@
 /* just globals */
 Display *dpy;
 Window wnd;
+Window wnd1;
 Window tray;
 int reparent_out = 0;
 int grow = 0;
@@ -74,6 +77,8 @@ int main(int argc, char **argv)
 
     XWindowAttributes xwa;
     XEvent ev;
+    XColor xc_black =
+        {flags : 0, pad : 0, pixel : 0x000000, red : 0, green : 0, blue : 0};
     XColor xc_bg =
         {flags : 0, pad : 0, pixel : 0x777777, red : 0, green : 0, blue : 0};
 
@@ -153,7 +158,7 @@ int main(int argc, char **argv)
     xa_tray_opcode = XInternAtom(dpy, "_NET_SYSTEM_TRAY_OPCODE", False);
     xa_tray_data = XInternAtom(dpy, "_NET_SYSTEM_TRAY_MESSAGE_DATA", False);
     xa_xembed_info = XInternAtom(dpy, "_XEMBED_INFO", False);
-    printf("_XEMBED_INFO = 0x%x\n", xa_xembed_info);
+    printf("_XEMBED_INFO = 0x%lx\n", xa_xembed_info);
 
     xa_xembed = XInternAtom(dpy, "_XEMBED", False);
 
@@ -163,12 +168,14 @@ int main(int argc, char **argv)
     trap_errors();
 
     wnd = XCreateSimpleWindow(dpy, DefaultRootWindow(dpy), xsh.x, xsh.y,
-        xsh.width, xsh.height, 0, 0, xc_bg.pixel);
+        xsh.width, xsh.height, 0, 0, xc_black.pixel);
+    wnd1 = XCreateSimpleWindow(
+        dpy, wnd, 1, 1, xsh.width - 2, xsh.height - 2, 0, 0, xc_bg.pixel);
 
     if (untrap_errors()) {
         die("Error: could not create simple window\n");
     } else {
-        printf("wid=0x%x\n", wnd);
+        printf("wid=0x%lx\n", wnd);
     }
 
     XmbTextListToTextProperty(dpy, &wnd_name, 1, XTextStyle, &wm_name);
@@ -187,10 +194,11 @@ int main(int argc, char **argv)
             | ButtonPressMask | ButtonReleaseMask);
 
     XMapRaised(dpy, wnd);
+    XMapRaised(dpy, wnd1);
 
     XFlush(dpy);
 
-    printf("::::: wid: 0x%x, color: %s\n", wnd,
+    printf("::::: wid: 0x%lx, color: %s\n", wnd,
         bg_color_name != NULL ? bg_color_name : "gray");
 
     if (reparent_out) {
@@ -210,9 +218,9 @@ int main(int argc, char **argv)
                 if (maintain_size
                     && (ev.xconfigure.width != xsh.width
                         || ev.xconfigure.height != xsh.height)) {
-                    printf("0x%x: configured: %dx%d\n", wnd,
+                    printf("0x%lx: configured: %dx%d\n", wnd,
                         ev.xconfigure.width, ev.xconfigure.height);
-                    printf("0x%x: maintaining size\n", wnd);
+                    printf("0x%lx: maintaining size\n", wnd);
                     XResizeWindow(dpy, wnd, xsh.width, xsh.height);
                 }
                 break;
@@ -230,8 +238,10 @@ int main(int argc, char **argv)
         if (grow == 1) {
             grow_cd--;
             if (!grow_cd) {
-                printf("0x%x: size increased 2x\n", wnd);
+                printf("0x%lx: size increased 2x\n", wnd);
                 XResizeWindow(dpy, wnd, xsh.width * 2, xsh.height * 2);
+                XResizeWindow(
+                    dpy, wnd1, xsh.width * 2 - 2, xsh.height * 2 - 2);
                 xsh.width *= 2;
                 xsh.height *= 2;
                 grow = 0;
@@ -239,15 +249,18 @@ int main(int argc, char **argv)
         } else if (grow == 2) {
             grow_cd--;
             if (grow_cd == 0) {
-                printf("0x%x: size increased 2x\n", wnd);
+                printf("0x%lx: size increased 2x\n", wnd);
                 XResizeWindow(dpy, wnd, xsh.width * 2, xsh.height * 2);
+                XResizeWindow(
+                    dpy, wnd1, xsh.width * 2 - 2, xsh.height * 2 - 2);
                 xsh.width *= 2;
                 xsh.height *= 2;
             } else if (grow_cd == -GROW_PERIOD) {
-                printf("0x%x: size shrinked 2x\n", wnd);
+                printf("0x%lx: size shrinked 2x\n", wnd);
                 xsh.width /= 2;
                 xsh.height /= 2;
                 XResizeWindow(dpy, wnd, xsh.width, xsh.height);
+                XResizeWindow(dpy, wnd1, xsh.width - 2, xsh.height - 2);
                 grow = 0;
             }
         }
