@@ -26,8 +26,8 @@ stalonetray.spec:
 
 if have_xsltproc
 stalonetray.1: stalonetray.xml
-	$(XSLTPROC) $(XSLTPROC_FLAGS) $(DOCBOOK_ROOT)/manpages/docbook.xsl stalonetray.xml
+	$(XSLTPROC) $(XSLTPROC_FLAGS) -o $@ $(DOCBOOK_ROOT)/manpages/docbook.xsl stalonetray.xml
 
 stalonetray.html: stalonetray.xml
-	$(XSLTPROC) $(XSLTPROC_FLAGS) $(DOCBOOK_ROOT)/xhtml/docbook.xsl stalonetray.xml >& $@
+	$(XSLTPROC) $(XSLTPROC_FLAGS) -o $@ $(DOCBOOK_ROOT)/xhtml/docbook.xsl stalonetray.xml 2>/dev/null
 endif
