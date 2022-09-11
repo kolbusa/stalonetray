@@ -119,7 +119,7 @@ tint_level 0
                              # image must be set with Esetroot or compatible utility)
 transparent false
 
-# vertical [<bool>]          # whether to use vertical layout (horisontal layout
+# vertical [<bool>]          # whether to use vertical layout (horizontal layout
                              # is used by default)
 vertical false
 
