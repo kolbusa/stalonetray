@@ -15,6 +15,7 @@
 
 #include <limits.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "xutils.h"
 
@@ -379,6 +380,18 @@ int x11_parse_color(Display *dpy, char *str, XColor *color)
         dpy, XDefaultColormap(dpy, DefaultScreen(dpy)), str, color);
     if (rc) XAllocColor(dpy, XDefaultColormap(dpy, DefaultScreen(dpy)), color);
     return x11_ok() && rc;
+}
+
+char *x11_get_window_class(Display *dpy, Window w) {
+    XClassHint hint;
+    char *classname = NULL;
+
+    XGetClassHint(dpy, w, &hint);
+    classname = strdup(hint.res_class);
+    XFree(hint.res_name);
+    XFree(hint.res_class);
+
+    return classname;
 }
 
 #ifdef DEBUG
