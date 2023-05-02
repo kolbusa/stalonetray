@@ -67,6 +67,9 @@ int x11_get_window_abs_coords(Display *dpy, Window dst, int *x, int *y);
 /* Get window name. NOT THREAD SAFE. Returns pointer to static buffer */
 char *x11_get_window_name(Display *dpy, Window dst, char *def);
 
+/* Get window class name. Returns pointer to string created with strdup() */
+char *x11_get_window_class(Display *dpy, Window w);
+
 /* Find subwindow by name */
 Window x11_find_subwindow_by_name(Display *dpy, Window tgt, char *name);
 

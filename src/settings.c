@@ -85,6 +85,7 @@ void init_default_settings()
     settings.remote_click_cnt = REMOTE_CLICK_CNT_DEFAULT;
     settings.remote_click_pos.x = REMOTE_CLICK_POS_DEFAULT;
     settings.remote_click_pos.y = REMOTE_CLICK_POS_DEFAULT;
+    settings.ignored_classes = NULL;
 #ifdef DELAY_EMBEDDING_CONFIRMATION
     settings.confirmation_delay = 3;
 #endif
@@ -122,6 +123,21 @@ int parse_log_level(char *str, int **tgt, int silent)
         PARSING_ERROR("err, info, or trace expected", str);
         return FAILURE;
     }
+    return SUCCESS;
+}
+
+/* Parse list of ignored window classes */
+int parse_ignored_classes(char *str, struct WindowClass ***tgt, int silent)
+{
+    struct WindowClass *newclass = NULL;
+    const char *name = NULL;
+
+    for (name = strtok(str, ", "); name != NULL; name = strtok(NULL, ", ")) {
+        newclass = malloc(sizeof(struct WindowClass));
+        newclass->name = strdup(name);
+        LIST_ADD_ITEM(**tgt, newclass);
+    }
+
     return SUCCESS;
 }
 
@@ -521,6 +537,8 @@ struct Param params[] = {{"-display", NULL, "display", {&settings.display_str},
         (param_parser_t)&parse_wnd_type, 1, 1, 0, NULL},
     {NULL, "--xsync", "xsync", {&settings.xsync}, (param_parser_t)&parse_bool,
         1, 1, 1, "true"},
+    {NULL, "--ignore-classes", "ignore_classes", {&settings.ignored_classes},
+        (param_parser_t)&parse_ignored_classes, 1, 1, 0, NULL},
     {NULL, NULL, NULL, {NULL}}};
 
 void usage(char *progname)
@@ -568,6 +586,8 @@ void usage(char *progname)
         "SW, SE)\n"
         "    -i, --icon-size <n>         set basic icon size to <n>; default "
         "is 24\n"
+        "   --ignore-classes <classes>   ignore tray icons in xembed if the "
+        "tray window has one of the given classes, separated by commas\n"
         "    -h, --help                  show this message\n"
 #ifdef DEBUG
         "    --log-level <level>         set the level of output to either "

@@ -18,6 +18,12 @@
 /* Default name of configuration file */
 #define STALONETRAY_RC "stalonetrayrc"
 
+struct WindowClass {
+    char *name;
+    struct WindowClass *next;
+    struct WindowClass *prev;
+};
+
 struct Settings {
     /* Flags */
     int parent_bg; /* Enable pseudo-transparency using parents' background*/
@@ -35,6 +41,9 @@ struct Settings {
     int kludge_flags; /* What kludges to activate */
 
     int need_help; /* Print usage and exit */
+
+    /* Lists of strings */
+    struct WindowClass *ignored_classes; /* List of window classes to ignore */
 
     /* Strings */
     char *display_str; /* Name of the display */

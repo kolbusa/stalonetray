@@ -140,6 +140,18 @@ void dump_tray_status()
     LOG_INFO(("-----------------------------------\n"));
 }
 
+/* Checks whether a given window class should be ignored */
+int is_ignored_class(const char *name) {
+    struct WindowClass *haystack = NULL;
+
+    for (haystack = settings.ignored_classes; haystack; haystack = haystack->next) {
+        if (!strcmp(name, haystack->name))
+            return 1;
+    }
+
+    return 0;
+}
+
 /**************************************
  * (Un)embedding cycle implementation
  **************************************/
@@ -148,6 +160,7 @@ void dump_tray_status()
 void add_icon(Window w, int cmode)
 {
     struct TrayIcon *ti;
+    const char *classname = x11_get_window_class(tray_data.dpy, w);
     /* Aviod adding duplicates */
     if ((ti = icon_list_find(w)) != NULL) {
         LOG_TRACE(("ignoring second request to embed 0x%x"
@@ -159,6 +172,12 @@ void add_icon(Window w, int cmode)
     if ((ti = icon_list_new(w, cmode)) == NULL) goto failed0;
     LOG_TRACE(("starting embedding for icon 0x%x, cmode=%d\n", w, cmode));
     x11_dump_win_info(tray_data.dpy, w);
+
+    if (is_ignored_class(classname)) {
+        LOG_INFO(("Ignoring icon because its class is ignored: %s\n", classname));
+        goto ok;
+    }
+
     /* Start embedding cycle */
     if (!xembed_check_support(ti)) goto failed1;
     if (ti->is_xembed_supported)
@@ -186,6 +205,7 @@ failed0:
     LOG_INFO(("failed to add icon %s (wid 0x%x)\n",
         x11_get_window_name(tray_data.dpy, ti->wid, "<unknown>"), ti->wid));
 ok:
+    free((void *) classname);
     if (settings.log_level >= LOG_LEVEL_TRACE) dump_tray_status();
     return;
 }
