@@ -167,14 +167,15 @@ int parse_dockapp_mode(int argc, const char **argv, void **references, int silen
  * with current value of tgt */
 int parse_gravity(int argc, const char **argv, void **references, int silent)
 {
-    const char *gravity = argv[0];
+    int *gravity = (int *) references[0];
+    const char *gravity_s = argv[0];
     int parsed = 0;
 
-    if (strlen(argv[0]) > 2)
+    if (strlen(gravity_s) > 2)
         goto fail;
 
-    for (; *gravity; gravity++) {
-        switch (tolower(*gravity)) {
+    for (; *gravity_s; gravity_s++) {
+        switch (tolower(*gravity_s)) {
             case 'n': parsed |= GRAV_N; break;
             case 's': parsed |= GRAV_S; break;
             case 'w': parsed |= GRAV_W; break;
@@ -187,10 +188,12 @@ int parse_gravity(int argc, const char **argv, void **references, int silent)
     if ((parsed & GRAV_N && parsed & GRAV_S) || (parsed & GRAV_E && parsed & GRAV_W))
         goto fail;
 
+    *gravity = parsed;
+
     return SUCCESS;
 
 fail:
-    PARSING_ERROR("gravity expected", argv[0]);
+    PARSING_ERROR("gravity expected", gravity_s);
     return FAILURE;
 }
 
