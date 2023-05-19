@@ -346,7 +346,7 @@ int parse_copystr(int argc, const char **argv, void **references, int silent)
 {
     const char **stringref = (const char **) references[0];
 
-    // Valgrind note: this memory will never be freed before stalonetray's exit.
+    /* Valgrind note: this memory will never be freed before stalonetray's exit. */
     if ((*stringref = strdup(argv[0])) == NULL)
         DIE_OOM(("Could not copy value from parameter\n"));
 
@@ -497,21 +497,21 @@ int parse_size(int argc, const char **argv, void **references, int silent)
 typedef int (*param_parser_t)(int argc, const char **argv, void **references, int silent);
 
 struct Param {
-    const char *short_name;        // short command line parameter name
-    const char *long_name;         // long command line parameter name
-    const char *rc_name;           // parameter name for config file
-    void *references[MAX_TARGETS]; // array of references necessary when parsing
+    const char *short_name;        /* short command line parameter name */
+    const char *long_name;         /* long command line parameter name */
+    const char *rc_name;           /* parameter name for config file */
+    void *references[MAX_TARGETS]; /* array of references necessary when parsing */
 
-    const int pass; // 0th pass parameters are parsed before rc file,
-                    // 1st pass parameters are parsed after it
+    const int pass; /* 0th pass parameters are parsed before rc file, */
+                    /* 1st pass parameters are parsed after it */
 
-    const int min_argc; // minimum number of expected arguments
-    const int max_argc; // maximum number of expected arguments, 0 for unlimited
+    const int min_argc; /* minimum number of expected arguments */
+    const int max_argc; /* maximum number of expected arguments, 0 for unlimited */
 
-    const int default_argc;                     // number of default arguments, if present
-    const char *default_argv[MAX_DEFAULT_ARGS]; // default arguments if none are given
+    const int default_argc;                     /* number of default arguments, if present */
+    const char *default_argv[MAX_DEFAULT_ARGS]; /* default arguments if none are given */
 
-    param_parser_t parser;  // pointer to parsing function
+    param_parser_t parser;  /* pointer to parsing function */
 };
 
 struct Param params[] = {
@@ -1291,42 +1291,42 @@ int parse_cmdline(int argc, char **argv, int pass)
         for (p = params; p->parser != NULL; p++) {
             if (p->max_argc) {
                 if (p->short_name != NULL && strstr(*argv, p->short_name) == *argv) {
-                    if ((*argv)[strlen(p->short_name)] != '\0') { // accept arguments in the form -a5
+                    if ((*argv)[strlen(p->short_name)] != '\0') { /* accept arguments in the form -a5 */
                         argbuf[0] = *argv + strlen(p->short_name);
                         p_argc = 1;
                         p_argv = argbuf;
-                    } else if (argc > 1 && argv[1][0] != '-') { // accept arguments in the form -a 5, do not accept values starting with '-'
+                    } else if (argc > 1 && argv[1][0] != '-') { /* accept arguments in the form -a 5, do not accept values starting with '-' */
                         argbuf[0] = *(++argv);
                         p_argc = 1;
                         p_argv = argbuf;
                         argc--;
-                    } else if (p->min_argc > 1) { // argument is missing
+                    } else if (p->min_argc > 1) { /* argument is missing */
                         LOG_ERROR(("%s expects an argument\n", p->short_name));
                         break;
-                    } else { // argument is optional, use default value
+                    } else { /* argument is optional, use default value */
                         p_argc = p->default_argc;
                         p_argv = p->default_argv;
                     }
                 } else if (p->long_name != NULL && strstr(*argv, p->long_name) == *argv) {
-                    if ((*argv)[strlen(p->long_name)] == '=') {// accept arguments in the form --abcd=5
+                    if ((*argv)[strlen(p->long_name)] == '=') {/* accept arguments in the form --abcd=5 */
                         argbuf[0] = *argv + strlen(p->long_name) + 1;
                         p_argc = 1;
                         p_argv = argbuf;
-                    } else if ((*argv)[strlen(p->long_name)] == '\0') { // accept arguments in the from --abcd 5
-                        if (argc > 1 && argv[1][0] != '-') { // arguments cannot start with the dash
+                    } else if ((*argv)[strlen(p->long_name)] == '\0') { /* accept arguments in the from --abcd 5 */
+                        if (argc > 1 && argv[1][0] != '-') { /* arguments cannot start with the dash */
                             argbuf[0] = *(++argv);
                             p_argc = 1;
                             p_argv = argbuf;
                             argc--;
-                        } else if (p->min_argc > 0) { // argument is missing
+                        } else if (p->min_argc > 0) { /* argument is missing */
                             LOG_ERROR(("%s expects an argument\n", p->long_name));
                             break;
-                        } else { // argument is optional, use default value
+                        } else { /* argument is optional, use default value */
                             p_argc = p->default_argc;
                             p_argv = p->default_argv;
                         }
                     } else
-                        continue; // just in case when there can be both --abc and --abcd
+                        continue; /* just in case when there can be both --abc and --abcd */
                 } else
                     continue;
                 match = p;
