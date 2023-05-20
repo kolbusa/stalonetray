@@ -97,61 +97,67 @@ void init_default_settings()
     if (!silent) LOG_ERROR(("Parsing error: " msg ", \"%s\" found\n", str));
 
 /* Parse highlight color */
-int parse_scrollbars_highlight_color(char *str, char ***tgt, int silent)
+int parse_scrollbars_highlight_color(int argc, const char **argv, void **references, int silent)
 {
-    if (!strcasecmp(str, "disable"))
-        **tgt = NULL;
-    else {
-        **tgt = strdup(str);
-        if (**tgt == NULL) DIE_OOM(("Could not copy value from parameter\n"));
-    }
+    char **highlight_color = (char **) references[0];
+
+    if (!strcasecmp(argv[0], "disable"))
+        *highlight_color = NULL;
+    else if ((*highlight_color = strdup(argv[0])) == NULL)
+        DIE_OOM(("Could not copy value from parameter\n"));
+
     return SUCCESS;
 }
 
 /* Parse log level */
-int parse_log_level(char *str, int **tgt, int silent)
+int parse_log_level(int argc, const char **argv, void **references, int silent)
 {
-    if (!strcmp(str, "err"))
-        **tgt = LOG_LEVEL_ERR;
-    else if (!strcmp(str, "info"))
-        **tgt = LOG_LEVEL_INFO;
+    int *log_level = (int *) references[0];
+
+    if (!strcmp(argv[0], "err"))
+        *log_level = LOG_LEVEL_ERR;
+    else if (!strcmp(argv[0], "info"))
+        *log_level = LOG_LEVEL_INFO;
 #ifdef DEBUG
-    else if (!strcmp(str, "trace"))
-        **tgt = LOG_LEVEL_TRACE;
+    else if (!strcmp(argv[0], "trace"))
+        *log_level = LOG_LEVEL_TRACE;
 #endif
     else {
-        PARSING_ERROR("err, info, or trace expected", str);
+        PARSING_ERROR("err, info, or trace expected", argv[0]);
         return FAILURE;
     }
     return SUCCESS;
 }
 
 /* Parse list of ignored window classes */
-int parse_ignored_classes(char *str, struct WindowClass ***tgt, int silent)
+int parse_ignored_classes(int argc, const char **argv, void **references, int silent)
 {
+    struct WindowClass **classes = (struct WindowClass **) references[0];
     struct WindowClass *newclass = NULL;
     const char *name = NULL;
 
-    for (name = strtok(str, ", "); name != NULL; name = strtok(NULL, ", ")) {
+    for (name = strtok((char *) argv[0], ", "); name != NULL; name = strtok(NULL, ", ")) {
         newclass = malloc(sizeof(struct WindowClass));
         newclass->name = strdup(name);
-        LIST_ADD_ITEM(**tgt, newclass);
+        LIST_ADD_ITEM(*classes, newclass);
     }
 
     return SUCCESS;
 }
 
 /* Parse dockapp mode */
-int parse_dockapp_mode(char *str, int **tgt, int silent)
+int parse_dockapp_mode(int argc, const char **argv, void **references, int silent)
 {
-    if (!strcmp(str, "none"))
-        **tgt = DOCKAPP_NONE;
-    else if (!strcmp(str, "simple"))
-        **tgt = DOCKAPP_SIMPLE;
-    else if (!strcmp(str, "wmaker"))
-        **tgt = DOCKAPP_WMAKER;
+    int *dockapp_mode = (int *) references[0];
+
+    if (!strcmp(argv[0], "none"))
+        *dockapp_mode = DOCKAPP_NONE;
+    else if (!strcmp(argv[0], "simple"))
+        *dockapp_mode = DOCKAPP_SIMPLE;
+    else if (!strcmp(argv[0], "wmaker"))
+        *dockapp_mode = DOCKAPP_WMAKER;
     else {
-        PARSING_ERROR("none, simple, or wmaker expected", str);
+        PARSING_ERROR("none, simple, or wmaker expected", argv[0]);
         return FAILURE;
     }
     return SUCCESS;
@@ -159,192 +165,233 @@ int parse_dockapp_mode(char *str, int **tgt, int silent)
 
 /* Parse gravity string ORing resulting value
  * with current value of tgt */
-int parse_gravity(char *str, int **tgt, int silent)
+int parse_gravity(int argc, const char **argv, void **references, int silent)
 {
-    int i, r = 0, s;
-    if (str == NULL) goto fail;
-    s = strlen(str);
-    if (s > 2) goto fail;
-    for (i = 0; i < s; i++) switch (tolower(str[i])) {
-        case 'n': r |= GRAV_N; break;
-        case 's': r |= GRAV_S; break;
-        case 'w': r |= GRAV_W; break;
-        case 'e': r |= GRAV_E; break;
-        default: goto fail;
+    int *gravity = (int *) references[0];
+    const char *gravity_s = argv[0];
+    int parsed = 0;
+
+    if (strlen(gravity_s) > 2)
+        goto fail;
+
+    for (; *gravity_s; gravity_s++) {
+        switch (tolower(*gravity_s)) {
+            case 'n': parsed |= GRAV_N; break;
+            case 's': parsed |= GRAV_S; break;
+            case 'w': parsed |= GRAV_W; break;
+            case 'e': parsed |= GRAV_E; break;
+            default:
+                goto fail;
         }
-    if ((r & GRAV_N && r & GRAV_S) || (r & GRAV_E && r & GRAV_W)) goto fail;
-    **tgt = r;
+    }
+
+    if ((parsed & GRAV_N && parsed & GRAV_S) || (parsed & GRAV_E && parsed & GRAV_W))
+        goto fail;
+
+    *gravity = parsed;
+
     return SUCCESS;
+
 fail:
-    PARSING_ERROR("gravity expected", str);
+    PARSING_ERROR("gravity expected", gravity_s);
     return FAILURE;
 }
 
 /* Parse integer string storing resulting value in tgt */
-int parse_int(char *str, int **tgt, int silent)
+int parse_int(int argc, const char **argv, void **references, int silent)
 {
-    int r;
-    char *tail;
-    r = strtol(str, &tail, 0);
-    if (*tail == 0) {
-        **tgt = r;
-        return SUCCESS;
-    } else {
-        PARSING_ERROR("integer expected", str);
+    int *parsed = (int *) references[0];
+    char *invalid;
+
+    *parsed = strtol(argv[0], &invalid, 0);
+
+    if (*invalid != '\0') {
+        PARSING_ERROR("integer expected", argv[0]);
         return FAILURE;
     }
+
+    return SUCCESS;
 }
 
 /* Parse kludges mode */
-int parse_kludges(char *str, int **tgt, int silent)
+int parse_kludges(int argc, const char **argv, void **references, int silent)
 {
-    char *curtok = str, *rest = str;
-    do {
-        if ((rest = strchr(rest, ',')) != NULL) *(rest++) = 0;
-        if (!strcasecmp(curtok, "fix_window_pos")) **tgt |= KLUDGE_FIX_WND_POS;
-        /*        else if (!strcasecmp(curtok, "fix_window_size"))*/
-        /*            **tgt = KLUDGE_FIX_WND_SIZE;*/
-        else if (!strcasecmp(curtok, "force_icons_size"))
-            **tgt |= KLUDGE_FORCE_ICONS_SIZE;
-        else if (!strcasecmp(curtok, "use_icons_hints"))
-            **tgt |= KLUDGE_USE_ICONS_HINTS;
+    const char *token = strtok((char *) argv[0], ",");
+    int *kludges = (int *) references[0];
+
+    for (; token != NULL; token = strtok(NULL, ",")) {
+        if (!strcasecmp(token, "fix_window_pos"))
+            *kludges |= KLUDGE_FIX_WND_POS;
+        else if (!strcasecmp(token, "force_icons_size"))
+            *kludges |= KLUDGE_FORCE_ICONS_SIZE;
+        else if (!strcasecmp(token, "use_icons_hints"))
+            *kludges |= KLUDGE_USE_ICONS_HINTS;
         else {
-            PARSING_ERROR("kludge flag expected", curtok);
+            PARSING_ERROR("kludge flag expected", token);
             return FAILURE;
         }
-        curtok = rest;
-    } while (rest != NULL);
+    }
+
     return SUCCESS;
 }
 
 /* Parse strut mode */
-int parse_strut_mode(char *str, int **tgt, int silent)
+int parse_strut_mode(int argc, const char **argv, void **references, int silent)
 {
-    if (!strcasecmp(str, "auto"))
-        **tgt = WM_STRUT_AUTO;
-    else if (!strcasecmp(str, "top"))
-        **tgt = WM_STRUT_TOP;
-    else if (!strcasecmp(str, "bottom"))
-        **tgt = WM_STRUT_BOT;
-    else if (!strcasecmp(str, "left"))
-        **tgt = WM_STRUT_LFT;
-    else if (!strcasecmp(str, "right"))
-        **tgt = WM_STRUT_RHT;
-    else if (!strcasecmp(str, "none"))
-        **tgt = WM_STRUT_NONE;
+    int *strut_mode = (int *) references[0];
+
+    if (!strcasecmp(argv[0], "auto"))
+        *strut_mode = WM_STRUT_AUTO;
+    else if (!strcasecmp(argv[0], "top"))
+        *strut_mode = WM_STRUT_TOP;
+    else if (!strcasecmp(argv[0], "bottom"))
+        *strut_mode = WM_STRUT_BOT;
+    else if (!strcasecmp(argv[0], "left"))
+        *strut_mode = WM_STRUT_LFT;
+    else if (!strcasecmp(argv[0], "right"))
+        *strut_mode = WM_STRUT_RHT;
+    else if (!strcasecmp(argv[0], "none"))
+        *strut_mode = WM_STRUT_NONE;
     else {
         PARSING_ERROR(
-            "one of top, bottom, left, right, or auto expected", str);
+            "one of top, bottom, left, right, or auto expected", argv[0]);
         return FAILURE;
     }
+
     return SUCCESS;
 }
 
 /* Parse boolean string storing result in tgt*/
-int parse_bool(char *str, int **tgt, int silent)
+int parse_bool(int argc, const char **argv, void **references, int silent)
 {
-    if (!strcasecmp(str, "yes") || !strcasecmp(str, "on")
-        || !strcasecmp(str, "true") || !strcasecmp(str, "1"))
-        **tgt = True;
-    else if (!strcasecmp(str, "no") || !strcasecmp(str, "off")
-        || !strcasecmp(str, "false") || !strcasecmp(str, "0"))
-        **tgt = False;
-    else {
-        PARSING_ERROR("boolean expected", str);
-        return FAILURE;
+    const char *true_str[] = {"yes", "on", "true", "1", NULL};
+    const char *false_str[] = {"no", "off", "false", "0", NULL};
+    int *boolean = (int *) references[0];
+
+    for (const char **s = true_str; *s; s++) {
+        if (!strcasecmp(argv[0], *s)) {
+            *boolean = True;
+            return SUCCESS;
+        }
     }
-    return SUCCESS;
+
+    for (const char **s = false_str; *s; s++) {
+        if (!strcasecmp(argv[0], *s)) {
+            *boolean = False;
+            return SUCCESS;
+        }
+    }
+
+    PARSING_ERROR("boolean expected", argv[0]);
+    return FAILURE;
 }
 
 /* Backwards version of the boolean parser */
-int parse_bool_rev(char *str, int **tgt, int silent)
+int parse_bool_rev(int argc, const char **argv, void **references, int silent)
 {
-    if (parse_bool(str, tgt, silent)) {
-        **tgt = !**tgt;
+    int *boolean = (int *) references[0];
+
+    if (parse_bool(argc, argv, references, silent)) {
+        *boolean = ! *boolean;
         return SUCCESS;
     }
+
     return FAILURE;
 }
 
 /* Parse window layer string storing result in tgt */
-int parse_wnd_layer(char *str, char ***tgt, int silent)
+int parse_wnd_layer(int argc, const char **argv, void **references, int silent)
 {
-    if (!strcasecmp(str, "top"))
-        **tgt = _NET_WM_STATE_ABOVE;
-    else if (!strcasecmp(str, "bottom"))
-        **tgt = _NET_WM_STATE_BELOW;
-    else if (!strcasecmp(str, "normal"))
-        **tgt = NULL;
+    char **window_layer = (char **) references[0];
+
+    if (!strcasecmp(argv[0], "top"))
+        *window_layer = _NET_WM_STATE_ABOVE;
+    else if (!strcasecmp(argv[0], "bottom"))
+        *window_layer = _NET_WM_STATE_BELOW;
+    else if (!strcasecmp(argv[0], "normal"))
+        *window_layer = NULL;
     else {
-        PARSING_ERROR("window layer expected", str);
+        PARSING_ERROR("window layer expected", argv[0]);
         return FAILURE;
     }
+
     return SUCCESS;
 }
 
 /* Parse window type string storing result in tgt */
-int parse_wnd_type(char *str, char ***tgt, int silent)
+int parse_wnd_type(int argc, const char **argv, void **references, int silent)
 {
-    if (!strcasecmp(str, "dock"))
-        **tgt = _NET_WM_WINDOW_TYPE_DOCK;
-    else if (!strcasecmp(str, "toolbar"))
-        **tgt = _NET_WM_WINDOW_TYPE_TOOLBAR;
-    else if (!strcasecmp(str, "utility"))
-        **tgt = _NET_WM_WINDOW_TYPE_UTILITY;
-    else if (!strcasecmp(str, "normal"))
-        **tgt = _NET_WM_WINDOW_TYPE_NORMAL;
-    else if (!strcasecmp(str, "desktop"))
-        **tgt = _NET_WM_WINDOW_TYPE_DESKTOP;
+    const char **window_type = (const char **) references[0];
+
+    if (!strcasecmp(argv[0], "dock"))
+        *window_type = _NET_WM_WINDOW_TYPE_DOCK;
+    else if (!strcasecmp(argv[0], "toolbar"))
+        *window_type = _NET_WM_WINDOW_TYPE_TOOLBAR;
+    else if (!strcasecmp(argv[0], "utility"))
+        *window_type = _NET_WM_WINDOW_TYPE_UTILITY;
+    else if (!strcasecmp(argv[0], "normal"))
+        *window_type = _NET_WM_WINDOW_TYPE_NORMAL;
+    else if (!strcasecmp(argv[0], "desktop"))
+        *window_type = _NET_WM_WINDOW_TYPE_DESKTOP;
     else {
-        PARSING_ERROR("window type expected", str);
+        PARSING_ERROR("window type expected", argv[0]);
         return FAILURE;
     }
+
     return SUCCESS;
 }
 
 /* Just copy string from arg to *tgt */
-int parse_copystr(char *str, char ***tgt, int silent)
+int parse_copystr(int argc, const char **argv, void **references, int silent)
 {
-    /* Valgrind note: this memory will never
-     * be freed before stalonetray's exit. */
-    **tgt = strdup(str);
-    if (**tgt == NULL) DIE_OOM(("Could not copy value from parameter\n"));
+    const char **stringref = (const char **) references[0];
+
+    /* Valgrind note: this memory will never be freed before stalonetray's exit. */
+    if ((*stringref = strdup(argv[0])) == NULL)
+        DIE_OOM(("Could not copy value from parameter\n"));
+
     return SUCCESS;
 }
 
 /* Parses window decoration specification */
-int parse_deco(char *str, int **tgt, int silent)
+int parse_deco(int argc, const char **argv, void **references, int silent)
 {
-    if (!strcasecmp(str, "none"))
-        **tgt = DECO_NONE;
-    else if (!strcasecmp(str, "all"))
-        **tgt = DECO_ALL;
-    else if (!strcasecmp(str, "border"))
-        **tgt = DECO_BORDER;
-    else if (!strcasecmp(str, "title"))
-        **tgt = DECO_TITLE;
+    int *decorations = (int *) references[0];
+    const char *arg = argv[0];
+
+    if (!strcasecmp(arg, "none"))
+        *decorations = DECO_NONE;
+    else if (!strcasecmp(arg, "all"))
+        *decorations = DECO_ALL;
+    else if (!strcasecmp(arg, "border"))
+        *decorations = DECO_BORDER;
+    else if (!strcasecmp(arg, "title"))
+        *decorations = DECO_TITLE;
     else {
-        PARSING_ERROR("decoration specification expected", str);
+        PARSING_ERROR("decoration specification expected", arg);
         return FAILURE;
     }
     return SUCCESS;
 }
 
 /* Parses window decoration specification */
-int parse_sb_mode(char *str, int **tgt, int silent)
+int parse_sb_mode(int argc, const char **argv, void **references, int silent)
 {
-    if (!strcasecmp(str, "none"))
-        **tgt = 0;
-    else if (!strcasecmp(str, "vertical"))
-        **tgt = SB_MODE_VERT;
-    else if (!strcasecmp(str, "horizontal"))
-        **tgt = SB_MODE_HORZ;
-    else if (!strcasecmp(str, "all"))
-        **tgt = SB_MODE_HORZ | SB_MODE_VERT;
+    int *sb_mode = (int *) references[0];
+
+    if (!strcasecmp(argv[0], "none"))
+        *sb_mode = 0;
+    else if (!strcasecmp(argv[0], "vertical"))
+        *sb_mode = SB_MODE_VERT;
+    else if (!strcasecmp(argv[0], "horizontal"))
+        *sb_mode = SB_MODE_HORZ;
+    else if (!strcasecmp(argv[0], "all"))
+        *sb_mode = SB_MODE_HORZ | SB_MODE_VERT;
     else {
-        PARSING_ERROR("scrollbars specification expected", str);
+        PARSING_ERROR("scrollbars specification expected", argv[0]);
         return FAILURE;
     }
+
     return SUCCESS;
 }
 
@@ -395,151 +442,710 @@ int parse_remote(char *str, void **tgt, int silent)
 }
 #endif
 
-int parse_remote_click_type(char *str, int **tgt, int silent)
+int parse_remote_click_type(int argc, const char **argv, void **references, int silent)
 {
-    if (!strcasecmp(str, "single"))
-        **tgt = 1;
-    else if (!strcasecmp(str, "double"))
-        **tgt = 2;
+    int *remote_click_type = (int *) references[0];
+
+    if (!strcasecmp(argv[0], "single"))
+        *remote_click_type = 1;
+    else if (!strcasecmp(argv[0], "double"))
+        *remote_click_type = 2;
     else {
-        PARSING_ERROR("click type can be single or double", str);
+        PARSING_ERROR("click type can be single or double", argv[0]);
         return FAILURE;
     }
+
     return SUCCESS;
 }
 
-int parse_pos(char *str, void **tgt, int silent)
+int parse_pos(int argc, const char **argv, void **references, int silent)
 {
-    struct Point *pos = (struct Point *)tgt[0];
+    struct Point *pos = (struct Point *) references[0];
     unsigned int dummy;
-    XParseGeometry(str, &pos->x, &pos->y, &dummy, &dummy);
+    XParseGeometry(argv[0], &pos->x, &pos->y, &dummy, &dummy);
     return SUCCESS;
 }
 
-int parse_size(char *str, void **tgt, int silent)
+int parse_size(int argc, const char **argv, void **references, int silent)
 {
-    struct Point *size = (struct Point *)tgt[0];
-    int dummy;
-    unsigned w, h;
-    int rc = XParseGeometry(str, &dummy, &dummy, &w, &h);
-    if (rc == 0 || rc & ~(WidthValue | HeightValue))
+    struct Point *size = (struct Point *) references[0];
+    unsigned int width, height;
+    int bitmask, dummy;
+
+    bitmask = XParseGeometry(argv[0], &dummy, &dummy, &width, &height);
+
+    if (bitmask == 0 || bitmask & ~(WidthValue | HeightValue))
         return FAILURE;
-    if ((rc & HeightValue) == 0)
-        h = w;
-    val_range(w, 0, INT_MAX);
-    val_range(h, 0, INT_MAX);
-    size->x = w;
-    size->y = h;
+    if ((bitmask & HeightValue) == 0)
+        height = width;
+
+    val_range(width, 0, INT_MAX);
+    val_range(height, 0, INT_MAX);
+
+    size->x = width;
+    size->y = height;
+
     return SUCCESS;
 }
 
 /************ CLI **************/
 
 #define MAX_TARGETS 10
+#define MAX_DEFAULT_ARGS 10
 
 /* parameter parser function */
-typedef int (*param_parser_t)(char *str, void *tgt[MAX_TARGETS], int silent);
+typedef int (*param_parser_t)(int argc, const char **argv, void **references, int silent);
 
 struct Param {
-    char *short_name; /* Short command line parameter name */
-    char *long_name; /* Long command line parameter name */
-    char *rc_name; /* Parameter name for rc file */
-    void *target[MAX_TARGETS]; /* Pointers to the values that are set by this
-                                  parameter */
-    param_parser_t parser; /* Pointer to parsing function */
-    int pass; /* 0th pass parameters are parsed before rc file,
-                 1st pass parameters are parsed after it */
-    int takes_arg; /* Wheather this parameter takes an argument */
-    int optional_arg; /* Wheather the argument is optional */
-    char *default_arg_val; /* Default value of the argument if none is given */
-    /* char *desc; */ /* TODO: Description */
+    const char *short_name;        /* short command line parameter name */
+    const char *long_name;         /* long command line parameter name */
+    const char *rc_name;           /* parameter name for config file */
+    void *references[MAX_TARGETS]; /* array of references necessary when parsing */
+
+    const int pass; /* 0th pass parameters are parsed before rc file, */
+                    /* 1st pass parameters are parsed after it */
+
+    const int min_argc; /* minimum number of expected arguments */
+    const int max_argc; /* maximum number of expected arguments, 0 for unlimited */
+
+    const int default_argc;                     /* number of default arguments, if present */
+    const char *default_argv[MAX_DEFAULT_ARGS]; /* default arguments if none are given */
+
+    param_parser_t parser;  /* pointer to parsing function */
 };
 
-struct Param params[] = {{"-display", NULL, "display", {&settings.display_str},
-                             (param_parser_t)&parse_copystr, 1, 1, 0, NULL},
-    {NULL, "--log-level", "log_level", {&settings.log_level},
-        (param_parser_t)&parse_log_level, 1, 1, 0, NULL},
-    {"-bg", "--background", "background", {&settings.bg_color_str},
-        (param_parser_t)&parse_copystr, 1, 1, 0, NULL},
-    {"-c", "--config", NULL, {&settings.config_fname},
-        (param_parser_t)&parse_copystr, 0, 1, 0, NULL},
+struct Param params[] = {
+    {
+        .short_name = "-display",
+        .long_name  = NULL,
+        .rc_name    = "display",
+        .references = { (void *) &settings.display_str },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_copystr
+    },
+    {
+        .short_name = NULL,
+        .long_name = "--log-level",
+        .rc_name = "log_level",
+        .references = { (void *) &settings.log_level },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_log_level
+    },
+    {
+        .short_name = "-bg",
+        .long_name = "--background",
+        .rc_name = "background",
+        .references = { (void *) &settings.bg_color_str },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_copystr
+    },
+    {
+        .short_name = "-c",
+        .long_name = "--config",
+        .rc_name = NULL,
+        .references = { (void *) &settings.config_fname },
+
+        .pass = 0,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_copystr
+    },
+    {
+        .short_name = "-d",
+        .long_name = "--decorations",
+        .rc_name = "decorations",
+        .references = { (void *) &settings.deco_flags },
+
+        .pass = 1,
+
+        .min_argc = 0,
+        .max_argc = 1,
+
+        .default_argc = 1,
+        .default_argv = { "all" },
+
+        .parser = (param_parser_t) &parse_deco
+    },
+    {
+        .short_name = NULL,
+        .long_name = "--dockapp-mode",
+        .rc_name = "dockapp_mode",
+        .references = { (void *) &settings.dockapp_mode },
+
+        .pass = 1,
+
+        .min_argc = 0,
+        .max_argc = 1,
+
+        .default_argc = 1,
+        .default_argv = { "simple" },
+
+        .parser = (param_parser_t) &parse_dockapp_mode
+    },
+    {
+        .short_name = "-f",
+        .long_name = "--fuzzy-edges",
+        .rc_name = "fuzzy_edges",
+        .references = { (void *) &settings.fuzzy_edges },
+
+        .pass = 1,
+
+        .min_argc = 0,
+        .max_argc = 1,
+
+        .default_argc = 1,
+        .default_argv = { "2" },
+
+        .parser = (param_parser_t) &parse_int
+    },
+    {
+        .short_name = "-geometry",
+        .long_name = "--geometry",
+        .rc_name = "geometry",
+        .references = { (void *) &settings.geometry_str },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_copystr
+    },
+    {
+        .short_name = NULL,
+        .long_name = "--grow_gravity",
+        .rc_name = "grow_gravity",
+        .references = { (void *) &settings.grow_gravity },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_gravity
+    },
+    {
+        .short_name = NULL,
+        .long_name = "--icon-gravity",
+        .rc_name = "icon_gravity",
+        .references = { (void *) &settings.icon_gravity },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_gravity
+    },
+    {
+        .short_name = "-i",
+        .long_name = "--icon-size",
+        .rc_name = "icon_size",
+        .references = { (void *) &settings.icon_size },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_int
+    },
+    {
+        .short_name = "-h",
+        .long_name = "--help",
+        .rc_name = NULL,
+        .references = { (void *) &settings.need_help },
+
+        .pass = 0,
+
+        .min_argc = 0,
+        .max_argc = 0,
+
+        .default_argc = 1,
+        .default_argv = {"true"},
+
+        .parser = (param_parser_t) &parse_bool
+    },
+    {
+        .short_name = NULL,
+        .long_name = "--kludges",
+        .rc_name = "kludges",
+        .references = { (void *) &settings.kludge_flags },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_kludges
+    },
+    {
+        .short_name = NULL,
+        .long_name = "--max-geometry",
+        .rc_name = "max_geometry",
+        .references = { (void *) &settings.max_geometry_str },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_copystr
+    },
+    {
+        .short_name = NULL,
+        .long_name = "--no-shrink",
+        .rc_name = "no_shrink",
+        .references = { (void *) &settings.shrink_back_mode },
+
+        .pass = 1,
+
+        .min_argc = 0,
+        .max_argc = 1,
+
+        .default_argc = 1,
+        .default_argv = {"true"},
+
+        .parser = (param_parser_t) &parse_bool_rev
+    },
+    {
+        .short_name = "-p",
+        .long_name = "--parent-bg",
+        .rc_name = "parent_bg",
+        .references = { (void *) &settings.parent_bg },
+
+        .pass = 1,
+
+        .min_argc = 0,
+        .max_argc = 1,
+
+        .default_argc = 1,
+        .default_argv = {"true"},
+
+        .parser = (param_parser_t) &parse_bool
+    },
+    {
+        .short_name = "-r",
+        .long_name = "--remote-click-icon",
+        .rc_name = NULL,
+        .references = { (void *) &settings.remote_click_name },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_copystr
+    },
+    {
+        .short_name = NULL,
+        .long_name = "--remote-click-button",
+        .rc_name = NULL,
+        .references = { (void *) &settings.remote_click_btn },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_int
+    },
+    {
+        .short_name = NULL,
+        .long_name = "--remote-click-position",
+        .rc_name = NULL,
+        .references = { (void *) &settings.remote_click_pos },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_pos
+    },
+    {
+        .short_name = NULL,
+        .long_name = "--remote-click-type",
+        .rc_name = NULL,
+        .references = { (void *) &settings.remote_click_cnt },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_remote_click_type
+    },
+    {
+        .short_name = NULL,
+        .long_name = "--scrollbars",
+        .rc_name = "scrollbars",
+        .references = { (void *) &settings.scrollbars_mode },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_sb_mode
+    },
+    {
+        .short_name = NULL,
+        .long_name = "--scrollbars-highlight",
+        .rc_name = "scrollbars_highlight",
+        .references = { (void *) &settings.scrollbars_highlight_color_str },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_scrollbars_highlight_color
+    },
+    {
+        .short_name = NULL,
+        .long_name = "--scrollbars-step",
+        .rc_name = "scrollbars_step",
+        .references = { (void *) &settings.scrollbars_inc },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_int
+    },
+    {
+        .short_name = NULL,
+        .long_name = "--scrollbars-size",
+        .rc_name = "scrollbars_size",
+        .references = { (void *) &settings.scrollbars_size },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_int
+    },
+    {
+        .short_name = NULL,
+        .long_name = "--skip-taskbar",
+        .rc_name = "skip_taskbar",
+        .references = { (void *) &settings.skip_taskbar },
+
+        .pass = 1,
+
+        .min_argc = 0,
+        .max_argc = 1,
+
+        .default_argc = 1,
+        .default_argv = {"true"},
+
+        .parser = (param_parser_t) &parse_bool
+    },
+    {
+        .short_name = "-s",
+        .long_name = "--slot-size",
+        .rc_name = "slot_size",
+        .references = { (void *) &settings.slot_size },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_size
+    },
+    {
+        .short_name = NULL,
+        .long_name = "--sticky",
+        .rc_name = "sticky",
+        .references = { (void *) &settings.sticky },
+
+        .pass = 1,
+
+        .min_argc = 0,
+        .max_argc = 1,
+
+        .default_argc = 1,
+        .default_argv = {"true"},
+
+        .parser = (param_parser_t) &parse_bool
+    },
+    {
+        .short_name = NULL,
+        .long_name = "--tint-color",
+        .rc_name = "tint_color",
+        .references = { (void *) &settings.tint_color_str },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_copystr
+    },
+    {
+        .short_name = NULL,
+        .long_name = "--tint-level",
+        .rc_name = "tint_level",
+        .references = { (void *) &settings.tint_level },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_int
+    },
+    {
+        .short_name = "-t",
+        .long_name = "--transparent",
+        .rc_name = "transparent",
+        .references = { (void *) &settings.transparent },
+
+        .pass = 1,
+
+        .min_argc = 0,
+        .max_argc = 1,
+
+        .default_argc = 1,
+        .default_argv = {"true"},
+
+        .parser = (param_parser_t) &parse_bool
+    },
+    {
+        .short_name = "-v",
+        .long_name = "--vertical",
+        .rc_name = "vertical",
+        .references = { (void *) &settings.vertical },
+
+        .pass = 1,
+
+        .min_argc = 0,
+        .max_argc = 1,
+
+        .default_argc = 1,
+        .default_argv = {"true"},
+
+        .parser = (param_parser_t) &parse_bool
+    },
+    {
+        .short_name = NULL,
+        .long_name = "--window-layer",
+        .rc_name = "window_layer",
+        .references = { (void *) &settings.wnd_layer },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_wnd_layer
+    },
+    {
+        .short_name = NULL,
+        .long_name = "--window-name",
+        .rc_name = "window_name",
+        .references = { (void *) &settings.wnd_name },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_copystr
+    },
+    {
+        .short_name = NULL,
+        .long_name = "--window-strut",
+        .rc_name = "window_strut",
+        .references = { (void *) &settings.wm_strut_mode },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_strut_mode
+    },
+    {
+        .short_name = NULL,
+        .long_name = "--window-type",
+        .rc_name = "window_type",
+        .references = { (void *) &settings.wnd_type },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_wnd_type
+    },
+    {
+        .short_name = NULL,
+        .long_name = "--xsync",
+        .rc_name = "xsync",
+        .references = { (void *) &settings.xsync },
+
+        .pass = 1,
+
+        .min_argc = 0,
+        .max_argc = 1,
+
+        .default_argc = 1,
+        .default_argv = {"true"},
+
+        .parser = (param_parser_t) &parse_bool
+    },
+    {
+        .short_name = NULL,
+        .long_name = "--ignore-classes",
+        .rc_name = "ignore_classes",
+        .references = { (void *) &settings.ignored_classes },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_ignored_classes
+    },
+
 #ifdef DELAY_EMBEDDING_CONFIRMATION
-    {NULL, "--confirmation-delay", "confirmation_delay",
-        {&settings.confirmation_delay}, (param_parser_t)&parse_int, 1, 1, 0,
-        NULL},
+    {
+        .short_name = NULL,
+        .long_name = "--confirmation-delay",
+        .rc_name = "confirmation_delay",
+        .references = { (void *) &settings.confirmation_delay },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_int
+    },
 #endif
-    {"-d", "--decorations", "decorations", {&settings.deco_flags},
-        (param_parser_t)&parse_deco, 1, 1, 1, "all"},
-    {NULL, "--dockapp-mode", "dockapp_mode", {&settings.dockapp_mode},
-        (param_parser_t)&parse_dockapp_mode, 1, 1, 1, "simple"},
-    {"-f", "--fuzzy-edges", "fuzzy_edges", {&settings.fuzzy_edges},
-        (param_parser_t)&parse_int, 1, 1, 1, "2"},
-    {"-geometry", "--geometry", "geometry", {&settings.geometry_str},
-        (param_parser_t)&parse_copystr, 1, 1, 0, NULL},
-    {NULL, "--grow-gravity", "grow_gravity", {&settings.grow_gravity},
-        (param_parser_t)&parse_gravity, 1, 1, 0, NULL},
-    {NULL, "--icon-gravity", "icon_gravity", {&settings.icon_gravity},
-        (param_parser_t)&parse_gravity, 1, 1, 0, NULL},
-    {"-i", "--icon-size", "icon_size", {&settings.icon_size},
-        (param_parser_t)&parse_int, 1, 1, 0, NULL},
-    {"-h", "--help", NULL, {&settings.need_help}, (param_parser_t)&parse_bool,
-        0, 0, 0, "true"},
-    {NULL, "--kludges", "kludges", {&settings.kludge_flags},
-        (param_parser_t)&parse_kludges, 1, 1, 0, NULL},
-    {NULL, "--max-geometry", "max_geometry", {&settings.max_geometry_str},
-        (param_parser_t)&parse_copystr, 1, 1, 0, NULL},
-    {NULL, "--no-shrink", "no_shrink", {&settings.shrink_back_mode},
-        (param_parser_t)&parse_bool_rev, 1, 1, 1, "true"},
-    {"-p", "--parent-bg", "parent_bg", {&settings.parent_bg},
-        (param_parser_t)&parse_bool, 1, 1, 1, "true"},
+
 #ifdef XPM_SUPPORTED
-    {NULL, "--pixmap-bg", "pixmap_bg", {&settings.bg_pmap_path},
-        (param_parser_t)&parse_copystr, 1, 1, 0, NULL},
+    {
+        .short_name = NULL,
+        .long_name = "--pixmap-bg",
+        .rc_name = "pixmap_bg",
+        .references = { (void *) &settings.bg_pmap_path },
+
+        .pass = 1,
+
+        .min_argc = 1,
+        .max_argc = 1,
+
+        .default_argc = 0,
+        .default_argv = NULL,
+
+        .parser = (param_parser_t) &parse_copystr
+    },
 #endif
-    {"-r", "--remote-click-icon", NULL, {&settings.remote_click_name},
-        (param_parser_t)&parse_copystr, 1, 1, 0, NULL},
-    {NULL, "--remote-click-button", NULL, {&settings.remote_click_btn},
-        (param_parser_t)&parse_int, 1, 1, 0, NULL},
-    {NULL, "--remote-click-position", NULL, {&settings.remote_click_pos},
-        (param_parser_t)&parse_pos, 1, 1, 0, NULL},
-    {NULL, "--remote-click-type", NULL, {&settings.remote_click_cnt},
-        (param_parser_t)&parse_remote_click_type, 1, 1, 0, NULL},
-    {NULL, "--scrollbars", "scrollbars", {&settings.scrollbars_mode},
-        (param_parser_t)&parse_sb_mode, 1, 1, 0, NULL},
-    {NULL, "--scrollbars-highlight", "scrollbars_highlight",
-        {&settings.scrollbars_highlight_color_str},
-        (param_parser_t)&parse_scrollbars_highlight_color, 1, 1, 0, NULL},
-    {NULL, "--scrollbars-step", "scrollbars_step", {&settings.scrollbars_inc},
-        (param_parser_t)&parse_int, 1, 1, 0, NULL},
-    {NULL, "--scrollbars-size", "scrollbars_size", {&settings.scrollbars_size},
-        (param_parser_t)&parse_int, 1, 1, 0, NULL},
-    {NULL, "--skip-taskbar", "skip_taskbar", {&settings.skip_taskbar},
-        (param_parser_t)&parse_bool, 1, 1, 1, "true"},
-    {"-s", "--slot-size", "slot_size", {&settings.slot_size},
-        (param_parser_t)&parse_size, 1, 1, 0, NULL},
-    {NULL, "--sticky", "sticky", {&settings.sticky},
-        (param_parser_t)&parse_bool, 1, 1, 1, "true"},
-    {NULL, "--tint-color", "tint_color", {&settings.tint_color_str},
-        (param_parser_t)&parse_copystr, 1, 1, 0, NULL},
-    {NULL, "--tint-level", "tint_level", {&settings.tint_level},
-        (param_parser_t)&parse_int, 1, 1, 0, NULL},
-    {"-t", "--transparent", "transparent", {&settings.transparent},
-        (param_parser_t)&parse_bool, 1, 1, 1, "true"},
-    {"-v", "--vertical", "vertical", {&settings.vertical},
-        (param_parser_t)&parse_bool, 1, 1, 1, "true"},
-    {NULL, "--window-layer", "window_layer", {&settings.wnd_layer},
-        (param_parser_t)&parse_wnd_layer, 1, 1, 0, NULL},
-    {NULL, "--window-name", "window_name", {&settings.wnd_name},
-        (param_parser_t)&parse_copystr, 1, 1, 0, NULL},
-    {NULL, "--window-strut", "window_strut", {&settings.wm_strut_mode},
-        (param_parser_t)&parse_strut_mode, 1, 1, 0, NULL},
-    {NULL, "--window-type", "window_type", {&settings.wnd_type},
-        (param_parser_t)&parse_wnd_type, 1, 1, 0, NULL},
-    {NULL, "--xsync", "xsync", {&settings.xsync}, (param_parser_t)&parse_bool,
-        1, 1, 1, "true"},
-    {NULL, "--ignore-classes", "ignore_classes", {&settings.ignored_classes},
-        (param_parser_t)&parse_ignored_classes, 1, 1, 0, NULL},
-    {NULL, NULL, NULL, {NULL}}};
+};
 
 void usage(char *progname)
 {
@@ -676,84 +1282,96 @@ int parse_cmdline(int argc, char **argv, int pass)
 {
     struct Param *p, *match;
     char *arg, *progname = argv[0];
+    const char **p_argv = NULL, *argbuf[MAX_DEFAULT_ARGS];
+    int p_argc;
+
     while (--argc > 0) {
         argv++;
         match = NULL;
         for (p = params; p->parser != NULL; p++) {
-            if (p->takes_arg) {
-                if (p->short_name != NULL
-                    && strstr(*argv, p->short_name) == *argv) {
-                    if ((*argv)[strlen(p->short_name)]
-                        != '\0') /* accept arguments in the form -a5 */
-                        arg = *argv + strlen(p->short_name);
-                    else if (argc > 1
-                        && argv[1][0] != '-') { /* accept arguments in the form
-                                                   -a 5, do not accept values
-                                                   starting with '-' */
-                        arg = *(++argv);
+            if (p->max_argc) {
+                if (p->short_name != NULL && strstr(*argv, p->short_name) == *argv) {
+                    if ((*argv)[strlen(p->short_name)] != '\0') { /* accept arguments in the form -a5 */
+                        argbuf[0] = *argv + strlen(p->short_name);
+                        p_argc = 1;
+                        p_argv = argbuf;
+                    } else if (argc > 1 && argv[1][0] != '-') { /* accept arguments in the form -a 5, do not accept values starting with '-' */
+                        argbuf[0] = *(++argv);
+                        p_argc = 1;
+                        p_argv = argbuf;
                         argc--;
-                    } else if (!p->optional_arg) { /* argument is missing */
+                    } else if (p->min_argc > 1) { /* argument is missing */
                         LOG_ERROR(("%s expects an argument\n", p->short_name));
                         break;
-                    } else /* argument is optional, use default value */
-                        arg = p->default_arg_val;
-                } else if (p->long_name != NULL
-                    && strstr(*argv, p->long_name) == *argv) {
-                    if ((*argv)[strlen(p->long_name)]
-                        == '=') /* accept arguments in the form --abcd=5 */
-                        arg = *argv + strlen(p->long_name) + 1;
-                    else if ((*argv)[strlen(p->long_name)]
-                        == '\0') { /* accept arguments in the from ---abcd 5 */
-                        if (argc > 1
-                            && argv[1][0] != '-') { /* arguments cannot start
-                                                       with the dash */
-                            arg = *(++argv);
+                    } else { /* argument is optional, use default value */
+                        p_argc = p->default_argc;
+                        p_argv = p->default_argv;
+                    }
+                } else if (p->long_name != NULL && strstr(*argv, p->long_name) == *argv) {
+                    if ((*argv)[strlen(p->long_name)] == '=') {/* accept arguments in the form --abcd=5 */
+                        argbuf[0] = *argv + strlen(p->long_name) + 1;
+                        p_argc = 1;
+                        p_argv = argbuf;
+                    } else if ((*argv)[strlen(p->long_name)] == '\0') { /* accept arguments in the from --abcd 5 */
+                        if (argc > 1 && argv[1][0] != '-') { /* arguments cannot start with the dash */
+                            argbuf[0] = *(++argv);
+                            p_argc = 1;
+                            p_argv = argbuf;
                             argc--;
-                        } else if (!p->optional_arg) { /*argument is missing */
-                            LOG_ERROR(
-                                ("%s expects an argument\n", p->long_name));
+                        } else if (p->min_argc > 0) { /* argument is missing */
+                            LOG_ERROR(("%s expects an argument\n", p->long_name));
                             break;
-                        } else /* argument is optional, use default value */
-                            arg = p->default_arg_val;
+                        } else { /* argument is optional, use default value */
+                            p_argc = p->default_argc;
+                            p_argv = p->default_argv;
+                        }
                     } else
-                        continue; /* just in case when there can be both --abc
-                                     and --abcd */
+                        continue; /* just in case when there can be both --abc and --abcd */
                 } else
                     continue;
                 match = p;
                 break;
-            } else if (strcmp(*argv, p->short_name) == 0
-                || strcmp(*argv, p->long_name) == 0) {
+            } else if (strcmp(*argv, p->short_name) == 0 || strcmp(*argv, p->long_name) == 0) {
                 match = p;
-                arg = p->default_arg_val;
+                p_argc = p->default_argc;
+                p_argv = p->default_argv;
                 break;
             }
         }
+
 #define USAGE_AND_DIE() \
     do { \
         usage(progname); \
         DIE(("Could not parse command line\n")); \
     } while (0)
+
         if (match == NULL) USAGE_AND_DIE();
         if (match->pass != pass) continue;
-        if (arg == NULL) DIE_IE(("Argument cannot be NULL!\n"));
-        LOG_TRACE(("cmdline: pass %d, param \"%s\", arg \"%s\"\n", pass,
-            match->long_name != NULL ? match->long_name : match->short_name,
-            arg));
-        if (!match->parser(arg, match->target, match->optional_arg)) {
-            if (match->optional_arg) {
+        if (p_argv == NULL) DIE_IE(("Argument cannot be NULL!\n"));
+
+        LOG_TRACE(("cmdline: pass %d, param \"%s\", args: [", pass, match->long_name != NULL ? match->long_name : match->short_name));
+
+        for (int i = 0; i < p_argc - 1; i++)
+            LOG_TRACE(("\"%s\", ", p_argv[i]));
+
+        LOG_TRACE(("\"%s\"]\n", p_argv[p_argc - 1]));
+
+        if (!match->parser(p_argc, p_argv, match->references, match->min_argc == 0)) {
+            if (match->min_argc == 0) {
+                assert(p_argv != match->default_argv);
+                match->parser(match->default_argc, match->default_argv, match->references, False);
                 argc++;
                 argv--;
-                assert(arg != match->default_arg_val);
-                match->parser(match->default_arg_val, match->target, False);
             } else
                 USAGE_AND_DIE();
         }
     }
+
     if (settings.need_help) {
         usage(progname);
         exit(0);
     }
+
     return SUCCESS;
 }
 
@@ -872,8 +1490,9 @@ void parse_rc()
     char buf[READ_BUF_SZ + 1];
     int lnum = 0;
 
-    int argc;
-    char **argv, *arg;
+    int argc, p_argc;
+    char **argv;
+    const char **p_argv;
 
     struct Param *p, *match;
 
@@ -919,33 +1538,50 @@ void parse_rc()
         if (!argc) continue; /* This is empty/comment-only line */
 
         match = NULL;
+        p_argc = argc - 1;
+        p_argv = (const char **) argv + 1;
+
         for (p = params; p->parser != NULL; p++) {
             if (p->rc_name != NULL && strcmp(argv[0], p->rc_name) == 0) {
-                if (argc - 1 > (p->takes_arg ? 1 : 0)
-                    || (!p->optional_arg && argc - 1 < 1))
-                    DIE(("Configuration file parse error at %s:%d:"
-                         "invalid number of args for \"%s\" (%s required)\n",
-                        settings.config_fname, lnum, argv[0],
-                        p->optional_arg ? "0/1" : "1"));
+                if (argc - 1 < p->min_argc || argc - 1 > p->max_argc) {
+                    DIE(("Configuration file parse error at %s:%d: "
+                         "invalid number of args for \"%s\" (%d-%d required)\n",
+                        settings.config_fname, lnum,
+                        p->rc_name, p->min_argc, p->max_argc));
+                }
+
                 match = p;
-                arg = (!p->takes_arg || (p->optional_arg && argc == 1))
-                    ? p->default_arg_val
-                    : argv[1];
+
+                if (p_argc == 0) {
+                    p_argc = match->default_argc;
+                    p_argv = match->default_argv;
+                }
+
                 break;
             }
         }
+
         if (!match) {
             DIE(("Configuration file parse error at %s:%d: unrecognized rc "
                  "file keyword \"%s\".\n",
                 settings.config_fname, lnum, argv[0]));
         }
-        assert(arg != NULL);
-        LOG_TRACE(("rc: param \"%s\", arg \"%s\"\n", match->rc_name, arg));
-        if (!match->parser(arg, match->target, False)) {
+
+        assert(p_argv != NULL);
+
+        LOG_TRACE(("rc: param \"%s\", args [\"", match->rc_name));
+
+        for (int i = 0; i < p_argc - 1; i++)
+            LOG_TRACE(("\"%s\", ", p_argv[i]));
+
+        LOG_TRACE(("\"%s\"]\n", p_argv[p_argc - 1]));
+
+        if (!match->parser(p_argc, p_argv, match->references, False)) {
             DIE(("Configuration file parse error at %s:%d: could not parse "
                  "argument for \"%s\".\n",
                 settings.config_fname, lnum, argv[0]));
         }
+
         free(argv);
     }
 
