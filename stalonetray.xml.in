@@ -76,7 +76,7 @@
   <option>-c</option> or <option>--config</option> command-line options.</para>
 
   <para>Stalonetray can be configured to write diagnostic log messages to the
-  sandard error stream.</para>
+  standard error stream.</para>
 
   <para>Below is the list of possible command line/configuration file options.
   Options starting with hyphens are command-line parameters others are
