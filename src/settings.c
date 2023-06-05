@@ -134,11 +134,11 @@ int parse_ignored_classes(int argc, const char **argv, void **references, int si
 {
     struct WindowClass **classes = (struct WindowClass **) references[0];
     struct WindowClass *newclass = NULL;
-    const char *name = NULL;
+    int i;
 
-    for (name = strtok((char *) argv[0], ", "); name != NULL; name = strtok(NULL, ", ")) {
+    for (i = 0; i < argc; i++) {
         newclass = malloc(sizeof(struct WindowClass));
-        newclass->name = strdup(name);
+        newclass->name = strdup(argv[i]);
         LIST_ADD_ITEM(*classes, newclass);
     }
 
@@ -1100,7 +1100,7 @@ struct Param params[] = {
         .pass = 1,
 
         .min_argc = 1,
-        .max_argc = 1,
+        .max_argc = 0,
 
         .default_argc = 0,
         .default_argv = NULL,
