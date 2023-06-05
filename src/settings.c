@@ -1543,7 +1543,7 @@ void parse_rc()
 
         for (p = params; p->parser != NULL; p++) {
             if (p->rc_name != NULL && strcmp(argv[0], p->rc_name) == 0) {
-                if (argc - 1 < p->min_argc || argc - 1 > p->max_argc) {
+                if (argc - 1 < p->min_argc || (p->max_argc && argc - 1 > p->max_argc)) {
                     DIE(("Configuration file parse error at %s:%d: "
                          "invalid number of args for \"%s\" (%d-%d required)\n",
                         settings.config_fname, lnum,
