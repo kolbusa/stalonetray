@@ -1093,7 +1093,7 @@ struct Param params[] = {
     },
     {
         .short_name = NULL,
-        .long_name = "--ignore-classes",
+        .long_name = NULL,
         .rc_name = "ignore_classes",
         .references = { (void *) &settings.ignored_classes },
 

@@ -200,7 +200,6 @@
   </varlistentry>
 
   <varlistentry>
-  <term><option>--ignore-classes</option> <replaceable>classes</replaceable></term>
   <term><option>ignore_classes</option> <replaceable>classes</replaceable></term>
   <listitem><para>Set X11 window class names to be ignored by stalonetray.
   Class names are separate arguments: <userinput>class1 class2 ...</userinput>.
