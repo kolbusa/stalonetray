@@ -645,7 +645,7 @@ struct Param params[] = {
     },
     {
         .short_name = NULL,
-        .long_name = "--grow_gravity",
+        .long_name = "--grow-gravity",
         .rc_name = "grow_gravity",
         .references = { (void *) &settings.grow_gravity },
 
