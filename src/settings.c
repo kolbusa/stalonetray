@@ -1300,7 +1300,7 @@ int parse_cmdline(int argc, char **argv, int pass)
                         p_argc = 1;
                         p_argv = argbuf;
                         argc--;
-                    } else if (p->min_argc > 1) { /* argument is missing */
+                    } else if (p->min_argc > 0) { /* argument is missing */
                         LOG_ERROR(("%s expects an argument\n", p->short_name));
                         break;
                     } else { /* argument is optional, use default value */
