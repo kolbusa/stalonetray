@@ -177,6 +177,7 @@ AC_DEFUN([AX_CHECK_DOCBOOK], [
         /usr/share/sgml/docbook/stylesheet/xsl/nwalsh \
         /usr/share/xml/docbook/stylesheet/docbook-xs \
         /usr/share/sgml/docbook/xsl-stylesheets/ \
+        /usr/share/xsl/docbook \
         /usr/local/share/xsl/docbook \
     ; do
         if test -d "$i"; then
