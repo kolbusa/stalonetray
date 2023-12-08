@@ -160,52 +160,66 @@ int is_ignored_class(const char *name) {
 void add_icon(Window w, int cmode)
 {
     struct TrayIcon *ti;
-    const char *classname = x11_get_window_class(tray_data.dpy, w);
+    const char *classname = NULL;
     /* Aviod adding duplicates */
     if ((ti = icon_list_find(w)) != NULL) {
         LOG_TRACE(("ignoring second request to embed 0x%x"
-                   "(requested cmode=%d, current cmode=%d\n",
+                   " (requested cmode=%d, current cmode=%d)\n",
             w, cmode, ti->cmode));
         return;
     }
     /* Dear Edsger W. Dijkstra, I see you behind my back =( */
-    if ((ti = icon_list_new(w, cmode)) == NULL) goto failed0;
+    if ((ti = icon_list_new(w, cmode)) == NULL) goto icon_allocation_failed;
     LOG_TRACE(("starting embedding for icon 0x%x, cmode=%d\n", w, cmode));
     x11_dump_win_info(tray_data.dpy, w);
 
+    classname = x11_get_window_class(tray_data.dpy, w);
+    if (classname == NULL) {
+        LOG_TRACE(("Ignoring icon, x11_get_window_class() failed: 0x%x"
+                   " (requested cmode=%d)\n",
+            w, cmode));
+        goto embedding_failed;
+    }
+
     if (is_ignored_class(classname)) {
         LOG_INFO(("Ignoring icon because its class is ignored: %s\n", classname));
-        goto ok;
+        goto done;
     }
 
     /* Start embedding cycle */
-    if (!xembed_check_support(ti)) goto failed1;
+    if (!xembed_check_support(ti)) goto embedding_failed;
     if (ti->is_xembed_supported)
         ti->is_visible = xembed_get_mapped_state(ti);
     else
         ti->is_visible = True;
     if (ti->is_visible) {
-        if (!embedder_reset_size(ti)) goto failed1;
-        if (!layout_add(ti)) goto failed1;
+        if (!embedder_reset_size(ti)) goto embedding_failed;
+        if (!layout_add(ti)) goto embedding_failed;
     }
-    if (!xembed_embed(ti)) goto failed1;
-    if (!embedder_embed(ti)) goto failed2;
+    if (!xembed_embed(ti)) goto embedding_failed_after_layout;
+    if (!embedder_embed(ti)) goto embedding_failed_after_layout;
     embedder_update_positions(False);
     tray_update_window_props();
     /* Report success */
     LOG_INFO(("added icon %s (wid 0x%x) as %s\n",
         x11_get_window_name(tray_data.dpy, ti->wid, "<unknown>"), ti->wid,
         ti->is_visible ? "visible" : "hidden"));
-    goto ok;
-failed2:
+    goto done;
+
+embedding_failed_after_layout:
     layout_remove(ti);
-failed1:
+
+embedding_failed:
     icon_list_free(ti);
-failed0:
+
+icon_allocation_failed:
     LOG_INFO(("failed to add icon %s (wid 0x%x)\n",
         x11_get_window_name(tray_data.dpy, ti->wid, "<unknown>"), ti->wid));
-ok:
-    free((void *) classname);
+
+done:
+    if (classname != NULL)
+        free((void *) classname);
+
     if (settings.log_level >= LOG_LEVEL_TRACE) dump_tray_status();
     return;
 }
