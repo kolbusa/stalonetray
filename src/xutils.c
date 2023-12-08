@@ -384,9 +384,15 @@ int x11_parse_color(Display *dpy, char *str, XColor *color)
 
 char *x11_get_window_class(Display *dpy, Window w) {
     XClassHint hint;
+    Status res = 0;
     char *classname = NULL;
 
-    XGetClassHint(dpy, w, &hint);
+    res = XGetClassHint(dpy, w, &hint);
+    if (res == 0) {
+        LOG_TRACE(("XGetClassHint(dpy, 0x%x, &hint) failed: %x", w, res));
+        return NULL;
+    }
+
     classname = strdup(hint.res_class);
     XFree(hint.res_name);
     XFree(hint.res_class);
