@@ -31,7 +31,11 @@ void debug_disable_output();
 
 /* Print the message to STDERR (in the sake of portability, we do not use
  * varadic macros) */
-void print_message_to_stderr(const char *fmt, ...);
+void print_message_to_stderr(const char *fmt, ...)
+#ifdef __GNUC__
+    __attribute__((__format__(__printf__, 1, 2)))
+#endif
+    ;
 
 #ifdef DEBUG
 /* The following defines control what is printed in each logged line */
