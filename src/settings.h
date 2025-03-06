@@ -39,6 +39,7 @@ struct Settings {
     int shrink_back_mode; /* Keep tray's window size minimal */
     int dockapp_mode; /* Activate dockapp mode */
     int kludge_flags; /* What kludges to activate */
+    int scroll_everywhere; /* Whether scrolling is limited to the scrollbars only */
 
     int need_help; /* Print usage and exit */
 
