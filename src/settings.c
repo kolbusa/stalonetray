@@ -86,6 +86,7 @@ void init_default_settings()
     settings.remote_click_pos.x = REMOTE_CLICK_POS_DEFAULT;
     settings.remote_click_pos.y = REMOTE_CLICK_POS_DEFAULT;
     settings.ignored_classes = NULL;
+    settings.scroll_everywhere = 0;
 #ifdef DELAY_EMBEDDING_CONFIRMATION
     settings.confirmation_delay = 3;
 #endif
@@ -901,6 +902,22 @@ struct Param params[] = {
     },
     {
         .short_name = NULL,
+        .long_name = "--scroll-everywhere",
+        .rc_name = "scroll_everywhere",
+        .references = { (void *) &settings.scroll_everywhere },
+
+        .pass = 1,
+
+        .min_argc = 0,
+        .max_argc = 1,
+
+        .default_argc = 1,
+        .default_argv = {"true"},
+
+        .parser = (param_parser_t) &parse_bool
+    },
+    {
+        .short_name = NULL,
         .long_name = "--skip-taskbar",
         .rc_name = "skip_taskbar",
         .references = { (void *) &settings.skip_taskbar },
@@ -1249,6 +1266,7 @@ void usage(char *progname)
         "                                or disable\n"
         "    --scrollbars-step <n>       set scrollbar step to n pixels\n"
         "    --scrollbars-size <n>       set scrollbar size to n pixels\n"
+        "    --scroll-everywhere         enable scrolling outside of the scrollbars too\n"
         "    --slot-size <w>[x<h>]       set icon slot size in pixels\n"
         "                                if omitted, hight is set equal to width\n"
         "    --skip-taskbar              hide tray`s window from the taskbar\n"

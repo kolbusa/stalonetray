@@ -354,6 +354,14 @@
   </varlistentry>
 
   <varlistentry>
+  <term><option>--scroll-everywhere</option></term>
+  <term><option>scroll_everywhere</option> <optional><replaceable>bool</replaceable></optional></term>
+  <listitem><para>Enable scrolling outside of the scrollbars too. Default value:
+  <userinput>false</userinput>.
+  </para></listitem>
+  </varlistentry>
+
+  <varlistentry>
   <term><option>--skip-taskbar</option></term>
   <term><option>skip_taskbar</option> <optional><replaceable>bool</replaceable></optional></term>
   <listitem><para>Hide tray`s window from the taskbar. Default value:

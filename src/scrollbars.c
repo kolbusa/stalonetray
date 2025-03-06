@@ -70,6 +70,14 @@ void scrollbars_create()
         tray_data.scrollbars_data.scrollbar[SB_WND_RHT] = None;
     }
     scrollbars_update();
+    
+    if (settings.scroll_everywhere && settings.scrollbars_mode != SB_MODE_NONE) {
+        XGrabButton(tray_data.dpy, Button5, AnyModifier, tray_data.tray, False,
+                ButtonReleaseMask, GrabModeAsync, GrabModeAsync, None, None);
+        XGrabButton(tray_data.dpy, Button4, AnyModifier, tray_data.tray, False,
+                ButtonReleaseMask, GrabModeAsync, GrabModeAsync, None, None);
+    }
+
     for (i = 0; i < SB_WND_MAX; i++)
         if (tray_data.scrollbars_data.scrollbar[i] != None) {
 #ifndef DEBUG_SCROLLBAR_POSITIONS
